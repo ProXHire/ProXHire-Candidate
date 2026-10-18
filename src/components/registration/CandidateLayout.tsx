@@ -132,23 +132,6 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
         {/* Top Header bar */}
         <div className="cand-form-header-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button
-              type="button"
-              onClick={() => setViewMode('dashboard')}
-              style={{
-                fontSize: '12px',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                background: '#f4f4f5',
-                color: '#334155',
-                fontWeight: 600,
-                border: '1px solid #e4e4e7'
-              }}
-              title="Preview Candidate Dashboard"
-            >
-              View Dashboard Preview →
-            </button>
-
             {step <= 2 ? (
               <span style={{ fontSize: '13px', color: '#64748b' }}>
                 Already have an account?{' '}

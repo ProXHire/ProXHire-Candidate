@@ -41,26 +41,6 @@ function CandidateContent() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Utility Bar */}
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '6px 20px',
-          backgroundColor: '#0c0d0e',
-          color: '#ffffff',
-          fontSize: '12px',
-          borderBottom: '1px solid #27272a',
-          zIndex: 9999
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontWeight: 800, letterSpacing: '0.5px' }}>
-            PROXHIRE &bull; CANDIDATE / STUDENT PORTAL
-          </span>
-        </div>
-      </header>
 
       {/* Main View */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
