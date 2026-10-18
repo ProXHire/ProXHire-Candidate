@@ -137,7 +137,7 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
         {/* Top Header bar */}
         <div className="cand-form-header-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {step <= 2 ? (
+            {step <= 2 && (
               <span style={{ fontSize: '13px', color: '#64748b' }}>
                 Already have an account?{' '}
                 <a
@@ -151,16 +151,6 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
                   Login
                 </a>
               </span>
-            ) : (
-              <button
-                type="button"
-                className="cand-save-exit-btn"
-                onClick={() => {
-                  window.location.href = 'https://proxhire.in'
-                }}
-              >
-                Save & Exit
-              </button>
             )}
           </div>
         </div>
