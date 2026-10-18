@@ -49,24 +49,26 @@ export const Step2BasicDetails: React.FC = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <div className="cand-step-indicator">STEP 2 OF 6</div>
-      <h2 className="cand-step-title">Basic Account Details</h2>
-      <p className="cand-step-subtitle">
-        Create your account with a few quick details.
-      </p>
+    <form onSubmit={handleSubmit} className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, justifyContent: 'space-between' }}>
+      <div className="cand-step-intro">
+        <div className="cand-step-indicator">STEP 2 OF 6</div>
+        <h2 className="cand-step-title">Basic Account Details</h2>
+        <p className="cand-step-subtitle">
+          Create your account with a few quick details.
+        </p>
+      </div>
 
       {errorMsg && (
         <div
           style={{
-            padding: '12px 16px',
+            padding: '8px 12px',
             backgroundColor: '#fef2f2',
             border: '1px solid #fecaca',
             color: '#b91c1c',
-            borderRadius: '8px',
-            fontSize: '13px',
+            borderRadius: '6px',
+            fontSize: '12px',
             fontWeight: 500,
-            marginBottom: '20px'
+            marginBottom: '10px'
           }}
         >
           {errorMsg}
@@ -82,7 +84,7 @@ export const Step2BasicDetails: React.FC = () => {
           </label>
           <div className="cand-input-wrapper">
             <span className="cand-input-icon">
-              <User size={18} />
+              <User size={16} />
             </span>
             <input
               type="text"
@@ -102,7 +104,7 @@ export const Step2BasicDetails: React.FC = () => {
           </label>
           <div className="cand-input-wrapper">
             <span className="cand-input-icon">
-              <Mail size={18} />
+              <Mail size={16} />
             </span>
             <input
               type="email"
@@ -133,7 +135,7 @@ export const Step2BasicDetails: React.FC = () => {
             </select>
             <div className="cand-input-wrapper">
               <span className="cand-input-icon">
-                <Smartphone size={18} />
+                <Smartphone size={16} />
               </span>
               <input
                 type="tel"
@@ -154,7 +156,7 @@ export const Step2BasicDetails: React.FC = () => {
           </label>
           <div className="cand-input-wrapper">
             <span className="cand-input-icon">
-              <CreditCard size={18} />
+              <CreditCard size={16} />
             </span>
             <input
               type="text"
@@ -175,7 +177,7 @@ export const Step2BasicDetails: React.FC = () => {
           </label>
           <div className="cand-input-wrapper">
             <span className="cand-input-icon">
-              <Lock size={18} />
+              <Lock size={16} />
             </span>
             <input
               type={showPassword ? 'text' : 'password'}
@@ -190,7 +192,7 @@ export const Step2BasicDetails: React.FC = () => {
               style={{ position: 'absolute', right: '12px', color: '#71717a' }}
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
         </div>
@@ -202,7 +204,7 @@ export const Step2BasicDetails: React.FC = () => {
           </label>
           <div className="cand-input-wrapper">
             <span className="cand-input-icon">
-              <Lock size={18} />
+              <Lock size={16} />
             </span>
             <input
               type={showConfirmPassword ? 'text' : 'password'}
@@ -217,7 +219,7 @@ export const Step2BasicDetails: React.FC = () => {
               style={{ position: 'absolute', right: '12px', color: '#71717a' }}
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
-              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
         </div>

@@ -27,11 +27,12 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
 
   // Stepper progress line width
   const progressPercent = ((step - 1) / (stepsList.length - 1)) * 100
+  const isSinglePageStep = step === 1 || step === 2
 
   return (
-    <div className="cand-split-container">
+    <div className={`cand-split-container ${isSinglePageStep ? `cand-step-${step}-container cand-single-page-container` : ''}`}>
       {/* Left Col - Architectural Visual Banner */}
-      <div className="cand-hero-col">
+      <div className={`cand-hero-col ${isSinglePageStep ? `cand-step-${step}-hero cand-single-page-hero` : ''}`}>
         <div className="cand-hero-bg" />
         <div className="cand-hero-overlay" />
 
@@ -128,7 +129,7 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
       </div>
 
       {/* Right Col - Step Content */}
-      <div className="cand-form-col">
+      <div className={`cand-form-col ${isSinglePageStep ? `cand-step-${step}-col cand-single-page-col` : ''}`}>
         {/* Top Header bar */}
         <div className="cand-form-header-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -200,7 +201,7 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
         </div>
 
         {/* Form Body Container */}
-        <div className="cand-form-body">{children}</div>
+        <div className={`cand-form-body ${isSinglePageStep ? `cand-step-${step}-body cand-single-page-body` : ''}`}>{children}</div>
       </div>
     </div>
   )

@@ -524,6 +524,366 @@ input, select, textarea {
 }
 
 /* ========================================================
+   SINGLE-PAGE VIEWPORT FIT (STEPS 1 & 2 - ZERO SCROLL)
+   ======================================================== */
+.cand-single-page-container,
+.cand-step-1-container,
+.cand-step-2-container {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+.cand-single-page-hero,
+.cand-step-1-hero,
+.cand-step-2-hero {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  padding: clamp(18px, 2.8vh, 36px) clamp(24px, 3.5vw, 44px);
+}
+
+.cand-single-page-hero .cand-hero-content,
+.cand-step-1-hero .cand-hero-content,
+.cand-step-2-hero .cand-hero-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cand-single-page-hero .cand-hero-main,
+.cand-step-1-hero .cand-hero-main,
+.cand-step-2-hero .cand-hero-main {
+  margin: clamp(8px, 1.8vh, 22px) 0;
+}
+
+.cand-single-page-hero .cand-hero-title,
+.cand-step-1-hero .cand-hero-title,
+.cand-step-2-hero .cand-hero-title {
+  font-size: clamp(24px, 3.2vh, 34px);
+  line-height: 1.15;
+  margin-bottom: clamp(6px, 1vh, 12px);
+}
+
+.cand-single-page-hero .cand-hero-desc,
+.cand-step-1-hero .cand-hero-desc,
+.cand-step-2-hero .cand-hero-desc {
+  font-size: clamp(12px, 1.4vh, 13.5px);
+  line-height: 1.45;
+  margin-bottom: clamp(10px, 1.6vh, 20px);
+  max-width: 340px;
+}
+
+.cand-single-page-hero .cand-feature-list,
+.cand-step-1-hero .cand-feature-list,
+.cand-step-2-hero .cand-feature-list {
+  gap: clamp(8px, 1.4vh, 16px);
+}
+
+.cand-single-page-hero .cand-feature-item,
+.cand-step-1-hero .cand-feature-item,
+.cand-step-2-hero .cand-feature-item {
+  gap: 12px;
+}
+
+.cand-single-page-hero .cand-feature-icon-box,
+.cand-step-1-hero .cand-feature-icon-box,
+.cand-step-2-hero .cand-feature-icon-box {
+  width: clamp(32px, 3.8vh, 40px);
+  height: clamp(32px, 3.8vh, 40px);
+}
+
+.cand-single-page-hero .cand-feature-text h4,
+.cand-step-1-hero .cand-feature-text h4,
+.cand-step-2-hero .cand-feature-text h4 {
+  font-size: clamp(12px, 1.45vh, 13.5px);
+  margin-bottom: 2px;
+}
+
+.cand-single-page-hero .cand-feature-text p,
+.cand-step-1-hero .cand-feature-text p,
+.cand-step-2-hero .cand-feature-text p {
+  font-size: clamp(11px, 1.3vh, 12px);
+  line-height: 1.35;
+}
+
+.cand-single-page-hero .cand-hero-footer,
+.cand-step-1-hero .cand-hero-footer,
+.cand-step-2-hero .cand-hero-footer {
+  padding-top: clamp(6px, 1.2vh, 14px);
+}
+
+.cand-single-page-hero .cand-hero-script-tag,
+.cand-step-1-hero .cand-hero-script-tag {
+  font-size: clamp(22px, 3vh, 32px);
+  line-height: 1.1;
+}
+
+/* Right Form Column for Single-Page Steps (1 & 2) */
+.cand-single-page-col,
+.cand-step-1-col,
+.cand-step-2-col {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  padding: clamp(14px, 2.2vh, 24px) clamp(28px, 4vw, 56px);
+  display: flex;
+  flex-direction: column;
+}
+
+.cand-single-page-col .cand-form-header-bar,
+.cand-step-1-col .cand-form-header-bar,
+.cand-step-2-col .cand-form-header-bar {
+  margin-bottom: clamp(6px, 1.2vh, 14px);
+}
+
+.cand-single-page-col .cand-stepper-wrap,
+.cand-step-1-col .cand-stepper-wrap,
+.cand-step-2-col .cand-stepper-wrap {
+  margin-bottom: clamp(10px, 1.8vh, 20px);
+  padding: 0 8px;
+}
+
+.cand-single-page-col .cand-step-circle,
+.cand-step-1-col .cand-step-circle,
+.cand-step-2-col .cand-step-circle {
+  width: clamp(26px, 3.2vh, 30px);
+  height: clamp(26px, 3.2vh, 30px);
+  font-size: 12px;
+}
+
+.cand-single-page-col .cand-stepper-line,
+.cand-single-page-col .cand-stepper-progress,
+.cand-step-1-col .cand-stepper-line,
+.cand-step-1-col .cand-stepper-progress,
+.cand-step-2-col .cand-stepper-line,
+.cand-step-2-col .cand-stepper-progress {
+  top: clamp(13px, 1.6vh, 15px);
+}
+
+.cand-single-page-col .cand-step-label,
+.cand-step-1-col .cand-step-label,
+.cand-step-2-col .cand-step-label {
+  font-size: clamp(10.5px, 1.3vh, 11.5px);
+}
+
+.cand-single-page-body,
+.cand-step-1-body,
+.cand-step-2-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cand-single-page-col .cand-step-indicator,
+.cand-step-1-col .cand-step-indicator,
+.cand-step-2-col .cand-step-indicator {
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  margin-bottom: 2px;
+}
+
+.cand-single-page-col .cand-step-title,
+.cand-step-1-col .cand-step-title,
+.cand-step-2-col .cand-step-title {
+  font-size: clamp(20px, 2.6vh, 26px);
+  margin-bottom: clamp(2px, 0.5vh, 5px);
+}
+
+.cand-single-page-col .cand-step-subtitle,
+.cand-step-1-col .cand-step-subtitle,
+.cand-step-2-col .cand-step-subtitle {
+  font-size: clamp(12px, 1.35vh, 13px);
+  line-height: 1.35;
+  margin-bottom: clamp(8px, 1.4vh, 14px);
+}
+
+/* ========================================================
+   STEP 1 SPECIFICS: CARDS
+   ======================================================== */
+.cand-step-1-col .cand-exp-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(12px, 1.8vw, 22px);
+  margin-bottom: clamp(10px, 1.8vh, 20px);
+  flex: 1;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.cand-step-1-col .cand-exp-card {
+  padding: clamp(12px, 1.8vh, 22px) clamp(12px, 1.6vw, 20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  border-radius: var(--radius-md);
+}
+
+.cand-step-1-col .cand-exp-pedestal-wrap {
+  width: 90px;
+  height: clamp(50px, 7.5vh, 72px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: clamp(6px, 1vh, 12px);
+}
+
+.cand-exp-icon-box {
+  width: clamp(44px, 5.8vh, 54px);
+  height: clamp(44px, 5.8vh, 54px);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+
+.cand-step-1-col .cand-pedestal-ellipse {
+  position: absolute;
+  bottom: 4px;
+  width: 76px;
+  height: 16px;
+}
+
+.cand-step-1-col .cand-exp-title {
+  font-size: clamp(15px, 2vh, 18px);
+  font-weight: 700;
+  margin-bottom: clamp(3px, 0.5vh, 6px);
+}
+
+.cand-step-1-col .cand-exp-desc {
+  font-size: clamp(11.5px, 1.35vh, 12.8px);
+  line-height: 1.38;
+  margin-bottom: clamp(8px, 1.4vh, 14px);
+  max-width: 270px;
+}
+
+.cand-step-1-col .cand-exp-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.cand-step-1-col .cand-exp-tag-pill {
+  padding: clamp(3px, 0.45vh, 5px) clamp(8px, 0.9vw, 12px);
+  font-size: clamp(10.5px, 1.2vh, 11.5px);
+}
+
+.cand-step-1-col .cand-action-footer {
+  margin-top: auto;
+  padding-top: clamp(10px, 1.5vh, 18px);
+}
+
+.cand-step-1-col .cand-btn-primary {
+  height: clamp(38px, 5vh, 44px);
+  padding: 0 clamp(18px, 2.5vw, 28px);
+  font-size: clamp(12.5px, 1.4vh, 14px);
+}
+
+/* ========================================================
+   STEP 2 SPECIFICS: BASIC DETAILS (ZERO SCROLL FIT)
+   ======================================================== */
+.cand-step-2-col .cand-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(7px, 1.1vh, 12px) clamp(14px, 1.8vw, 22px);
+  margin-bottom: clamp(6px, 1vh, 10px);
+}
+
+.cand-step-2-col .cand-field-group {
+  gap: 3px;
+}
+
+.cand-step-2-col .cand-field-label {
+  font-size: clamp(11.5px, 1.3vh, 12.8px);
+  font-weight: 600;
+}
+
+.cand-step-2-col .cand-input,
+.cand-step-2-col .cand-country-code-select {
+  height: clamp(36px, 4.4vh, 42px);
+  font-size: clamp(12px, 1.35vh, 13px);
+  padding-left: 38px;
+}
+
+.cand-step-2-col .cand-country-code-select {
+  padding-left: 32px;
+  width: clamp(80px, 6vw, 92px);
+}
+
+.cand-step-2-col .cand-input-icon {
+  left: 12px;
+}
+
+.cand-step-2-col .cand-pwd-strength-row {
+  margin-top: clamp(-4px, -0.5vh, -1px);
+  margin-bottom: clamp(5px, 0.9vh, 10px);
+  font-size: 11px;
+  gap: 6px;
+}
+
+.cand-step-2-col .cand-pwd-bar-segment {
+  width: 26px;
+  height: 3px;
+}
+
+.cand-step-2-col .cand-prebgv-card {
+  padding: clamp(7px, 1vh, 11px) clamp(10px, 1.3vw, 14px);
+  gap: 10px;
+  margin-bottom: clamp(6px, 1vh, 10px);
+  border-radius: var(--radius-sm);
+  background-color: #fbfbfc;
+}
+
+.cand-step-2-col .cand-prebgv-content h5 {
+  font-size: clamp(11.8px, 1.3vh, 12.8px);
+  margin-bottom: 2px;
+}
+
+.cand-step-2-col .cand-prebgv-content p {
+  font-size: clamp(10px, 1.2vh, 11.5px);
+  line-height: 1.32;
+}
+
+.cand-step-2-col .cand-prebgv-link {
+  font-size: 11px;
+}
+
+.cand-step-2-col .cand-checkbox-label {
+  font-size: clamp(11px, 1.25vh, 12px);
+  margin-bottom: clamp(6px, 1.1vh, 14px);
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.cand-step-2-col .cand-checkbox-label input[type="checkbox"],
+.cand-step-2-col .cand-prebgv-card input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+}
+
+.cand-step-2-col .cand-action-footer {
+  margin-top: auto;
+  padding-top: clamp(8px, 1.2vh, 14px);
+}
+
+.cand-step-2-col .cand-btn-primary,
+.cand-step-2-col .cand-btn-back {
+  height: clamp(36px, 4.5vh, 42px);
+  padding: 0 clamp(16px, 2vw, 24px);
+  font-size: clamp(12px, 1.35vh, 13.5px);
+}
+
+/* ========================================================
    STEP 2: BASIC ACCOUNT DETAILS
    ======================================================== */
 .cand-form-grid {

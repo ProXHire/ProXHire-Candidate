@@ -6,12 +6,14 @@ export const Step1ExperienceType: React.FC = () => {
   const { formData, updateField, nextStep } = useCandidate()
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <div className="cand-step-indicator">STEP 1 OF 6</div>
-      <h2 className="cand-step-title">Let's get started</h2>
-      <p className="cand-step-subtitle">
-        Tell us about your work experience so we can personalize your journey and show you the most relevant opportunities.
-      </p>
+    <div className="cand-step-1-content" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, justifyContent: 'space-between' }}>
+      <div className="cand-step-intro">
+        <div className="cand-step-indicator">STEP 1 OF 6</div>
+        <h2 className="cand-step-title">Let's get started</h2>
+        <p className="cand-step-subtitle">
+          Tell us about your work experience so we can personalize your journey and show you the most relevant opportunities.
+        </p>
+      </div>
 
       {/* 2 Choice Cards */}
       <div className="cand-exp-choice-grid">
@@ -26,20 +28,13 @@ export const Step1ExperienceType: React.FC = () => {
 
           <div className="cand-exp-pedestal-wrap">
             <div
+              className="cand-exp-icon-box"
               style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '16px',
                 backgroundColor: '#090a0f',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
-                zIndex: 2
+                color: '#ffffff'
               }}
             >
-              <GraduationCap size={36} strokeWidth={2.2} />
+              <GraduationCap className="cand-exp-icon" size={28} strokeWidth={2.2} />
             </div>
             <div className="cand-pedestal-ellipse" />
           </div>
@@ -67,20 +62,13 @@ export const Step1ExperienceType: React.FC = () => {
 
           <div className="cand-exp-pedestal-wrap">
             <div
+              className="cand-exp-icon-box"
               style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '16px',
                 backgroundColor: '#18181b',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
-                zIndex: 2
+                color: '#ffffff'
               }}
             >
-              <Briefcase size={34} strokeWidth={2.2} />
+              <Briefcase className="cand-exp-icon" size={26} strokeWidth={2.2} />
             </div>
             <div className="cand-pedestal-ellipse" />
           </div>

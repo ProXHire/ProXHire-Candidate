@@ -40,10 +40,25 @@ function CandidateContent() {
   }, [setStep, setViewMode])
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-
+    <div
+      style={{
+        minHeight: '100vh',
+        height: viewMode === 'registration' && (step === 1 || step === 2) ? '100vh' : undefined,
+        overflow: viewMode === 'registration' && (step === 1 || step === 2) ? 'hidden' : undefined,
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
       {/* Main View */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          overflow: viewMode === 'registration' && (step === 1 || step === 2) ? 'hidden' : undefined
+        }}
+      >
         {viewMode === 'dashboard' ? (
           <CandidateDashboard />
         ) : (
