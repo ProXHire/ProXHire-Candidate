@@ -1818,8 +1818,307 @@ select.cand-input option,
   margin-top: 2px;
 }
 
-/* Responsive */
+/* ========================================================
+   CANDIDATE DASHBOARD: MOBILE & RESPONSIVE UX
+   ======================================================== */
+.cand-dash-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cand-dash-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #e4e4e7;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #09090b;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cand-dash-icon-btn:hover {
+  background-color: #f4f4f5;
+}
+
+.cand-unread-badge {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  border: 1.5px solid #ffffff;
+}
+
+.cand-dash-profile-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 10px 4px 5px;
+  border-radius: 9999px;
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cand-dash-profile-pill:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.cand-dash-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #090a0f;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cand-dash-profile-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #09090b;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cand-mobile-menu-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #e4e4e7;
+  background-color: #ffffff;
+  align-items: center;
+  justify-content: center;
+  color: #09090b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cand-mobile-menu-toggle:hover {
+  background-color: #f4f4f5;
+}
+
+/* Mobile Tabs Bar */
+.cand-mobile-tabs-container {
+  display: none;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e4e4e7;
+  position: sticky;
+  top: 60px;
+  z-index: 99;
+  width: 100%;
+}
+
+.cand-mobile-tabs-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.cand-mobile-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.cand-mobile-tab-btn {
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+  background-color: #f4f4f5;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cand-mobile-tab-btn.active {
+  background-color: #09090b;
+  color: #ffffff;
+}
+
+/* Mobile Drawer */
+.cand-mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  animation: candFadeIn 0.2s ease;
+}
+
+.cand-mobile-drawer {
+  width: 82%;
+  max-width: 320px;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+  animation: candSlideIn 0.22s ease;
+}
+
+@keyframes candSlideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes candFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cand-drawer-user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.cand-drawer-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.cand-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.cand-drawer-link:hover,
+.cand-drawer-link.active {
+  background-color: #f1f5f9;
+  color: #09090b;
+}
+
+.cand-drawer-link.active {
+  font-weight: 700;
+}
+
+.cand-drawer-footer {
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Table Responsive wrapper */
+.cand-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cand-apps-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+}
+
+.cand-table-scroll-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  display: none;
+}
+
+/* Modal Responsive */
+.cand-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.cand-modal-dialog {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: clamp(20px, 4vw, 32px);
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.cand-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Desktop Only: Zero Scroll Container */
+@media (min-width: 1025px) {
+  .cand-app-single-page {
+    height: 100vh;
+    overflow: hidden;
+  }
+  .cand-app-single-page-body {
+    overflow: hidden;
+  }
+}
+
+/* ========================================================
+   RESPONSIVE BREAKPOINTS: TABLET & MOBILE
+   ======================================================== */
 @media (max-width: 1024px) {
+  .cand-single-page-container,
+  .cand-step-1-container,
+  .cand-step-2-container {
+    height: auto;
+    max-height: none;
+    min-height: 100vh;
+    overflow: visible;
+  }
   .cand-split-container {
     flex-direction: column;
   }
@@ -1827,19 +2126,95 @@ select.cand-input option,
     width: 100%;
     max-width: 100%;
     min-width: auto;
-    min-height: 480px;
+    min-height: 380px;
   }
   .cand-form-col {
     padding: 32px 24px;
   }
+
+  /* Candidate Dashboard on Tablet */
+  .cand-dash-header {
+    padding: 0 20px;
+    height: 64px;
+  }
+  .cand-dash-nav {
+    display: none;
+  }
+  .cand-mobile-menu-toggle {
+    display: flex;
+  }
+  .cand-mobile-tabs-container {
+    display: block;
+    top: 64px;
+  }
+  .cand-dash-main {
+    padding: 24px 20px 48px;
+  }
   .cand-dash-grid {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
   .cand-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   .cand-job-cards-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .cand-dash-header {
+    padding: 0 16px;
+    height: 60px;
+  }
+  .cand-mobile-tabs-container {
+    top: 60px;
+  }
+  .cand-dash-logo {
+    height: 38px !important;
+  }
+  .cand-dash-profile-name {
+    display: none;
+  }
+  .cand-dash-chevron {
+    display: none;
+  }
+  .cand-dash-profile-pill {
+    padding: 3px;
+    border-radius: 50%;
+  }
+  .cand-table-scroll-hint {
+    display: block;
+  }
+  .cand-banner-hero {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 22px 18px;
+    gap: 18px;
+    background-position: center;
+  }
+  .cand-banner-left h1 {
+    font-size: 24px;
+  }
+  .cand-banner-left p {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .cand-banner-right {
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-left: 0;
+    padding-top: 14px;
+    text-align: left;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .cand-banner-right .explore-stat {
+    font-size: 26px;
+  }
+  .cand-banner-right .explore-sub {
+    font-size: 12px;
   }
 }
 
@@ -1856,7 +2231,98 @@ select.cand-input option,
   .cand-review-grid {
     grid-template-columns: 1fr;
   }
-  .cand-stats-grid {
+  .cand-hero-col {
+    min-height: 280px;
+    padding: 24px 20px;
+  }
+  .cand-hero-title {
+    font-size: 28px;
+  }
+  .cand-hero-desc {
+    font-size: 13px;
+  }
+  .cand-feature-list {
+    display: none;
+  }
+  .cand-hero-script-tag {
+    font-size: 32px;
+  }
+  .cand-form-col {
+    padding: 24px 16px;
+  }
+  .cand-trust-assurance-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 520px) {
+  .cand-dash-main {
+    padding: 16px 12px 40px;
+  }
+  .cand-banner-hero {
+    padding: 18px 14px;
+    border-radius: var(--radius-md);
+  }
+  .cand-banner-left h1 {
+    font-size: 22px;
+  }
+  .cand-search-bar {
+    flex-direction: column;
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .cand-search-input {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  .cand-search-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px;
+    font-size: 12.5px;
+  }
+  .cand-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .cand-stat-card {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+  .cand-stat-icon-wrap {
+    width: 36px;
+    height: 36px;
+  }
+  .cand-stat-number {
+    font-size: 20px;
+  }
+  .cand-stat-title {
+    font-size: 11px;
+  }
+  .cand-stat-link {
+    font-size: 10.5px;
+  }
+  .cand-apps-card {
+    padding: 18px 14px !important;
+  }
+  .cand-complete-profile-card {
+    padding: 18px 14px;
+  }
+  .cand-quick-grid {
+    grid-template-columns: 1fr;
+  }
+  .cand-modal-actions {
+    flex-direction: column-reverse;
+  }
+  .cand-modal-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+  .cand-bgv-perks-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
