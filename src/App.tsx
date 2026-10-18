@@ -41,22 +41,21 @@ function CandidateContent() {
 
   return (
     <div
+      className={viewMode === 'registration' && (step === 1 || step === 2) ? 'cand-app-single-page' : ''}
       style={{
         minHeight: '100vh',
-        height: viewMode === 'registration' && (step === 1 || step === 2) ? '100vh' : undefined,
-        overflow: viewMode === 'registration' && (step === 1 || step === 2) ? 'hidden' : undefined,
         display: 'flex',
         flexDirection: 'column'
       }}
     >
       {/* Main View */}
       <div
+        className={viewMode === 'registration' && (step === 1 || step === 2) ? 'cand-app-single-page-body' : ''}
         style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          minHeight: 0,
-          overflow: viewMode === 'registration' && (step === 1 || step === 2) ? 'hidden' : undefined
+          minHeight: 0
         }}
       >
         {viewMode === 'dashboard' ? (

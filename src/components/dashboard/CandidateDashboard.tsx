@@ -11,7 +11,9 @@ import {
   ArrowRight,
   TrendingUp,
   CheckCircle2,
-  ChevronDown
+  ChevronDown,
+  Menu,
+  X
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import type { JobCardData, ApplicationRowData } from '../../types'
@@ -21,6 +23,7 @@ export const CandidateDashboard: React.FC = () => {
   const [activeNav, setActiveNav] = useState('Dashboard')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedJob, setSelectedJob] = useState<JobCardData | null>(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const [jobs, setJobs] = useState<JobCardData[]>([
     {
@@ -104,14 +107,15 @@ export const CandidateDashboard: React.FC = () => {
     <div style={{ minHeight: '100vh', backgroundColor: '#fafafb', display: 'flex', flexDirection: 'column' }}>
       {/* Top Navbar */}
       <header className="cand-dash-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
           {/* Logo */}
           <div className="cand-brand-row">
             <img
               src="/logo.png"
               alt="ProXHire"
+              className="cand-dash-logo"
               style={{
-                height: '48px',
+                height: '46px',
                 width: 'auto',
                 objectFit: 'contain',
                 display: 'block'
@@ -119,7 +123,7 @@ export const CandidateDashboard: React.FC = () => {
             />
           </div>
 
-          {/* Navigation Links */}
+          {/* Desktop Navigation Links */}
           <nav className="cand-dash-nav">
             {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages', 'Career Resources'].map(nav => (
               <span
@@ -134,64 +138,128 @@ export const CandidateDashboard: React.FC = () => {
         </div>
 
         {/* Right Header Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="cand-dash-right-actions">
           <button
             type="button"
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              border: '1px solid #e4e4e7',
-              backgroundColor: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#09090b'
-            }}
+            className="cand-dash-icon-btn"
+            aria-label="Notifications"
           >
             <Bell size={18} />
+            <span className="cand-unread-badge" />
           </button>
 
           {/* Profile pill */}
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              cursor: 'pointer',
-              padding: '4px 10px',
-              borderRadius: '9999px',
-              backgroundColor: '#ffffff',
-              border: '1px solid #e4e4e7'
-            }}
+            className="cand-dash-profile-pill"
             onClick={() => {
               setStep(6)
               setViewMode('registration')
             }}
           >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: '#090a0f',
-                color: '#ffffff',
-                fontWeight: 700,
-                fontSize: '13px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
+            <div className="cand-dash-avatar">
               SK
             </div>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#09090b' }}>
+            <span className="cand-dash-profile-name">
               {formData.fullName || 'Sree Kumar'}
             </span>
-            <ChevronDown size={14} color="#71717a" />
+            <ChevronDown size={14} color="#71717a" className="cand-dash-chevron" />
           </div>
+
+          {/* Mobile Hamburger Menu Toggle */}
+          <button
+            type="button"
+            className="cand-mobile-menu-toggle"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </header>
+
+      {/* Mobile Nav Tabs Bar (Visible on mobile/tablet) */}
+      <div className="cand-mobile-tabs-container">
+        <nav className="cand-mobile-tabs-scroll">
+          {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages', 'Career Resources'].map(nav => (
+            <button
+              key={nav}
+              type="button"
+              className={`cand-mobile-tab-btn ${activeNav === nav ? 'active' : ''}`}
+              onClick={() => {
+                setActiveNav(nav)
+                setIsMobileMenuOpen(false)
+              }}
+            >
+              {nav}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Mobile Drawer Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="cand-mobile-drawer-backdrop" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="cand-mobile-drawer" onClick={e => e.stopPropagation()}>
+            <div className="cand-drawer-user-card">
+              <div className="cand-dash-avatar" style={{ width: '40px', height: '40px', fontSize: '15px' }}>
+                SK
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#09090b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {formData.fullName || 'Sree Kumar'}
+                </h4>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {formData.email || 'sreekumar.student@gmail.com'}
+                </p>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: 700, backgroundColor: '#ecfdf5', color: '#059669', padding: '3px 8px', borderRadius: '9999px' }}>
+                75%
+              </span>
+            </div>
+
+            <div className="cand-drawer-nav-list">
+              {[
+                { name: 'Dashboard', icon: TrendingUp },
+                { name: 'Find Jobs', icon: Search },
+                { name: 'Applications', icon: Send },
+                { name: 'Saved Jobs', icon: Bookmark },
+                { name: 'Career Resources', icon: FileText }
+              ].map(item => {
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.name}
+                    type="button"
+                    className={`cand-drawer-link ${activeNav === item.name ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveNav(item.name)
+                      setIsMobileMenuOpen(false)
+                    }}
+                  >
+                    <Icon size={18} />
+                    <span>{item.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="cand-drawer-footer">
+              <button
+                type="button"
+                className="cand-btn-primary"
+                style={{ width: '100%', justifyContent: 'center', height: '42px', fontSize: '13px' }}
+                onClick={() => {
+                  setStep(6)
+                  setViewMode('registration')
+                  setIsMobileMenuOpen(false)
+                }}
+              >
+                Edit Profile Details →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Dashboard */}
       <main className="cand-dash-main">
@@ -203,7 +271,7 @@ export const CandidateDashboard: React.FC = () => {
             <p>Discover opportunities. Build your future.</p>
 
             <div className="cand-search-bar">
-              <Search size={18} color="#71717a" />
+              <Search size={18} color="#71717a" style={{ flexShrink: 0 }} />
               <input
                 type="text"
                 className="cand-search-input"
@@ -222,8 +290,10 @@ export const CandidateDashboard: React.FC = () => {
           </div>
 
           <div className="cand-banner-right">
-            <div className="explore-label">EXPLORE</div>
-            <div className="explore-stat">10,000+</div>
+            <div>
+              <div className="explore-label">EXPLORE</div>
+              <div className="explore-stat">10,000+</div>
+            </div>
             <div className="explore-sub">Job Opportunities Across India</div>
           </div>
         </div>
@@ -363,17 +433,23 @@ export const CandidateDashboard: React.FC = () => {
             </div>
 
             {/* Recent Applications Table */}
-            <div className="cand-verify-card" style={{ padding: '24px' }}>
+            <div className="cand-verify-card cand-apps-card" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#09090b', margin: 0 }}>
-                  Recent Applications
-                </h3>
+                <div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#09090b', margin: 0 }}>
+                    Recent Applications
+                  </h3>
+                  <span className="cand-table-scroll-hint">
+                    Swipe horizontally to view full details
+                  </span>
+                </div>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#09090b', cursor: 'pointer' }}>
                   View All →
                 </span>
               </div>
 
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div className="cand-table-wrap">
+                <table className="cand-apps-table" style={{ width: '100%', minWidth: '520px', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #f0f0f3', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>
                     <th style={{ padding: '8px 12px' }}>Job Title</th>
@@ -422,6 +498,7 @@ export const CandidateDashboard: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
 
@@ -581,26 +658,11 @@ export const CandidateDashboard: React.FC = () => {
       {/* View Job Details Modal */}
       {selectedJob && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '20px'
-          }}
+          className="cand-modal-backdrop"
           onClick={() => setSelectedJob(null)}
         >
           <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              padding: '32px',
-              maxWidth: '560px',
-              width: '100%'
-            }}
+            className="cand-modal-dialog"
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -615,7 +677,24 @@ export const CandidateDashboard: React.FC = () => {
                   {selectedJob.location} &bull; {selectedJob.workType} &bull; {selectedJob.jobType}
                 </div>
               </div>
-              <button type="button" onClick={() => setSelectedJob(null)} style={{ color: '#71717a' }}>✕</button>
+              <button
+                type="button"
+                onClick={() => setSelectedJob(null)}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  border: '1px solid #e4e4e7',
+                  backgroundColor: '#f4f4f5',
+                  color: '#71717a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+              >
+                ✕
+              </button>
             </div>
 
             <p style={{ fontSize: '14px', color: '#475467', lineHeight: 1.5, marginBottom: '20px' }}>
@@ -628,7 +707,7 @@ export const CandidateDashboard: React.FC = () => {
               ))}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <div className="cand-modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button type="button" className="cand-btn-back" onClick={() => setSelectedJob(null)}>Close</button>
               <button
                 type="button"
