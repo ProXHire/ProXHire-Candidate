@@ -11,6 +11,7 @@ import { Step4EmploymentCareer } from './components/registration/Step4Employment
 import { Step5PersonalDetails } from './components/registration/Step5PersonalDetails'
 import { Step6ProfileReview } from './components/registration/Step6ProfileReview'
 import { CandidateDashboard } from './components/dashboard/CandidateDashboard'
+import { CandidateLogin } from './components/auth/CandidateLogin'
 import type { CandidateStep } from './types'
 
 function CandidateContent() {
@@ -25,6 +26,8 @@ function CandidateContent() {
 
       if (queryView === 'dashboard' || hash === '#dashboard') {
         setViewMode('dashboard')
+      } else if (queryView === 'login' || hash === '#login') {
+        setViewMode('login')
       } else if (queryStep) {
         const stepNum = parseInt(queryStep, 10) as CandidateStep
         if (stepNum >= 1 && stepNum <= 6) {
@@ -41,7 +44,11 @@ function CandidateContent() {
 
   return (
     <div
-      className={viewMode === 'registration' && (step === 1 || step === 2) ? 'cand-app-single-page' : ''}
+      className={
+        (viewMode === 'registration' && (step === 1 || step === 2)) || viewMode === 'login'
+          ? 'cand-app-single-page'
+          : ''
+      }
       style={{
         minHeight: '100vh',
         display: 'flex',
@@ -50,7 +57,11 @@ function CandidateContent() {
     >
       {/* Main View */}
       <div
-        className={viewMode === 'registration' && (step === 1 || step === 2) ? 'cand-app-single-page-body' : ''}
+        className={
+          (viewMode === 'registration' && (step === 1 || step === 2)) || viewMode === 'login'
+            ? 'cand-app-single-page-body'
+            : ''
+        }
         style={{
           flex: 1,
           display: 'flex',
@@ -60,6 +71,8 @@ function CandidateContent() {
       >
         {viewMode === 'dashboard' ? (
           <CandidateDashboard />
+        ) : viewMode === 'login' ? (
+          <CandidateLogin />
         ) : (
           <CandidateLayout>
             {step === 1 && <Step1ExperienceType />}

@@ -144,7 +144,7 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
                   href="#login"
                   onClick={e => {
                     e.preventDefault()
-                    setViewMode('dashboard')
+                    setViewMode('login')
                   }}
                   style={{ color: '#09090b', fontWeight: 700, textDecoration: 'underline' }}
                 >

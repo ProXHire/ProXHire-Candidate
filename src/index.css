@@ -2096,6 +2096,124 @@ select.cand-input option,
   gap: 10px;
 }
 
+/* ========================================================
+   CANDIDATE LOGIN PAGE SPECIFICS
+   ======================================================== */
+.cand-login-container {
+  display: flex;
+  width: 100%;
+}
+
+.cand-login-hero {
+  flex: 0 0 clamp(360px, 36vw, 500px);
+}
+
+.cand-login-col {
+  padding: clamp(14px, 2.2vh, 26px) clamp(24px, 3.8vw, 48px);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.cand-login-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cand-login-tabs-segmented {
+  display: flex;
+  background-color: #f4f4f5;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  gap: 4px;
+  margin-bottom: clamp(10px, 1.6vh, 16px);
+}
+
+.cand-login-tab-pill {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: clamp(7px, 1vh, 9px) 14px;
+  border-radius: 6px;
+  font-size: clamp(12px, 1.35vh, 13px);
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.cand-login-tab-pill.active {
+  background-color: #ffffff;
+  color: #09090b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.cand-login-fields-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.3vh, 14px);
+  margin-bottom: clamp(4px, 0.8vh, 8px);
+}
+
+.cand-social-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: clamp(8px, 1.3vh, 14px) 0;
+}
+
+.cand-social-divider-line {
+  flex: 1;
+  height: 1px;
+  background-color: #e4e4e7;
+}
+
+.cand-social-divider-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cand-google-login-btn {
+  width: 100%;
+  height: clamp(38px, 4.8vh, 44px);
+  border-radius: var(--radius-sm);
+  border: 1.5px solid #e4e4e7;
+  background-color: #ffffff;
+  color: #18181b;
+  font-size: clamp(12.5px, 1.4vh, 13.5px);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.cand-google-login-btn:hover {
+  border-color: #cbd5e1;
+  background-color: #fafafa;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.cand-login-footer {
+  margin-top: auto;
+  padding-top: clamp(8px, 1.4vh, 16px);
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 /* Desktop Only: Zero Scroll Container */
 @media (min-width: 1025px) {
   .cand-app-single-page {
@@ -2113,7 +2231,8 @@ select.cand-input option,
 @media (max-width: 1024px) {
   .cand-single-page-container,
   .cand-step-1-container,
-  .cand-step-2-container {
+  .cand-step-2-container,
+  .cand-login-container {
     height: auto;
     max-height: none;
     min-height: 100vh;

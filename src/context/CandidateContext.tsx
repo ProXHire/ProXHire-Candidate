@@ -9,8 +9,8 @@ interface CandidateContextType {
   setStep: (step: CandidateStep) => void
   nextStep: () => void
   prevStep: () => void
-  viewMode: 'registration' | 'dashboard'
-  setViewMode: (mode: 'registration' | 'dashboard') => void
+  viewMode: 'registration' | 'dashboard' | 'login'
+  setViewMode: (mode: 'registration' | 'dashboard' | 'login') => void
   completeRegistration: () => Promise<void>
   isSubmitting: boolean
 }
@@ -102,7 +102,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [viewMode, setViewMode] = useState<'registration' | 'dashboard'>('registration')
+  const [viewMode, setViewMode] = useState<'registration' | 'dashboard' | 'login'>('registration')
 
   useEffect(() => {
     localStorage.setItem('proxhire_candidate_registration', JSON.stringify(formData))
