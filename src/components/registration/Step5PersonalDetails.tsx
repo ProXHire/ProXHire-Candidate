@@ -6,24 +6,113 @@ import {
   Link as LinkIcon,
   Award,
   Plus,
-  Calendar,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  X,
+  Globe,
+  Share2
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
+
+const INDIAN_STATES_AND_UTS = [
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi (NCT)',
+  'Jammu and Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry',
+  'Other / Outside India'
+]
+
+const MAJOR_INDIAN_CITIES = [
+  'Bengaluru',
+  'Hyderabad',
+  'Mumbai',
+  'Pune',
+  'Delhi NCR',
+  'Gurgaon',
+  'Noida',
+  'Chennai',
+  'Kolkata',
+  'Ahmedabad',
+  'Kochi',
+  'Jaipur',
+  'Chandigarh',
+  'Indore',
+  'Coimbatore',
+  'Visakhapatnam',
+  'Bhubaneswar',
+  'Nagpur',
+  'Lucknow',
+  'Thiruvananthapuram'
+]
 
 export const Step5PersonalDetails: React.FC = () => {
   const { formData, updateField, nextStep, prevStep } = useCandidate()
   const [showAchieveModal, setShowAchieveModal] = useState(false)
+  const [achieveCategory, setAchieveCategory] = useState('Industry Certification')
   const [newAchieve, setNewAchieve] = useState('')
+
+  // Parse DD/MM/YYYY for synchronized 3-dropdown date picker
+  const dobParts = (formData.dateOfBirth || '').split('/')
+  const dobDay = dobParts[0] || '15'
+  const dobMonth = dobParts[1] || '08'
+  const dobYear = dobParts[2] || '2003'
+
+  const updateDob = (part: 'day' | 'month' | 'year', val: string) => {
+    const d = part === 'day' ? val : (dobDay || '01')
+    const m = part === 'month' ? val : (dobMonth || '01')
+    const y = part === 'year' ? val : (dobYear || '2000')
+    updateField('dateOfBirth', `${d}/${m}/${y}`)
+  }
 
   const handleAddAchieve = (e: React.FormEvent) => {
     e.preventDefault()
     if (newAchieve.trim()) {
-      updateField('achievements', [...formData.achievements, newAchieve.trim()])
+      const formatted = achieveCategory
+        ? `${newAchieve.trim()} • ${achieveCategory}`
+        : newAchieve.trim()
+      updateField('achievements', [...formData.achievements, formatted])
       setNewAchieve('')
       setShowAchieveModal(false)
     }
+  }
+
+  const handleRemoveAchieve = (idxToRemove: number) => {
+    updateField(
+      'achievements',
+      formData.achievements.filter((_, idx) => idx !== idxToRemove)
+    )
   }
 
   return (
@@ -31,49 +120,82 @@ export const Step5PersonalDetails: React.FC = () => {
       <div className="cand-step-indicator">STEP 5 OF 6</div>
       <h2 className="cand-step-title">Personal Details & Additional Information</h2>
       <p className="cand-step-subtitle">
-        Help us know you better. This information helps in providing the right opportunities.
+        Help us know you better. This information helps in providing the most relevant and verified career opportunities.
       </p>
 
       {/* 4-Quadrant Cards Grid */}
-      <div className="cand-review-grid" style={{ margin: 0 }}>
+      <div className="cand-review-grid" style={{ margin: '0 0 24px' }}>
         {/* Quadrant 1: Personal Details */}
         <div className="cand-review-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 700, color: '#09090b', marginBottom: '2px' }}>
-            <User size={16} /> Personal Details
+          <div className="cand-card-header">
+            <div className="cand-card-icon-badge">
+              <User size={18} />
+            </div>
+            <div>
+              <h3 className="cand-card-title">Personal Details</h3>
+              <p className="cand-card-desc">Basic demographic & identity information</p>
+            </div>
           </div>
-          <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px' }}>
-            Basic information about you.
-          </p>
 
-          <div className="cand-form-grid" style={{ gap: '12px', marginBottom: 0 }}>
+          <div className="cand-form-grid" style={{ gap: '14px 16px', marginBottom: 0 }}>
+            {/* Date of Birth (3 Dropdowns: Day, Month, Year) */}
             <div className="cand-field-group">
               <label className="cand-field-label">Date of Birth <span className="req">*</span></label>
-              <div className="cand-input-wrapper">
-                <span className="cand-input-icon">
-                  <Calendar size={16} />
-                </span>
-                <input
-                  type="text"
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1.1fr', gap: '6px' }}>
+                <select
                   className="cand-input"
-                  placeholder="DD/MM/YYYY"
-                  value={formData.dateOfBirth}
-                  onChange={e => updateField('dateOfBirth', e.target.value)}
-                />
+                  value={dobDay}
+                  onChange={e => updateDob('day', e.target.value)}
+                  aria-label="Day of Birth"
+                >
+                  <option value="">Day</option>
+                  {Array.from({ length: 31 }, (_, i) => {
+                    const day = String(i + 1).padStart(2, '0')
+                    return <option key={day} value={day}>{day}</option>
+                  })}
+                </select>
+
+                <select
+                  className="cand-input"
+                  value={dobMonth}
+                  onChange={e => updateDob('month', e.target.value)}
+                  aria-label="Month of Birth"
+                >
+                  <option value="">Month</option>
+                  {[
+                    { num: '01', name: 'Jan' },
+                    { num: '02', name: 'Feb' },
+                    { num: '03', name: 'Mar' },
+                    { num: '04', name: 'Apr' },
+                    { num: '05', name: 'May' },
+                    { num: '06', name: 'Jun' },
+                    { num: '07', name: 'Jul' },
+                    { num: '08', name: 'Aug' },
+                    { num: '09', name: 'Sep' },
+                    { num: '10', name: 'Oct' },
+                    { num: '11', name: 'Nov' },
+                    { num: '12', name: 'Dec' }
+                  ].map(m => (
+                    <option key={m.num} value={m.num}>{m.name}</option>
+                  ))}
+                </select>
+
+                <select
+                  className="cand-input"
+                  value={dobYear}
+                  onChange={e => updateDob('year', e.target.value)}
+                  aria-label="Year of Birth"
+                >
+                  <option value="">Year</option>
+                  {Array.from({ length: 50 }, (_, i) => {
+                    const year = String(2008 - i)
+                    return <option key={year} value={year}>{year}</option>
+                  })}
+                </select>
               </div>
             </div>
 
-            <div className="cand-field-group">
-              <label className="cand-field-label">Nationality <span className="req">*</span></label>
-              <select
-                className="cand-input"
-                value={formData.nationality}
-                onChange={e => updateField('nationality', e.target.value)}
-              >
-                <option value="Indian">Indian</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
+            {/* Gender Dropdown */}
             <div className="cand-field-group">
               <label className="cand-field-label">Gender <span className="req">*</span></label>
               <select
@@ -83,24 +205,45 @@ export const Step5PersonalDetails: React.FC = () => {
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                <option value="Other">Other / Non-Binary</option>
+                <option value="Prefer not to say">Prefer not to say</option>
               </select>
             </div>
 
+            {/* Nationality Dropdown */}
             <div className="cand-field-group">
-              <label className="cand-field-label">Category</label>
+              <label className="cand-field-label">Nationality <span className="req">*</span></label>
+              <select
+                className="cand-input"
+                value={formData.nationality}
+                onChange={e => updateField('nationality', e.target.value)}
+              >
+                <option value="Indian">Indian</option>
+                <option value="NRI (Non-Resident Indian)">NRI (Non-Resident Indian)</option>
+                <option value="OCI / PIO Cardholder">OCI / PIO Cardholder</option>
+                <option value="Nepal / Bhutan Citizen">Nepal / Bhutan Citizen</option>
+                <option value="Other Foreign National">Other Foreign National</option>
+              </select>
+            </div>
+
+            {/* Category / Reservation Dropdown */}
+            <div className="cand-field-group">
+              <label className="cand-field-label">Social Category</label>
               <select
                 className="cand-input"
                 value={formData.category}
                 onChange={e => updateField('category', e.target.value)}
               >
-                <option value="General">General</option>
-                <option value="OBC">OBC</option>
-                <option value="SC">SC</option>
-                <option value="ST">ST</option>
+                <option value="General">General / Unreserved (UR)</option>
+                <option value="OBC">OBC - Non Creamy Layer</option>
+                <option value="OBC Creamy">OBC - Creamy Layer</option>
+                <option value="SC">SC (Scheduled Caste)</option>
+                <option value="ST">ST (Scheduled Tribe)</option>
+                <option value="EWS">EWS (Economically Weaker Section)</option>
               </select>
             </div>
 
+            {/* Marital Status Dropdown */}
             <div className="cand-field-group">
               <label className="cand-field-label">Marital Status</label>
               <select
@@ -108,20 +251,24 @@ export const Step5PersonalDetails: React.FC = () => {
                 value={formData.maritalStatus}
                 onChange={e => updateField('maritalStatus', e.target.value)}
               >
-                <option value="Single">Single</option>
+                <option value="Single">Single / Unmarried</option>
                 <option value="Married">Married</option>
+                <option value="Divorced">Divorced</option>
+                <option value="Widowed">Widowed</option>
               </select>
             </div>
 
+            {/* Work Permit Dropdown */}
             <div className="cand-field-group">
-              <label className="cand-field-label">Have a valid work permit?</label>
+              <label className="cand-field-label">Valid Work Permit in India? <span className="req">*</span></label>
               <select
                 className="cand-input"
                 value={formData.workPermit}
                 onChange={e => updateField('workPermit', e.target.value)}
               >
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
+                <option value="Yes">Yes — Citizen / Full Work Rights</option>
+                <option value="Need Visa">Need Visa / Sponsorship</option>
+                <option value="No">No — Not currently eligible</option>
               </select>
             </div>
           </div>
@@ -129,95 +276,146 @@ export const Step5PersonalDetails: React.FC = () => {
 
         {/* Quadrant 2: Address Details */}
         <div className="cand-review-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 700, color: '#09090b', marginBottom: '2px' }}>
-            <MapPin size={16} /> Address Details
+          <div className="cand-card-header">
+            <div className="cand-card-icon-badge">
+              <MapPin size={18} />
+            </div>
+            <div>
+              <h3 className="cand-card-title">Address Details</h3>
+              <p className="cand-card-desc">Current residential & communication location</p>
+            </div>
           </div>
-          <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px' }}>
-            Your current location.
-          </p>
 
-          <div className="cand-form-grid single-col" style={{ gap: '12px', marginBottom: 0 }}>
-            <div className="cand-field-group">
+          <div className="cand-form-grid" style={{ gap: '14px 16px', marginBottom: 0 }}>
+            {/* Address Line 1 */}
+            <div className="cand-field-group full-width">
               <label className="cand-field-label">Address Line 1 <span className="req">*</span></label>
               <input
                 type="text"
                 className="cand-input"
-                placeholder="Enter your address"
+                placeholder="Flat / House No., Building Name, Street"
                 value={formData.addressLine1}
                 onChange={e => updateField('addressLine1', e.target.value)}
+                required
               />
             </div>
 
-            <div className="cand-field-group">
-              <label className="cand-field-label">Address Line 2</label>
+            {/* Address Line 2 */}
+            <div className="cand-field-group full-width">
+              <label className="cand-field-label">Address Line 2 (Optional)</label>
               <input
                 type="text"
                 className="cand-input"
-                placeholder="Enter address (optional)"
+                placeholder="Landmark, Area, Colony"
                 value={formData.addressLine2}
                 onChange={e => updateField('addressLine2', e.target.value)}
               />
             </div>
 
+            {/* State / UT Dropdown */}
             <div className="cand-field-group">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                <div>
-                  <label className="cand-field-label">City <span className="req">*</span></label>
-                  <input
-                    type="text"
-                    className="cand-input"
-                    placeholder="Enter city"
-                    value={formData.city}
-                    onChange={e => updateField('city', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="cand-field-label">State <span className="req">*</span></label>
-                  <input
-                    type="text"
-                    className="cand-input"
-                    placeholder="Select state"
-                    value={formData.state}
-                    onChange={e => updateField('state', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="cand-field-label">PIN Code <span className="req">*</span></label>
-                  <input
-                    type="text"
-                    className="cand-input"
-                    placeholder="Enter PIN"
-                    value={formData.pinCode}
-                    onChange={e => updateField('pinCode', e.target.value)}
-                  />
-                </div>
+              <label className="cand-field-label">State / Union Territory <span className="req">*</span></label>
+              <select
+                className="cand-input"
+                value={formData.state}
+                onChange={e => updateField('state', e.target.value)}
+                required
+              >
+                <option value="">Select State / UT</option>
+                {INDIAN_STATES_AND_UTS.map(st => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* City with Datalist Suggestions */}
+            <div className="cand-field-group">
+              <label className="cand-field-label">City <span className="req">*</span></label>
+              <div className="cand-input-wrapper">
+                <span className="cand-input-icon">
+                  <MapPin size={16} />
+                </span>
+                <input
+                  type="text"
+                  className="cand-input"
+                  placeholder="Enter or select city"
+                  list="major-cities-list"
+                  value={formData.city}
+                  onChange={e => updateField('city', e.target.value)}
+                  required
+                />
+                <datalist id="major-cities-list">
+                  {MAJOR_INDIAN_CITIES.map(city => (
+                    <option key={city} value={city} />
+                  ))}
+                </datalist>
               </div>
+            </div>
+
+            {/* PIN Code */}
+            <div className="cand-field-group">
+              <label className="cand-field-label">PIN Code <span className="req">*</span></label>
+              <input
+                type="text"
+                className="cand-input"
+                placeholder="6-digit PIN (e.g. 560103)"
+                maxLength={6}
+                value={formData.pinCode}
+                onChange={e => updateField('pinCode', e.target.value.replace(/\D/g, ''))}
+                required
+              />
+            </div>
+
+            {/* Country Dropdown */}
+            <div className="cand-field-group">
+              <label className="cand-field-label">Country</label>
+              <select className="cand-input" defaultValue="India">
+                <option value="India">India</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="United Arab Emirates">United Arab Emirates</option>
+                <option value="Canada">Canada</option>
+                <option value="Singapore">Singapore</option>
+                <option value="Australia">Australia</option>
+                <option value="Germany">Germany</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
           </div>
         </div>
 
         {/* Quadrant 3: Diversity & Inclusion (Optional) */}
         <div className="cand-review-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 700, color: '#09090b', marginBottom: '2px' }}>
-            <Users size={16} /> Diversity & Inclusion (Optional)
+          <div className="cand-card-header">
+            <div className="cand-card-icon-badge">
+              <Users size={18} />
+            </div>
+            <div>
+              <h3 className="cand-card-title">Diversity & Inclusion (Optional)</h3>
+              <p className="cand-card-desc">Confidential affirmative hiring & support options</p>
+            </div>
           </div>
-          <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px' }}>
-            Help us support you better. This information is confidential.
-          </p>
 
-          <div className="cand-form-grid" style={{ gap: '12px', marginBottom: 0 }}>
+          <div className="cand-form-grid" style={{ gap: '14px 16px', marginBottom: 0 }}>
+            {/* Disability Status Dropdown */}
             <div className="cand-field-group">
-              <label className="cand-field-label">Do you have a disability?</label>
+              <label className="cand-field-label">Do you have a disability (PwD)?</label>
               <select
                 className="cand-input"
                 value={formData.hasDisability}
                 onChange={e => updateField('hasDisability', e.target.value)}
               >
                 <option value="No">No</option>
-                <option value="Yes">Yes</option>
+                <option value="Yes - Locomotor Disability">Yes — Locomotor / Mobility</option>
+                <option value="Yes - Visual Impairment">Yes — Visual Impairment</option>
+                <option value="Yes - Hearing Impairment">Yes — Hearing Impairment</option>
+                <option value="Yes - Speech & Language">Yes — Speech and Language</option>
+                <option value="Yes - Intellectual / Learning">Yes — Intellectual / Learning</option>
+                <option value="Yes - Other Disability">Yes — Other / Multiple</option>
               </select>
             </div>
 
+            {/* Career Gap Dropdown */}
             <div className="cand-field-group">
               <label className="cand-field-label">Have you taken a career gap?</label>
               <select
@@ -225,23 +423,31 @@ export const Step5PersonalDetails: React.FC = () => {
                 value={formData.hasCareerGap}
                 onChange={e => updateField('hasCareerGap', e.target.value)}
               >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
+                <option value="No">No Career Gap</option>
+                <option value="Yes - < 6 months">Yes — Less than 6 months</option>
+                <option value="Yes - 6-12 months">Yes — 6 to 12 months</option>
+                <option value="Yes - 1-2 years">Yes — 1 to 2 years</option>
+                <option value="Yes - > 2 years">Yes — 2+ years</option>
               </select>
             </div>
 
+            {/* Government Experience Dropdown */}
             <div className="cand-field-group">
-              <label className="cand-field-label">Government Experience</label>
+              <label className="cand-field-label">Government / Defense Experience</label>
               <select
                 className="cand-input"
                 value={formData.govtExperience}
                 onChange={e => updateField('govtExperience', e.target.value)}
               >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
+                <option value="No">No Government Experience</option>
+                <option value="Yes - Defense / Armed Forces">Yes — Ex-Serviceman / Defense</option>
+                <option value="Yes - Central Govt / PSU">Yes — Central Govt / PSU</option>
+                <option value="Yes - State Govt">Yes — State Govt Department</option>
+                <option value="Yes - Quasi-Govt">Yes — Quasi-Government / Autonomous</option>
               </select>
             </div>
 
+            {/* Relocation Preference Dropdown */}
             <div className="cand-field-group">
               <label className="cand-field-label">Are you open to relocation?</label>
               <select
@@ -249,8 +455,11 @@ export const Step5PersonalDetails: React.FC = () => {
                 value={formData.openToRelocate}
                 onChange={e => updateField('openToRelocate', e.target.value)}
               >
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
+                <option value="Yes">Yes — Anywhere in India</option>
+                <option value="Within State">Yes — Within Current State Only</option>
+                <option value="Remote Only">Remote / Hybrid Roles Only</option>
+                <option value="International">Yes — International Relocation</option>
+                <option value="No">No — Prefer Current City Only</option>
               </select>
             </div>
           </div>
@@ -258,115 +467,126 @@ export const Step5PersonalDetails: React.FC = () => {
 
         {/* Quadrant 4: Online Presence */}
         <div className="cand-review-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 700, color: '#09090b', marginBottom: '2px' }}>
-            <LinkIcon size={16} /> Online Presence
+          <div className="cand-card-header">
+            <div className="cand-card-icon-badge">
+              <LinkIcon size={18} />
+            </div>
+            <div>
+              <h3 className="cand-card-title">Online & Professional Profiles</h3>
+              <p className="cand-card-desc">Showcase your public profiles and projects (optional)</p>
+            </div>
           </div>
-          <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px' }}>
-            Add links to your professional profiles (optional).
-          </p>
 
-          <div className="cand-form-grid single-col" style={{ gap: '12px', marginBottom: 0 }}>
+          <div className="cand-form-grid single-col" style={{ gap: '14px', marginBottom: 0 }}>
+            {/* LinkedIn */}
             <div className="cand-field-group">
-              <label className="cand-field-label">LinkedIn Profile</label>
-              <input
-                type="text"
-                className="cand-input"
-                placeholder="https://www.linkedin.com/in/yourprofile"
-                value={formData.linkedInUrl}
-                onChange={e => updateField('linkedInUrl', e.target.value)}
-              />
+              <label className="cand-field-label">LinkedIn Profile URL</label>
+              <div className="cand-input-wrapper">
+                <span className="cand-input-icon">
+                  <Share2 size={16} />
+                </span>
+                <input
+                  type="url"
+                  className="cand-input"
+                  placeholder="https://www.linkedin.com/in/yourprofile"
+                  value={formData.linkedInUrl}
+                  onChange={e => updateField('linkedInUrl', e.target.value)}
+                />
+              </div>
             </div>
 
+            {/* GitHub */}
             <div className="cand-field-group">
-              <label className="cand-field-label">GitHub Profile</label>
-              <input
-                type="text"
-                className="cand-input"
-                placeholder="https://github.com/yourprofile"
-                value={formData.gitHubUrl}
-                onChange={e => updateField('gitHubUrl', e.target.value)}
-              />
+              <label className="cand-field-label">GitHub Profile URL</label>
+              <div className="cand-input-wrapper">
+                <span className="cand-input-icon">
+                  <Globe size={16} />
+                </span>
+                <input
+                  type="url"
+                  className="cand-input"
+                  placeholder="https://github.com/yourprofile"
+                  value={formData.gitHubUrl}
+                  onChange={e => updateField('gitHubUrl', e.target.value)}
+                />
+              </div>
             </div>
 
+            {/* Portfolio / Personal Website */}
             <div className="cand-field-group">
-              <label className="cand-field-label">Portfolio / Website</label>
-              <input
-                type="text"
-                className="cand-input"
-                placeholder="https://yourwebsite.com"
-                value={formData.portfolioUrl}
-                onChange={e => updateField('portfolioUrl', e.target.value)}
-              />
+              <label className="cand-field-label">Portfolio / Personal Website</label>
+              <div className="cand-input-wrapper">
+                <span className="cand-input-icon">
+                  <LinkIcon size={16} />
+                </span>
+                <input
+                  type="url"
+                  className="cand-input"
+                  placeholder="https://yourwebsite.dev"
+                  value={formData.portfolioUrl}
+                  onChange={e => updateField('portfolioUrl', e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Achievements & Certifications (Full Width Bottom Card) */}
-      <div className="cand-verify-card" style={{ marginTop: '20px', marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#09090b'
-            }}
-          >
+      <div className="cand-review-card" style={{ marginBottom: '28px' }}>
+        <div className="cand-card-header">
+          <div className="cand-card-icon-badge">
             <Award size={18} />
           </div>
-          <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#09090b', margin: 0 }}>
-              Achievements & Certifications (Optional)
-            </h3>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-              Add your key achievements, certifications, awards or recognitions.
+          <div style={{ flex: 1 }}>
+            <h3 className="cand-card-title">Achievements & Certifications (Optional)</h3>
+            <p className="cand-card-desc">
+              Add recognized certifications, hackathons, academic awards, patents or publications
             </p>
           </div>
+          <button
+            type="button"
+            className="cand-btn-primary"
+            style={{ padding: '6px 14px', fontSize: '13px', height: '36px' }}
+            onClick={() => setShowAchieveModal(true)}
+          >
+            <Plus size={16} /> Add Achievement
+          </button>
         </div>
 
-        {formData.achievements.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+        {formData.achievements.length > 0 ? (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {formData.achievements.map((item, idx) => (
-              <span
-                key={idx}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  backgroundColor: '#f1f5f9',
-                  color: '#09090b',
-                  fontSize: '12.5px',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <Award size={14} color="#000000" /> {item}
+              <span key={idx} className="cand-achieve-pill">
+                <Award size={14} color="#09090b" />
+                <span>{item}</span>
+                <button
+                  type="button"
+                  className="cand-achieve-delete-btn"
+                  onClick={() => handleRemoveAchieve(idx)}
+                  title="Remove"
+                  aria-label={`Remove achievement ${item}`}
+                >
+                  <X size={13} />
+                </button>
               </span>
             ))}
           </div>
+        ) : (
+          <div
+            style={{
+              padding: '20px',
+              textAlign: 'center',
+              borderRadius: '8px',
+              border: '1px dashed #cbd5e1',
+              backgroundColor: '#f8fafc',
+              color: '#64748b',
+              fontSize: '13px'
+            }}
+          >
+            No certifications or achievements added yet. Click &ldquo;Add Achievement&rdquo; above to boost your candidate rating.
+          </div>
         )}
-
-        <button
-          type="button"
-          className="cand-dropzone"
-          style={{ width: '100%', padding: '18px', cursor: 'pointer' }}
-          onClick={() => setShowAchieveModal(true)}
-        >
-          <Plus size={20} color="#09090b" style={{ margin: '0 auto 6px' }} />
-          <span style={{ fontSize: '14px', fontWeight: 700, color: '#09090b' }}>
-            Add Achievement / Certification
-          </span>
-          <span style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-            Include certifications, awards, publications, patents, etc.
-          </span>
-        </button>
       </div>
 
       {/* Action Footer */}
@@ -400,28 +620,67 @@ export const Step5PersonalDetails: React.FC = () => {
             style={{
               backgroundColor: '#ffffff',
               borderRadius: '16px',
-              padding: '24px',
-              maxWidth: '440px',
+              padding: '26px',
+              maxWidth: '460px',
               width: '100%',
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px'
+              gap: '14px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
             }}
             onClick={e => e.stopPropagation()}
           >
-            <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#09090b', margin: 0 }}>Add Certification / Award</h4>
-            <input
-              type="text"
-              className="cand-input"
-              placeholder="e.g. AWS Certified Developer, Smart India Hackathon Winner"
-              value={newAchieve}
-              onChange={e => setNewAchieve(e.target.value)}
-              autoFocus
-              required
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button type="button" className="cand-btn-back" onClick={() => setShowAchieveModal(false)}>Cancel</button>
-              <button type="submit" className="cand-btn-primary">Add</button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#09090b', margin: 0 }}>
+                Add Certification / Award
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowAchieveModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#71717a' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Category Dropdown */}
+            <div className="cand-field-group">
+              <label className="cand-field-label">Achievement Category</label>
+              <select
+                className="cand-input"
+                value={achieveCategory}
+                onChange={e => setAchieveCategory(e.target.value)}
+              >
+                <option value="Industry Certification">Industry Certification (AWS, GCP, Cisco, etc.)</option>
+                <option value="Hackathon / Coding Award">Hackathon / Coding Competition</option>
+                <option value="Academic Honor">Academic Honor / Scholarship / Dean&apos;s List</option>
+                <option value="Patent / Publication">Patent / Research Paper Publication</option>
+                <option value="Open Source">Open Source Contribution</option>
+                <option value="Leadership Award">Leadership / Extracurricular Recognition</option>
+              </select>
+            </div>
+
+            {/* Name / Title */}
+            <div className="cand-field-group">
+              <label className="cand-field-label">Title / Recognition Name <span className="req">*</span></label>
+              <input
+                type="text"
+                className="cand-input"
+                placeholder="e.g. AWS Certified Solutions Architect, Smart India Hackathon Winner"
+                value={newAchieve}
+                onChange={e => setNewAchieve(e.target.value)}
+                autoFocus
+                required
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+              <button type="button" className="cand-btn-back" onClick={() => setShowAchieveModal(false)}>
+                Cancel
+              </button>
+              <button type="submit" className="cand-btn-primary">
+                Add to Profile
+              </button>
             </div>
           </form>
         </div>
@@ -429,3 +688,5 @@ export const Step5PersonalDetails: React.FC = () => {
     </div>
   )
 }
+
+export default Step5PersonalDetails

@@ -9,7 +9,11 @@ import {
   EyeOff,
   Info,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  ShieldCheck,
+  Zap,
+  CheckCircle2,
+  LockKeyhole
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 
@@ -168,6 +172,9 @@ export const Step2BasicDetails: React.FC = () => {
               required
             />
           </div>
+          <span style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <LockKeyhole size={11} color="#10b981" /> Used strictly for verified identity deduplication & duplicate prevention
+          </span>
         </div>
 
         {/* Password */}
@@ -236,29 +243,81 @@ export const Step2BasicDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Pre-BGV Consent Card */}
+      {/* Pre-BGV Consent Card with Value Badges */}
       <div className="cand-prebgv-card">
-        <input
-          type="checkbox"
-          checked={formData.preBgvConsent}
-          onChange={e => updateField('preBgvConsent', e.target.checked)}
-          style={{ width: '18px', height: '18px', marginTop: '2px', accentColor: '#000000', cursor: 'pointer' }}
-        />
-        <div className="cand-prebgv-content" style={{ flex: 1 }}>
-          <h5>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              I consent to Pre-BGV (Background Verification) <Info size={14} color="#71717a" />
-            </span>
-            <span
-              className="cand-prebgv-link"
-              onClick={() => setShowBgvModal(true)}
-            >
-              View Pre-BGV Notice
-            </span>
-          </h5>
-          <p>
-            I allow ProXHire to process my information for background verification checks to help employers assess my credentials. This is optional and can be completed later.
-          </p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', width: '100%' }}>
+          <input
+            type="checkbox"
+            checked={formData.preBgvConsent}
+            onChange={e => updateField('preBgvConsent', e.target.checked)}
+            style={{ width: '18px', height: '18px', marginTop: '2px', accentColor: '#000000', cursor: 'pointer' }}
+          />
+          <div className="cand-prebgv-content" style={{ flex: 1 }}>
+            <h5>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <ShieldCheck size={16} color="#10b981" />
+                Opt-in for Pre-BGV (Background Verification)
+                <span style={{ fontSize: '10.5px', fontWeight: 700, backgroundColor: '#ecfdf5', color: '#059669', padding: '2px 8px', borderRadius: '9999px' }}>
+                  Recommended
+                </span>
+              </span>
+              <span
+                className="cand-prebgv-link"
+                onClick={() => setShowBgvModal(true)}
+              >
+                View Pre-BGV Notice
+              </span>
+            </h5>
+            <p style={{ margin: '4px 0 8px 0' }}>
+              Allow ProXHire to pre-verify your academic and identity credentials. Pre-verified candidates receive direct interview call priority from top corporate recruiters.
+            </p>
+
+            {/* 3 Perks Badges */}
+            <div className="cand-bgv-perks-row">
+              <span className="cand-bgv-perk-pill">
+                <CheckCircle2 size={13} color="#10b981" /> 3x Higher Shortlisting
+              </span>
+              <span className="cand-bgv-perk-pill">
+                <ShieldCheck size={13} color="#2563eb" /> Verified Talent Badge
+              </span>
+              <span className="cand-bgv-perk-pill">
+                <Zap size={13} color="#d97706" /> Fast-Track Interview Calls
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Trust & Data Privacy Assurance Strip */}
+      <div className="cand-trust-assurance-grid">
+        <div className="cand-trust-item">
+          <div className="cand-trust-icon-box">
+            <Lock size={15} color="#09090b" />
+          </div>
+          <div className="cand-trust-text">
+            <h4>256-Bit SSL Encrypted</h4>
+            <p>Your password & credentials are encrypted at rest.</p>
+          </div>
+        </div>
+
+        <div className="cand-trust-item">
+          <div className="cand-trust-icon-box">
+            <ShieldCheck size={15} color="#09090b" />
+          </div>
+          <div className="cand-trust-text">
+            <h4>DPDP Act 2023 Compliant</h4>
+            <p>Strict data privacy adhering to Indian laws.</p>
+          </div>
+        </div>
+
+        <div className="cand-trust-item">
+          <div className="cand-trust-icon-box">
+            <CheckCircle2 size={15} color="#09090b" />
+          </div>
+          <div className="cand-trust-text">
+            <h4>Zero Spam Guarantee</h4>
+            <p>Only verified employers can view your profile.</p>
+          </div>
         </div>
       </div>
 
@@ -281,6 +340,10 @@ export const Step2BasicDetails: React.FC = () => {
         <button type="button" className="cand-btn-back" onClick={prevStep}>
           <ArrowLeft size={16} /> Back
         </button>
+
+        <div className="cand-footer-next-hint">
+          Next Step: <strong>Step 3 — Resume & Skills Upload</strong>
+        </div>
 
         <button type="submit" className="cand-btn-primary">
           Continue <ArrowRight size={16} />

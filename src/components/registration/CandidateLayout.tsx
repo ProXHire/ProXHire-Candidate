@@ -39,13 +39,17 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
         <div className="cand-hero-content">
           {/* Logo */}
           <div className="cand-brand-row">
-            <img src="/logo-white.png" alt="ProXHire Logo" className="cand-brand-logo" />
-            <div className="cand-brand-text">
-              <span className="cand-brand-name">
-                pro<span className="green-dot">X</span>Hire
-              </span>
-              <span className="cand-brand-tagline">INDIA'S ULTIMATE CAREER BRIDGE</span>
-            </div>
+            <img
+              src="/logo-white.png"
+              alt="ProXHire Logo"
+              className="cand-brand-logo"
+              style={{
+                height: '48px',
+                width: 'auto',
+                objectFit: 'contain',
+                display: 'block'
+              }}
+            />
           </div>
 
           {/* Dynamic Headline & Features */}

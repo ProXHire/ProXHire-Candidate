@@ -107,15 +107,16 @@ export const CandidateDashboard: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
           {/* Logo */}
           <div className="cand-brand-row">
-            <img src="/logo.png" alt="ProXHire" style={{ height: '36px' }} />
-            <div className="cand-brand-text">
-              <span className="cand-brand-name" style={{ color: '#09090b', fontSize: '20px' }}>
-                pro<span className="green-dot">X</span>Hire
-              </span>
-              <span className="cand-brand-tagline" style={{ color: '#71717a', fontSize: '7.5px' }}>
-                INDIA'S ULTIMATE CAREER BRIDGE
-              </span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="ProXHire"
+              style={{
+                height: '48px',
+                width: 'auto',
+                objectFit: 'contain',
+                display: 'block'
+              }}
+            />
           </div>
 
           {/* Navigation Links */}
@@ -134,23 +135,6 @@ export const CandidateDashboard: React.FC = () => {
 
         {/* Right Header Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button
-            type="button"
-            onClick={() => setViewMode('registration')}
-            style={{
-              fontSize: '12px',
-              fontWeight: 600,
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid #e4e4e7',
-              backgroundColor: '#ffffff',
-              color: '#09090b',
-              cursor: 'pointer'
-            }}
-          >
-            ← Registration Flow
-          </button>
-
           <button
             type="button"
             style={{
