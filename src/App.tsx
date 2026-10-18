@@ -59,69 +59,6 @@ function CandidateContent() {
           <span style={{ fontWeight: 800, letterSpacing: '0.5px' }}>
             PROXHIRE &bull; CANDIDATE / STUDENT PORTAL
           </span>
-          <span
-            style={{
-              padding: '2px 8px',
-              borderRadius: '9999px',
-              backgroundColor: '#1e293b',
-              color: '#38bdf8',
-              fontSize: '11px',
-              fontFamily: 'monospace'
-            }}
-          >
-            candidate.proxhire.in
-          </span>
-        </div>
-
-        {/* View Switcher buttons for all 7 screens */}
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          <span style={{ color: '#94a3b8', marginRight: '4px' }}>Screens:</span>
-          {[
-            { num: 1 as CandidateStep, label: 'Step 1: Experience' },
-            { num: 2 as CandidateStep, label: 'Step 2: Basic Details' },
-            { num: 3 as CandidateStep, label: 'Step 3: Resume' },
-            { num: 4 as CandidateStep, label: 'Step 4: Career' },
-            { num: 5 as CandidateStep, label: 'Step 5: Personal' },
-            { num: 6 as CandidateStep, label: 'Step 6: Review' }
-          ].map(s => {
-            const isSel = viewMode === 'registration' && step === s.num
-            return (
-              <button
-                key={s.num}
-                type="button"
-                onClick={() => {
-                  setViewMode('registration')
-                  setStep(s.num)
-                }}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  backgroundColor: isSel ? '#ffffff' : '#1e222b',
-                  color: isSel ? '#09090b' : '#cbd5e1',
-                  fontWeight: 600,
-                  fontSize: '11.5px'
-                }}
-              >
-                {s.label}
-              </button>
-            )
-          })}
-
-          <button
-            type="button"
-            onClick={() => setViewMode('dashboard')}
-            style={{
-              padding: '4px 10px',
-              borderRadius: '6px',
-              backgroundColor: viewMode === 'dashboard' ? '#10b981' : '#1e222b',
-              color: viewMode === 'dashboard' ? '#000000' : '#cbd5e1',
-              fontWeight: 700,
-              fontSize: '11.5px',
-              marginLeft: '4px'
-            }}
-          >
-            Screen 7: Dashboard
-          </button>
         </div>
       </header>
 
