@@ -14,9 +14,11 @@ import {
   CheckCircle2,
   LockKeyhole,
   Check,
-  Sparkles
+  Sparkles,
+  AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
+import { authService } from '../../services/authService'
 
 // Google "G" official multi-color SVG icon
 const GoogleIcon = () => (
@@ -29,52 +31,100 @@ const GoogleIcon = () => (
 )
 
 export const CandidateLogin: React.FC = () => {
-  const { formData, setViewMode, setStep } = useCandidate()
+  const { formData, setViewMode, setStep, loginCandidate } = useCandidate()
 
-  // State
+  // State - Real Clean Defaults (no dummy prefill)
   const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password')
-  const [emailOrPhone, setEmailOrPhone] = useState(formData.email || 'sreekumar.student@gmail.com')
-  const [password, setPassword] = useState('Password@123')
+  const [emailOrPhone, setEmailOrPhone] = useState(formData.email || '')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
 
   // OTP State
   const [countryCode, setCountryCode] = useState('+91')
-  const [mobileNumber, setMobileNumber] = useState(formData.mobileNumber || '98765 43210')
+  const [mobileNumber, setMobileNumber] = useState(formData.mobileNumber || '')
   const [otpSent, setOtpSent] = useState(false)
   const [otpCode, setOtpCode] = useState('')
   const [otpTimer, setOtpTimer] = useState(30)
 
-  // Loading & Modal State
+  // Loading & Error State
   const [isLoading, setIsLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [showForgotModal, setShowForgotModal] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotSubmitted, setForgotSubmitted] = useState(false)
 
-  // Handle Form Submit
-  const handleLogin = (e: React.FormEvent) => {
+  // Handle Password Login Submit
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrorMsg(null)
+
+    if (!emailOrPhone.trim() || !password) {
+      setErrorMsg('Please enter your email/phone and password.')
+      return
+    }
+
     setIsLoading(true)
-    setTimeout(() => {
+    try {
+      await loginCandidate(emailOrPhone, password)
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Login failed. Please verify credentials or register.')
+    } finally {
       setIsLoading(false)
-      setViewMode('dashboard')
-    }, 600)
+    }
   }
 
-  // Handle Google Login
-  const handleGoogleLogin = () => {
+  // Handle OTP Dispatch for Candidate Mobile Login
+  const handleSendOtp = async () => {
+    const cleanMobile = mobileNumber.replace(/[\s\-\+]/g, '')
+    if (!cleanMobile || cleanMobile.length < 10) {
+      setErrorMsg('Please enter a valid 10-digit mobile number.')
+      return
+    }
+
+    setErrorMsg(null)
     setIsLoading(true)
-    setTimeout(() => {
+    try {
+      await authService.resendOtp(undefined, undefined, cleanMobile)
+      setOtpSent(true)
+      setOtpTimer(30)
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to dispatch OTP. Please check the number.')
+    } finally {
       setIsLoading(false)
-      setViewMode('dashboard')
-    }, 600)
+    }
   }
 
-  // Handle Send OTP
-  const handleSendOtp = () => {
-    if (!mobileNumber) return
-    setOtpSent(true)
-    setOtpTimer(30)
+  // Handle OTP Verification for Candidate Mobile Login
+  const handleVerifyOtpLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMsg(null)
+
+    const cleanMobile = mobileNumber.replace(/[\s\-\+]/g, '')
+    if (otpCode.length < 6) {
+      setErrorMsg('Please enter the full 6-digit OTP.')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const res = await authService.verifyOtp({
+        mobileNumber: cleanMobile,
+        otpCode: otpCode.trim(),
+        purpose: 'CANDIDATE_LOGIN'
+      })
+
+      if (res.token) {
+        localStorage.setItem('proxhire_candidate_token', res.token)
+        localStorage.setItem('proxhire_candidate_verified', 'true')
+        localStorage.setItem('proxhire_candidate_registered', 'true')
+        setViewMode('dashboard')
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Invalid or expired OTP.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -100,38 +150,33 @@ export const CandidateLogin: React.FC = () => {
             />
           </div>
 
-          {/* Dynamic Headline & Features */}
+          {/* Headline */}
           <div className="cand-hero-main">
             <h1 className="cand-hero-title">
-              Welcome Back.<br />
-              Shape<br />
-              <span className="muted-text">Your Career.</span>
+              Welcome<br />
+              Back to<br />
+              <span className="muted-text">Opportunities.</span>
             </h1>
             <p className="cand-hero-desc">
-              Sign in to access your verified profile, track applications live, and connect with top recruiters across India.
+              Log in to your verified candidate profile, track applications, and engage with top corporate recruiters across India.
             </p>
 
             <div className="cand-feature-list">
               {[
                 {
+                  icon: Search,
+                  title: 'Real-Time Job Alerts',
+                  desc: 'Handpicked openings matching your skills'
+                },
+                {
                   icon: ShieldCheck,
-                  title: 'Verified Profile Advantage',
-                  desc: 'Pre-verified credentials get 3x higher interview priority'
+                  title: 'Verified Badged Status',
+                  desc: 'High priority ranking with hiring managers'
                 },
                 {
                   icon: TrendingUp,
-                  title: 'Real-Time Application Tracking',
-                  desc: 'Track shortlist progress and interview calls live'
-                },
-                {
-                  icon: Search,
-                  title: 'Curated Job Matches',
-                  desc: 'Discover high-paying roles matching your exact skills'
-                },
-                {
-                  icon: FileText,
-                  title: 'Bank-Grade Data Privacy',
-                  desc: 'Your credentials remain encrypted & DPDP compliant'
+                  title: 'Application Pipeline',
+                  desc: 'Live interview feedback & progress updates'
                 }
               ].map((item, idx) => {
                 const Icon = item.icon
@@ -150,72 +195,107 @@ export const CandidateLogin: React.FC = () => {
             </div>
           </div>
 
-          {/* Footer Signature */}
+          {/* Footer Kicker */}
           <div className="cand-hero-footer">
-            <div className="cand-hero-script-tag">
-              Shape<br />What's Next
-            </div>
+            <div className="cand-hero-kicker">AUTHENTIC &nbsp;|&nbsp; VERIFIED &nbsp;|&nbsp; EMPOWERED</div>
           </div>
         </div>
       </div>
 
       {/* Right Column - Login Form */}
       <div className="cand-form-col cand-login-col cand-single-page-col">
-        {/* Top Header bar */}
+        {/* Top Header Bar */}
         <div className="cand-form-header-bar">
-          <span style={{ fontSize: '13px', color: '#64748b' }}>
-            Don't have an account?{' '}
-            <a
-              href="#register"
-              onClick={e => {
-                e.preventDefault()
-                setStep(1)
-                setViewMode('registration')
-              }}
-              style={{ color: '#09090b', fontWeight: 700, textDecoration: 'underline' }}
-            >
-              Register
-            </a>
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span style={{ fontSize: '13px', color: '#64748b' }}>
+              Don't have an account?{' '}
+              <a
+                href="#register"
+                onClick={e => {
+                  e.preventDefault()
+                  setStep(1)
+                  setViewMode('registration')
+                }}
+                style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}
+              >
+                Register as Candidate
+              </a>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="cand-role-switch-btn"
+            onClick={() => window.open('http://localhost:5175', '_blank')}
+          >
+            Employer Portal →
+          </button>
         </div>
 
-        {/* Form Body */}
-        <div className="cand-form-body cand-login-body cand-single-page-body">
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            {/* Header Titles */}
-            <div className="cand-step-indicator">CANDIDATE SIGN IN</div>
-            <h2 className="cand-step-title">Sign In to ProXHire</h2>
-            <p className="cand-step-subtitle">
-              Enter your registered credentials to access your candidate dashboard.
-            </p>
+        {/* Scrollable Form Content */}
+        <div className="cand-form-content">
+          <div className="cand-login-form-wrapper">
+            <div className="cand-step-intro" style={{ marginBottom: '14px' }}>
+              <div className="cand-step-indicator">CANDIDATE SIGN IN</div>
+              <h2 className="cand-step-title">Welcome Back</h2>
+              <p className="cand-step-subtitle">
+                Access your candidate dashboard, saved jobs, and application status.
+              </p>
+            </div>
 
-            {/* Login Method Segmented Control */}
-            <div className="cand-login-tabs-segmented">
+            {/* Error Message Alert */}
+            {errorMsg && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#b91c1c',
+                  borderRadius: '8px',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  marginBottom: '12px'
+                }}
+              >
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            {/* Login Method Toggle */}
+            <div className="cand-login-tabs">
               <button
                 type="button"
-                className={`cand-login-tab-pill ${loginMethod === 'password' ? 'active' : ''}`}
-                onClick={() => setLoginMethod('password')}
+                className={`cand-login-tab-btn ${loginMethod === 'password' ? 'active' : ''}`}
+                onClick={() => {
+                  setLoginMethod('password')
+                  setErrorMsg(null)
+                }}
               >
-                <Mail size={15} />
-                <span>Email & Password</span>
+                Password Login
               </button>
               <button
                 type="button"
-                className={`cand-login-tab-pill ${loginMethod === 'otp' ? 'active' : ''}`}
-                onClick={() => setLoginMethod('otp')}
+                className={`cand-login-tab-btn ${loginMethod === 'otp' ? 'active' : ''}`}
+                onClick={() => {
+                  setLoginMethod('otp')
+                  setErrorMsg(null)
+                }}
               >
-                <Phone size={15} />
-                <span>Mobile OTP</span>
+                Mobile OTP Login
               </button>
             </div>
 
-            {/* Password Login Fields */}
+            {/* PASSWORD LOGIN FORM */}
             {loginMethod === 'password' && (
-              <div className="cand-login-fields-wrap">
-                {/* Email Field */}
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* Email / Mobile Field */}
                 <div className="cand-field-group">
                   <label className="cand-field-label">
-                    Email ID or Mobile Number <span className="req">*</span>
+                    Email or Mobile Number <span className="req">*</span>
                   </label>
                   <div className="cand-input-wrapper">
                     <span className="cand-input-icon">
@@ -224,7 +304,7 @@ export const CandidateLogin: React.FC = () => {
                     <input
                       type="text"
                       className="cand-input"
-                      placeholder="Enter registered email (e.g. sreekumar.student@gmail.com)"
+                      placeholder="Enter registered email or phone"
                       value={emailOrPhone}
                       onChange={e => setEmailOrPhone(e.target.value)}
                       required
@@ -243,15 +323,15 @@ export const CandidateLogin: React.FC = () => {
                       style={{
                         background: 'none',
                         border: 'none',
+                        color: '#2563eb',
                         fontSize: '12px',
-                        color: '#475467',
                         fontWeight: 600,
                         cursor: 'pointer',
-                        textDecoration: 'underline'
+                        padding: 0
                       }}
                       onClick={() => setShowForgotModal(true)}
                     >
-                      Forgot Password?
+                      Forgot?
                     </button>
                   </div>
                   <div className="cand-input-wrapper">
@@ -268,8 +348,9 @@ export const CandidateLogin: React.FC = () => {
                     />
                     <button
                       type="button"
-                      style={{ position: 'absolute', right: '12px', color: '#71717a' }}
+                      className="cand-toggle-pwd"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label="Toggle password visibility"
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -277,22 +358,33 @@ export const CandidateLogin: React.FC = () => {
                 </div>
 
                 {/* Remember Me */}
-                <label className="cand-checkbox-label" style={{ margin: '4px 0 12px 0' }}>
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={e => setRememberMe(e.target.checked)}
-                  />
-                  <span style={{ fontSize: '12.5px', color: '#475467' }}>
-                    Remember me for 30 days
-                  </span>
-                </label>
-              </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#475467', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={e => setRememberMe(e.target.checked)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    Remember my credentials
+                  </label>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="cand-btn-primary"
+                  style={{ height: '44px', marginTop: '4px', justifyContent: 'center' }}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Authenticating...' : 'Sign In to Dashboard'} <ArrowRight size={16} />
+                </button>
+              </form>
             )}
 
-            {/* Mobile OTP Login Fields */}
+            {/* OTP LOGIN FORM */}
             {loginMethod === 'otp' && (
-              <div className="cand-login-fields-wrap">
+              <form onSubmit={otpSent ? handleVerifyOtpLogin : e => { e.preventDefault(); handleSendOtp(); }} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div className="cand-field-group">
                   <label className="cand-field-label">
                     Registered Mobile Number <span className="req">*</span>
@@ -304,9 +396,6 @@ export const CandidateLogin: React.FC = () => {
                       onChange={e => setCountryCode(e.target.value)}
                     >
                       <option value="+91">+91 (IN)</option>
-                      <option value="+1">+1 (US)</option>
-                      <option value="+44">+44 (UK)</option>
-                      <option value="+971">+971 (UAE)</option>
                     </select>
                     <div className="cand-input-wrapper" style={{ flex: 1 }}>
                       <span className="cand-input-icon">
@@ -317,7 +406,7 @@ export const CandidateLogin: React.FC = () => {
                         className="cand-input"
                         placeholder="Enter 10-digit mobile number"
                         value={mobileNumber}
-                        maxLength={12}
+                        maxLength={10}
                         onChange={e => setMobileNumber(e.target.value)}
                         required
                       />
@@ -331,8 +420,9 @@ export const CandidateLogin: React.FC = () => {
                     className="cand-btn-primary"
                     style={{ height: '42px', marginTop: '6px', justifyContent: 'center' }}
                     onClick={handleSendOtp}
+                    disabled={isLoading}
                   >
-                    Send OTP to Mobile <ArrowRight size={15} />
+                    {isLoading ? 'Dispatching OTP...' : 'Send OTP to Mobile'} <ArrowRight size={15} />
                   </button>
                 ) : (
                   <div className="cand-field-group" style={{ marginTop: '6px' }}>
@@ -351,14 +441,14 @@ export const CandidateLogin: React.FC = () => {
                       <input
                         type="text"
                         className="cand-input"
-                        placeholder="Enter 6-digit OTP (e.g. 123456)"
+                        placeholder="Enter 6-digit OTP"
                         value={otpCode}
                         maxLength={6}
                         onChange={e => setOtpCode(e.target.value)}
                         required
                       />
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                       <button
                         type="button"
                         style={{
@@ -370,158 +460,149 @@ export const CandidateLogin: React.FC = () => {
                           textDecoration: 'underline'
                         }}
                         onClick={handleSendOtp}
+                        disabled={isLoading}
                       >
                         Resend OTP
                       </button>
                     </div>
+
+                    <button
+                      type="submit"
+                      className="cand-btn-primary"
+                      style={{ height: '42px', marginTop: '10px', justifyContent: 'center' }}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Verifying OTP...' : 'Verify OTP & Enter'} <ArrowRight size={15} />
+                    </button>
                   </div>
                 )}
-              </div>
+              </form>
             )}
 
-            {/* Social Divider */}
-            <div className="cand-social-divider">
-              <span className="cand-social-divider-line" />
-              <span className="cand-social-divider-text">or continue with</span>
-              <span className="cand-social-divider-line" />
+            {/* Quick Registration Redirect */}
+            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <span style={{ fontSize: '13px', color: '#64748b' }}>
+                New to ProXHire?{' '}
+                <button
+                  type="button"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#2563eb',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    padding: 0
+                  }}
+                  onClick={() => {
+                    setStep(1)
+                    setViewMode('registration')
+                  }}
+                >
+                  Create an account now →
+                </button>
+              </span>
             </div>
-
-            {/* 1-Click Google Sign In */}
-            <button
-              type="button"
-              className="cand-google-login-btn"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-            >
-              <GoogleIcon />
-              <span>Continue with Google</span>
-            </button>
-
-            {/* Trust Assurance Strip */}
-            <div className="cand-trust-assurance-grid" style={{ marginTop: '14px', marginBottom: '14px' }}>
-              <div className="cand-trust-item">
-                <div className="cand-trust-icon-box">
-                  <Lock size={15} color="#09090b" />
-                </div>
-                <div className="cand-trust-text">
-                  <h4>256-Bit SSL Encrypted</h4>
-                  <p>Credentials protected with bank-grade security.</p>
-                </div>
-              </div>
-
-              <div className="cand-trust-item">
-                <div className="cand-trust-icon-box">
-                  <ShieldCheck size={15} color="#09090b" />
-                </div>
-                <div className="cand-trust-text">
-                  <h4>DPDP Act Compliant</h4>
-                  <p>Strict Indian data privacy compliance.</p>
-                </div>
-              </div>
-
-              <div className="cand-trust-item">
-                <div className="cand-trust-icon-box">
-                  <CheckCircle2 size={15} color="#09090b" />
-                </div>
-                <div className="cand-trust-text">
-                  <h4>Zero Spam Guarantee</h4>
-                  <p>Only verified employers view profiles.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Footer */}
-            <div className="cand-action-footer cand-login-footer">
-              <button
-                type="button"
-                className="cand-btn-back"
-                onClick={() => {
-                  setStep(1)
-                  setViewMode('registration')
-                }}
-              >
-                <ArrowLeft size={16} /> Back to Register
-              </button>
-
-              <button
-                type="submit"
-                className="cand-btn-primary"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Signing In...' : 'Sign In to Account'} <ArrowRight size={16} />
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
         <div
-          className="cand-modal-backdrop"
-          onClick={() => {
-            setShowForgotModal(false)
-            setForgotSubmitted(false)
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px'
           }}
+          onClick={() => setShowForgotModal(false)}
         >
-          <div className="cand-modal-dialog" onClick={e => e.stopPropagation()}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              padding: '28px',
+              maxWidth: '460px',
+              width: '100%'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
             <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#09090b', marginBottom: '8px' }}>
-              Reset Your Password
+              Reset Password
             </h4>
-            <p style={{ fontSize: '13.5px', color: '#475467', lineHeight: 1.5, marginBottom: '16px' }}>
-              Enter your registered email address or mobile number. We will send a secure verification code to reset your account password.
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px', lineHeight: 1.5 }}>
+              Enter your registered email address or mobile number. We'll send you an OTP to reset your password.
             </p>
 
-            {!forgotSubmitted ? (
-              <div>
-                <div className="cand-input-wrapper" style={{ marginBottom: '16px' }}>
-                  <span className="cand-input-icon">
-                    <Mail size={16} />
-                  </span>
-                  <input
-                    type="text"
-                    className="cand-input"
-                    placeholder="Enter your registered email"
-                    value={forgotEmail}
-                    onChange={e => setForgotEmail(e.target.value)}
-                  />
+            {forgotSubmitted ? (
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <CheckCircle2 size={40} color="#10b981" style={{ margin: '0 auto 12px' }} />
+                <h5 style={{ fontSize: '15px', fontWeight: 700, color: '#09090b', margin: '0 0 6px' }}>
+                  Reset Link Dispatched
+                </h5>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                  If an account exists for {forgotEmail}, instructions have been sent.
+                </p>
+                <button
+                  type="button"
+                  className="cand-btn-primary"
+                  style={{ marginTop: '16px', width: '100%', justifyContent: 'center' }}
+                  onClick={() => {
+                    setShowForgotModal(false)
+                    setForgotSubmitted(false)
+                    setForgotEmail('')
+                  }}
+                >
+                  Back to Login
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={e => {
+                  e.preventDefault()
+                  if (forgotEmail) setForgotSubmitted(true)
+                }}
+              >
+                <div className="cand-field-group" style={{ marginBottom: '16px' }}>
+                  <label className="cand-field-label">Registered Email / Phone</label>
+                  <div className="cand-input-wrapper">
+                    <span className="cand-input-icon">
+                      <Mail size={16} />
+                    </span>
+                    <input
+                      type="text"
+                      className="cand-input"
+                      placeholder="e.g. candidate@gmail.com"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
                   <button
                     type="button"
-                    className="cand-btn-back"
+                    className="cand-btn-secondary"
+                    style={{ flex: 1, justifyContent: 'center' }}
                     onClick={() => setShowForgotModal(false)}
                   >
                     Cancel
                   </button>
                   <button
-                    type="button"
+                    type="submit"
                     className="cand-btn-primary"
-                    onClick={() => {
-                      if (forgotEmail) setForgotSubmitted(true)
-                    }}
+                    style={{ flex: 1, justifyContent: 'center' }}
                   >
-                    Send Reset Link →
+                    Send OTP
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div>
-                <div style={{ padding: '12px 16px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #a7f3d0', color: '#065f46', fontSize: '13.5px', marginBottom: '16px' }}>
-                  A password reset link has been dispatched to <strong>{forgotEmail}</strong>. Please check your inbox.
-                </div>
-                <button
-                  type="button"
-                  className="cand-btn-primary"
-                  style={{ width: '100%', justifyContent: 'center' }}
-                  onClick={() => {
-                    setShowForgotModal(false)
-                    setForgotSubmitted(false)
-                  }}
-                >
-                  Back to Sign In
-                </button>
-              </div>
+              </form>
             )}
           </div>
         </div>

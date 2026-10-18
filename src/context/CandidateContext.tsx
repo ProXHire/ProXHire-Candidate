@@ -1,99 +1,132 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import type { CandidateStep, CandidateRegistrationState, ExperienceCategory } from '../types'
+import type { CandidateStep, CandidateRegistrationState } from '../types'
+import { authService } from '../services/authService'
 import confetti from 'canvas-confetti'
 
 interface CandidateContextType {
   step: CandidateStep
   formData: CandidateRegistrationState
-  updateField: <K extends keyof CandidateRegistrationState>(key: K, value: CandidateRegistrationState[K]) => void
+  updateField: <K extends keyof CandidateRegistrationState>(
+    key: K,
+    value: CandidateRegistrationState[K]
+  ) => void
   setStep: (step: CandidateStep) => void
   nextStep: () => void
   prevStep: () => void
   viewMode: 'registration' | 'dashboard' | 'login'
   setViewMode: (mode: 'registration' | 'dashboard' | 'login') => void
-  completeRegistration: () => Promise<void>
+
+  // Backend Auth & Verification States
   isSubmitting: boolean
+  isVerified: boolean
+  isCompleted: boolean
+  userId: string | null
+  authToken: string | null
+  errorMsg: string | null
+  setErrorMsg: (msg: string | null) => void
+  otpPending: boolean
+  setOtpPending: (pending: boolean) => void
+
+  // Actions
+  submitBasicDetails: () => Promise<void>
+  submitVerifyOtp: (otpCode: string) => Promise<void>
+  resendVerificationOtp: () => Promise<void>
+  completeRegistration: () => Promise<void>
+  loginCandidate: (emailOrPhone: string, pass: string) => Promise<void>
+  logout: () => void
 }
 
+// REAL CLEAN INITIAL STATE - ZERO DUMMY DATA
 const INITIAL_STATE: CandidateRegistrationState = {
   experienceCategory: 'fresher',
 
-  fullName: 'Sree Kumar',
-  email: 'sreekumar.student@gmail.com',
+  fullName: '',
+  email: '',
   countryCode: '+91',
-  mobileNumber: '98765 43210',
-  panNumber: 'ABCDE1234F',
-  password: 'Password@123',
-  confirmPassword: 'Password@123',
-  preBgvConsent: true,
-  agreeTerms: true,
+  mobileNumber: '',
+  panNumber: '',
+  password: '',
+  confirmPassword: '',
+  preBgvConsent: false,
+  agreeTerms: false,
 
-  resumeFileName: 'SreeKumar_Resume_SoftwareEngineer.pdf',
-  profileSummary: 'Enthusiastic and results-driven Software Engineer with solid foundation in full-stack web development, data structures, and cloud computing. Passionate about building robust systems and scalable products.',
-  educations: [
-    {
-      id: '1',
-      institution: 'Bangalore Institute of Technology',
-      degree: 'B.Tech',
-      fieldOfStudy: 'Computer Science & Engineering',
-      startYear: '2022',
-      endYear: '2026',
-      gradeOrCgpa: '8.8 CGPA'
-    }
-  ],
-  skills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'Java', 'SQL', 'Git', 'Data Structures'],
+  resumeFileName: undefined,
+  profileSummary: '',
+  educations: [],
+  skills: [],
 
   experiences: [],
-  projects: [
-    {
-      id: '1',
-      title: 'Full Stack Job Matching Engine',
-      role: 'Lead Developer',
-      techStack: 'React, Node.js, PostgreSQL',
-      description: 'Engineered an intelligent recommendation portal matching candidates with pre-verified job postings.'
-    }
-  ],
-  preferredRole: 'Frontend Developer',
+  projects: [],
+  preferredRole: '',
   industry: 'Information Technology',
   department: 'Engineering',
   employmentType: 'Full Time',
-  preferredLocations: ['Bangalore', 'Hyderabad', 'Remote'],
+  preferredLocations: [],
   workType: 'Hybrid',
   preferredShifts: 'Day',
-  expectedCtc: '₹6 - ₹10 LPA',
+  expectedCtc: '',
 
-  dateOfBirth: '15/08/2003',
+  dateOfBirth: '',
   nationality: 'Indian',
-  gender: 'Male',
-  category: 'General',
-  maritalStatus: 'Single',
+  gender: '',
+  category: '',
+  maritalStatus: '',
   workPermit: 'Yes',
-  addressLine1: 'Flat 402, Green Glen Layout, Bellandur',
-  addressLine2: 'Outer Ring Road',
-  city: 'Bengaluru',
-  state: 'Karnataka',
-  pinCode: '560103',
+  addressLine1: '',
+  addressLine2: '',
+  city: '',
+  state: '',
+  pinCode: '',
   hasDisability: 'No',
   hasCareerGap: 'No',
   govtExperience: 'No',
   openToRelocate: 'Yes',
-  linkedInUrl: 'https://www.linkedin.com/in/sreekumar-profile',
-  gitHubUrl: 'https://github.com/sreekumar-student',
-  portfolioUrl: 'https://sreekumar.dev',
-  achievements: ['Smart India Hackathon 2025 Finalist', 'Certified AWS Cloud Practitioner'],
+  linkedInUrl: '',
+  gitHubUrl: '',
+  portfolioUrl: '',
+  achievements: [],
 
-  finalConfirmed: true
+  finalConfirmed: false
 }
 
 const CandidateContext = createContext<CandidateContextType | undefined>(undefined)
 
 export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [step, setStepState] = useState<CandidateStep>(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [otpPending, setOtpPending] = useState(false)
+
+  // Auth tokens and IDs
+  const [userId, setUserId] = useState<string | null>(() => localStorage.getItem('proxhire_candidate_uid'))
+  const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('proxhire_candidate_token'))
+  const [isVerified, setIsVerified] = useState<boolean>(() => {
+    return localStorage.getItem('proxhire_candidate_verified') === 'true'
+  })
+  const [isCompleted, setIsCompleted] = useState<boolean>(() => {
+    return localStorage.getItem('proxhire_candidate_registered') === 'true'
+  })
+  const [viewModeState, setViewModeState] = useState<'registration' | 'dashboard' | 'login'>('registration')
+
+  // Form State with clean storage hydration
   const [formData, setFormData] = useState<CandidateRegistrationState>(() => {
     const saved = localStorage.getItem('proxhire_candidate_registration')
+    if (saved && (saved.includes('Sree') || saved.includes('sreekumar'))) {
+      localStorage.removeItem('proxhire_candidate_registration')
+      localStorage.removeItem('proxhire_candidate_registered')
+      localStorage.removeItem('proxhire_candidate_verified')
+      localStorage.removeItem('proxhire_candidate_token')
+      localStorage.removeItem('proxhire_candidate_uid')
+      return INITIAL_STATE
+    }
+
     if (saved) {
       try {
-        return { ...INITIAL_STATE, ...JSON.parse(saved) }
+        const parsed = JSON.parse(saved)
+        if (parsed.email === 'sreekumar.student@gmail.com') {
+          return INITIAL_STATE
+        }
+        return { ...INITIAL_STATE, ...parsed }
       } catch {
         return INITIAL_STATE
       }
@@ -101,9 +134,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return INITIAL_STATE
   })
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [viewMode, setViewMode] = useState<'registration' | 'dashboard' | 'login'>('registration')
-
+  // Sync formData to localStorage
   useEffect(() => {
     localStorage.setItem('proxhire_candidate_registration', JSON.stringify(formData))
   }, [formData])
@@ -132,9 +163,128 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setFormData(prev => ({ ...prev, [key]: value }))
   }
 
+  /**
+   * Submit Step 2 Basic Account Details to Backend:
+   * Dispatches real OTP to Candidate's Mobile & Gmail
+   */
+  const submitBasicDetails = async () => {
+    setIsSubmitting(true)
+    setErrorMsg(null)
+
+    try {
+      const cleanMobile = formData.mobileNumber.replace(/[\s\-\+]/g, '')
+      const response = await authService.registerCandidate({
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        mobileNumber: cleanMobile,
+        panNumber: formData.panNumber.trim().toUpperCase(),
+        password: formData.password,
+        experienceCategory: formData.experienceCategory
+      })
+
+      if (response.userId) {
+        setUserId(response.userId)
+        localStorage.setItem('proxhire_candidate_uid', response.userId)
+      }
+
+      setOtpPending(true)
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to register candidate account.')
+      throw err
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  /**
+   * Verify the 6-digit OTP dispatched to candidate's mobile and Gmail
+   */
+  const submitVerifyOtp = async (otpCode: string) => {
+    setIsSubmitting(true)
+    setErrorMsg(null)
+
+    try {
+      const cleanMobile = formData.mobileNumber.replace(/[\s\-\+]/g, '')
+      const response = await authService.verifyOtp({
+        userId: userId || undefined,
+        email: formData.email.trim().toLowerCase(),
+        mobileNumber: cleanMobile,
+        otpCode: otpCode.trim(),
+        purpose: 'CANDIDATE_REGISTRATION'
+      })
+
+      if (response.token) {
+        setAuthToken(response.token)
+        localStorage.setItem('proxhire_candidate_token', response.token)
+      }
+
+      setIsVerified(true)
+      localStorage.setItem('proxhire_candidate_verified', 'true')
+      setOtpPending(false)
+
+      // Advance to next step (Profile Details)
+      nextStep()
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Invalid or expired OTP. Please try again.')
+      throw err
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  /**
+   * Resend OTP to mobile and Gmail
+   */
+  const resendVerificationOtp = async () => {
+    setIsSubmitting(true)
+    setErrorMsg(null)
+
+    try {
+      const cleanMobile = formData.mobileNumber.replace(/[\s\-\+]/g, '')
+      await authService.resendOtp(
+        userId || undefined,
+        formData.email.trim().toLowerCase(),
+        cleanMobile
+      )
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to resend OTP. Please wait before retrying.')
+      throw err
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  /**
+   * Final Step 6: Complete Registration and Save Full Profile to Backend
+   */
   const completeRegistration = async () => {
     setIsSubmitting(true)
+    setErrorMsg(null)
+
     try {
+      if (authToken) {
+        await authService.updateProfile(authToken, {
+          fullName: formData.fullName,
+          city: formData.city,
+          preferredLocations: formData.preferredLocations,
+          preferredIndustry: formData.industry,
+          preferredJobType: formData.employmentType,
+          expectedSalary: formData.expectedCtc,
+          gender: formData.gender,
+          dateOfBirth: formData.dateOfBirth,
+          addressLine1: formData.addressLine1,
+          state: formData.state,
+          pinCode: formData.pinCode,
+          linkedInUrl: formData.linkedInUrl,
+          gitHubUrl: formData.gitHubUrl,
+          portfolioUrl: formData.portfolioUrl,
+          skills: formData.skills,
+          educations: formData.educations,
+          experiences: formData.experiences,
+          projects: formData.projects
+        }).catch(() => null)
+      }
+
       try {
         confetti({
           particleCount: 120,
@@ -145,11 +295,93 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         // Ignore
       }
 
+      setIsCompleted(true)
       localStorage.setItem('proxhire_candidate_registered', 'true')
-      setViewMode('dashboard')
+      setViewModeState('dashboard')
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to complete registration.')
+      throw err
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  /**
+   * Login candidate via email/phone and password
+   */
+  const loginCandidate = async (emailOrPhone: string, pass: string) => {
+    setIsSubmitting(true)
+    setErrorMsg(null)
+
+    try {
+      const res = await authService.login({
+        emailOrPhone: emailOrPhone.trim(),
+        password: pass
+      })
+
+      if (!res.user.isEmailVerified && !res.user.isMobileVerified) {
+        throw new Error('Your account requires OTP verification before dashboard access.')
+      }
+
+      setAuthToken(res.token)
+      setUserId(res.user.id)
+      setIsVerified(true)
+      setIsCompleted(true)
+
+      localStorage.setItem('proxhire_candidate_token', res.token)
+      localStorage.setItem('proxhire_candidate_uid', res.user.id)
+      localStorage.setItem('proxhire_candidate_verified', 'true')
+      localStorage.setItem('proxhire_candidate_registered', 'true')
+
+      // Populate form data name & email
+      setFormData(prev => ({
+        ...prev,
+        fullName: res.user.fullName || prev.fullName,
+        email: res.user.email || prev.email,
+        mobileNumber: res.user.mobile || prev.mobileNumber
+      }))
+
+      setViewModeState('dashboard')
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Invalid credentials. Please try again.')
+      throw err
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  /**
+   * Logout and clear local sessions
+   */
+  const logout = () => {
+    setAuthToken(null)
+    setUserId(null)
+    setIsVerified(false)
+    setIsCompleted(false)
+    localStorage.removeItem('proxhire_candidate_token')
+    localStorage.removeItem('proxhire_candidate_uid')
+    localStorage.removeItem('proxhire_candidate_verified')
+    localStorage.removeItem('proxhire_candidate_registered')
+    setViewModeState('login')
+  }
+
+  /**
+   * Guarded navigation to prevent unverified or incomplete candidates from accessing dashboard
+   */
+  const setViewMode = (mode: 'registration' | 'dashboard' | 'login') => {
+    if (mode === 'dashboard') {
+      if (!isVerified || !isCompleted) {
+        alert(
+          'Access restricted: Please complete your registration and verify your mobile and email OTP to access the candidate dashboard.'
+        )
+        setViewModeState('registration')
+        if (!isVerified) {
+          setStep(2)
+        }
+        return
+      }
+    }
+    setViewModeState(mode)
   }
 
   return (
@@ -161,10 +393,23 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setStep,
         nextStep,
         prevStep,
-        viewMode,
+        viewMode: viewModeState,
         setViewMode,
+        isSubmitting,
+        isVerified,
+        isCompleted,
+        userId,
+        authToken,
+        errorMsg,
+        setErrorMsg,
+        otpPending,
+        setOtpPending,
+        submitBasicDetails,
+        submitVerifyOtp,
+        resendVerificationOtp,
         completeRegistration,
-        isSubmitting
+        loginCandidate,
+        logout
       }}
     >
       {children}

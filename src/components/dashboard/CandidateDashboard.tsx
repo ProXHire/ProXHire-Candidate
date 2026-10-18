@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Bell,
   Search,
@@ -13,17 +13,29 @@ import {
   CheckCircle2,
   ChevronDown,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import type { JobCardData, ApplicationRowData } from '../../types'
 
 export const CandidateDashboard: React.FC = () => {
-  const { formData, setViewMode, setStep } = useCandidate()
+  const { formData, setViewMode, setStep, isVerified, isCompleted, logout } = useCandidate()
   const [activeNav, setActiveNav] = useState('Dashboard')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedJob, setSelectedJob] = useState<JobCardData | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  // Guard dashboard: unverified candidates must complete verification
+  useEffect(() => {
+    if (!isVerified || !isCompleted) {
+      setViewMode('registration')
+    }
+  }, [isVerified, isCompleted, setViewMode])
+
+  const candidateInitials = formData.fullName
+    ? formData.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'C'
 
   const [jobs, setJobs] = useState<JobCardData[]>([
     {
@@ -157,13 +169,23 @@ export const CandidateDashboard: React.FC = () => {
             }}
           >
             <div className="cand-dash-avatar">
-              SK
+              {candidateInitials}
             </div>
             <span className="cand-dash-profile-name">
-              {formData.fullName || 'Sree Kumar'}
+              {formData.fullName || 'Candidate'}
             </span>
             <ChevronDown size={14} color="#71717a" className="cand-dash-chevron" />
           </div>
+
+          <button
+            type="button"
+            className="cand-dash-icon-btn"
+            title="Sign Out"
+            onClick={logout}
+            style={{ color: '#ef4444' }}
+          >
+            <LogOut size={17} />
+          </button>
 
           {/* Mobile Hamburger Menu Toggle */}
           <button
@@ -202,14 +224,14 @@ export const CandidateDashboard: React.FC = () => {
           <div className="cand-mobile-drawer" onClick={e => e.stopPropagation()}>
             <div className="cand-drawer-user-card">
               <div className="cand-dash-avatar" style={{ width: '40px', height: '40px', fontSize: '15px' }}>
-                SK
+                {candidateInitials}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#09090b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {formData.fullName || 'Sree Kumar'}
+                  {formData.fullName || 'Candidate'}
                 </h4>
                 <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {formData.email || 'sreekumar.student@gmail.com'}
+                  {formData.email || 'candidate@gmail.com'}
                 </p>
               </div>
               <span style={{ fontSize: '11px', fontWeight: 700, backgroundColor: '#ecfdf5', color: '#059669', padding: '3px 8px', borderRadius: '9999px' }}>
@@ -267,7 +289,7 @@ export const CandidateDashboard: React.FC = () => {
         <div className="cand-banner-hero">
           <div className="cand-banner-left">
             <span className="kicker">WELCOME BACK,</span>
-            <h1>{formData.fullName || 'Sree Kumar'}</h1>
+            <h1>{formData.fullName || 'Candidate'}</h1>
             <p>Discover opportunities. Build your future.</p>
 
             <div className="cand-search-bar">

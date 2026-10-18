@@ -292,18 +292,19 @@ input, select, textarea {
 /* 6-step Stepper */
 .cand-stepper-wrap {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   position: relative;
   margin-bottom: 40px;
-  padding: 0 16px;
+  padding: 0;
+  --stepper-inset: 8.3333%;
 }
 
 .cand-stepper-line {
   position: absolute;
   top: 16px;
-  left: 36px;
-  right: 36px;
+  left: var(--stepper-inset, 8.3333%);
+  right: var(--stepper-inset, 8.3333%);
   height: 2px;
   background-color: #e4e4e7;
   z-index: 1;
@@ -312,7 +313,7 @@ input, select, textarea {
 .cand-stepper-progress {
   position: absolute;
   top: 16px;
-  left: 36px;
+  left: var(--stepper-inset, 8.3333%);
   height: 2px;
   background-color: #000000;
   z-index: 2;
@@ -325,6 +326,9 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
   gap: 8px;
   cursor: pointer;
 }
@@ -338,6 +342,7 @@ input, select, textarea {
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
+  background-color: #ffffff;
   transition: all 0.2s ease;
 }
 
@@ -2337,6 +2342,17 @@ select.cand-input option,
   }
 }
 
+@media (max-width: 840px) {
+  .cand-step-label {
+    font-size: 11px;
+    white-space: normal;
+    line-height: 1.15;
+    max-width: 75px;
+    text-align: center;
+    word-break: break-word;
+  }
+}
+
 @media (max-width: 640px) {
   .cand-exp-choice-grid {
     grid-template-columns: 1fr;
@@ -2351,23 +2367,55 @@ select.cand-input option,
     grid-template-columns: 1fr;
   }
   .cand-hero-col {
-    min-height: 280px;
+    min-height: 220px;
     padding: 24px 20px;
   }
   .cand-hero-title {
-    font-size: 28px;
+    font-size: 26px;
+    line-height: 1.25;
+    margin-bottom: 8px;
   }
   .cand-hero-desc {
     font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 0;
   }
   .cand-feature-list {
     display: none;
   }
+  .cand-hero-footer {
+    display: none;
+  }
   .cand-hero-script-tag {
-    font-size: 32px;
+    font-size: 28px;
   }
   .cand-form-col {
-    padding: 24px 16px;
+    padding: 24px 16px 40px;
+  }
+  .cand-stepper-wrap {
+    margin-bottom: 24px;
+  }
+  .cand-step-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+  .cand-stepper-line,
+  .cand-stepper-progress {
+    top: 14px;
+  }
+  .cand-step-label {
+    font-size: 10px;
+    line-height: 1.1;
+    max-width: 52px;
+  }
+  .cand-step-title {
+    font-size: 22px;
+    line-height: 1.25;
+  }
+  .cand-step-subtitle {
+    font-size: 13px;
+    margin-bottom: 18px;
   }
   .cand-trust-assurance-grid {
     grid-template-columns: 1fr;
@@ -2443,5 +2491,37 @@ select.cand-input option,
   .cand-bgv-perks-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .cand-step-label {
+    display: none;
+  }
+  .cand-card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .cand-card-header button {
+    width: 100%;
+    justify-content: center;
+  }
+  .cand-action-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .cand-action-footer .cand-btn-primary,
+  .cand-action-footer .cand-btn-back {
+    width: 100%;
+    justify-content: center;
+  }
+  .cand-login-tabs-segmented {
+    gap: 4px;
+    padding: 4px;
+  }
+  .cand-login-tab-pill {
+    padding: 8px 10px;
+    font-size: 12px;
   }
 }
