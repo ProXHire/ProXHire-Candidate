@@ -130,6 +130,12 @@ export const Step2BasicDetails: React.FC = () => {
       return
     }
 
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/
+    if (!panRegex.test(formData.panNumber.trim().toUpperCase())) {
+      setLocalError('Invalid PAN format. Must be 10 characters: 5 letters, 4 numbers, 1 letter (e.g. ABCDE1234F).')
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setLocalError('Passwords do not match. Please verify.')
       return
