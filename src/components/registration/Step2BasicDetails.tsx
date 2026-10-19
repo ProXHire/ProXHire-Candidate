@@ -57,13 +57,6 @@ export const Step2BasicDetails: React.FC = () => {
   const [smsSuccess, setSmsSuccess] = useState(false)
   const [smsError, setSmsError] = useState<string | null>(null)
 
-  // Auto-fill devOtp in development if available
-  useEffect(() => {
-    if (devOtp && devOtp.length === 6) {
-      setOtpDigits(devOtp.split(''))
-    }
-  }, [devOtp])
-
   // Countdown timer for OTP
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>
