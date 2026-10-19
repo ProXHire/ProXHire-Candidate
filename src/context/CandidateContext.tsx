@@ -416,6 +416,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setErrorMsg,
         otpPending,
         setOtpPending,
+        devOtp,
         submitBasicDetails,
         submitVerifyOtp,
         resendVerificationOtp,

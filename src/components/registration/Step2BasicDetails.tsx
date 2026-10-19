@@ -32,6 +32,7 @@ export const Step2BasicDetails: React.FC = () => {
     isVerified,
     otpPending,
     setOtpPending,
+    devOtp,
     errorMsg,
     setErrorMsg
   } = useCandidate()
@@ -47,6 +48,13 @@ export const Step2BasicDetails: React.FC = () => {
   const [canResend, setCanResend] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  // Auto-fill devOtp in development if available
+  useEffect(() => {
+    if (devOtp && devOtp.length === 6) {
+      setOtpDigits(devOtp.split(''))
+    }
+  }, [devOtp])
 
   // Countdown timer for OTP
   useEffect(() => {
