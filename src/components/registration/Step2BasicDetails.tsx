@@ -34,7 +34,6 @@ export const Step2BasicDetails: React.FC = () => {
     isVerified,
     otpPending,
     setOtpPending,
-    devOtp,
     errorMsg,
     setErrorMsg
   } = useCandidate()
