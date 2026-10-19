@@ -26,6 +26,7 @@ interface CandidateContextType {
   setErrorMsg: (msg: string | null) => void
   otpPending: boolean
   setOtpPending: (pending: boolean) => void
+  devOtp: string | null
 
   // Actions
   submitBasicDetails: () => Promise<void>
@@ -96,6 +97,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [otpPending, setOtpPending] = useState(false)
+  const [devOtp, setDevOtp] = useState<string | null>(null)
 
   // Auth tokens and IDs
   const [userId, setUserId] = useState<string | null>(() => localStorage.getItem('proxhire_candidate_uid'))
@@ -185,6 +187,13 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (response.userId) {
         setUserId(response.userId)
         localStorage.setItem('proxhire_candidate_uid', response.userId)
+      } else if (response.user?.id) {
+        setUserId(response.user.id)
+        localStorage.setItem('proxhire_candidate_uid', response.user.id)
+      }
+
+      if (response.devOtp) {
+        setDevOtp(response.devOtp)
       }
 
       setOtpPending(true)
@@ -241,11 +250,14 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     try {
       const cleanMobile = formData.mobileNumber.replace(/[\s\-\+]/g, '')
-      await authService.resendOtp(
+      const res = await authService.resendOtp(
         userId || undefined,
         formData.email.trim().toLowerCase(),
         cleanMobile
       )
+      if (res?.devOtp) {
+        setDevOtp(res.devOtp)
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to resend OTP. Please wait before retrying.')
       throw err
