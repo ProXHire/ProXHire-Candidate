@@ -29,6 +29,20 @@ export const Step3ResumeSkills: React.FC = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
+
+      // Client-side file type and size validation
+      const allowedExts = ['.pdf', '.doc', '.docx', '.rtf'];
+      const fileExt = '.' + (file.name.split('.').pop() || '').toLowerCase();
+      if (!allowedExts.includes(fileExt)) {
+        alert('Invalid file format. Please upload a PDF, DOC, DOCX, or RTF document.');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds the 5MB maximum limit. Please select a smaller resume file.');
+        return;
+      }
+
       updateField('resumeFileName', file.name)
       updateField('resumeFileSize', file.size)
       updateField('resumeFileType', file.type || 'application/pdf')
