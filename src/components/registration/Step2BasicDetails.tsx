@@ -18,6 +18,8 @@ import {
   Sparkles
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
+import { phoneAuthService } from '../../services/phoneAuthService'
+import type { ConfirmationResult } from 'firebase/auth'
 
 export const Step2BasicDetails: React.FC = () => {
   const {
@@ -49,6 +51,12 @@ export const Step2BasicDetails: React.FC = () => {
   const [resendSuccess, setResendSuccess] = useState(false)
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
+  // Firebase SMS Phone Auth states
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
+  const [isSendingSms, setIsSendingSms] = useState(false)
+  const [smsSuccess, setSmsSuccess] = useState(false)
+  const [smsError, setSmsError] = useState<string | null>(null)
+
   // Auto-fill devOtp in development if available
   useEffect(() => {
     if (devOtp && devOtp.length === 6) {
@@ -68,6 +76,42 @@ export const Step2BasicDetails: React.FC = () => {
     }
     return () => clearInterval(interval)
   }, [otpPending, otpTimer])
+
+  // Trigger Firebase SMS automatically when otpPending is activated
+  useEffect(() => {
+    let active = true
+    if (otpPending && formData.mobileNumber && !confirmationResult && !isSendingSms) {
+      const triggerSms = async () => {
+        try {
+          setIsSendingSms(true)
+          setSmsError(null)
+          const result = await phoneAuthService.sendPhoneOtp(
+            formData.mobileNumber,
+            'candidate-recaptcha-container'
+          )
+          if (active) {
+            setConfirmationResult(result)
+            setSmsSuccess(true)
+            setTimeout(() => setSmsSuccess(false), 5000)
+          }
+        } catch (err: any) {
+          console.warn('Firebase SMS Phone Auth notice:', err.message)
+          if (active) {
+            setSmsError(err.message || 'Failed to dispatch SMS via Firebase.')
+          }
+        } finally {
+          if (active) setIsSendingSms(false)
+        }
+      }
+
+      const timer = setTimeout(triggerSms, 400)
+      return () => {
+        active = false
+        clearTimeout(timer)
+        phoneAuthService.clearRecaptcha()
+      }
+    }
+  }, [otpPending, formData.mobileNumber])
 
   // Handle Form Submit for Initial Basic Registration
   const handleSubmitDetails = async (e: React.FormEvent) => {
@@ -160,22 +204,61 @@ export const Step2BasicDetails: React.FC = () => {
       return
     }
 
+    // 1. If Firebase confirmationResult exists, attempt Firebase verification first
+    if (confirmationResult) {
+      try {
+        await phoneAuthService.verifyPhoneOtp(confirmationResult, code)
+        // Firebase SMS OTP succeeded! Sync verification state with backend
+        await submitVerifyOtp(code, true)
+        return
+      } catch (fbErr: any) {
+        console.warn('Firebase verify notice, attempting backend verification...', fbErr.message)
+      }
+    }
+
+    // 2. Direct backend OTP verification (validates Resend email code or devOtp)
     try {
-      await submitVerifyOtp(code)
+      await submitVerifyOtp(code, false)
     } catch {
       // Error message handled in context
     }
   }
 
-  // Handle Resend OTP
+  // Manual Trigger or Resend Firebase SMS
+  const handleSendFirebaseSms = async () => {
+    if (isSendingSms || !formData.mobileNumber) return
+    try {
+      setIsSendingSms(true)
+      setSmsError(null)
+      const result = await phoneAuthService.sendPhoneOtp(
+        formData.mobileNumber,
+        'candidate-recaptcha-container'
+      )
+      setConfirmationResult(result)
+      setSmsSuccess(true)
+      setTimeout(() => setSmsSuccess(false), 5000)
+    } catch (err: any) {
+      console.warn('Firebase SMS Resend notice:', err.message)
+      setSmsError(err.message || 'SMS dispatch failed')
+    } finally {
+      setIsSendingSms(false)
+    }
+  }
+
+  // Handle Resend OTP (Both Resend Email + Firebase SMS)
   const handleResend = async () => {
     if (!canResend || isSubmitting) return
     setLocalError(null)
     setErrorMsg(null)
+    setOtpTimer(60)
+    setCanResend(false)
+
+    // Trigger SMS Resend
+    handleSendFirebaseSms()
+
+    // Trigger Email Resend
     try {
       await resendVerificationOtp()
-      setOtpTimer(60)
-      setCanResend(false)
       setResendSuccess(true)
       setTimeout(() => setResendSuccess(false), 4000)
     } catch {
@@ -196,9 +279,12 @@ export const Step2BasicDetails: React.FC = () => {
             <div className="cand-step-indicator">TWO-FACTOR VERIFICATION</div>
             <h2 className="cand-step-title">Verify Mobile & Email OTP</h2>
             <p className="cand-step-subtitle">
-              We've dispatched a secure 6-digit verification code to your mobile <strong>+91 {formData.mobileNumber}</strong> and email <strong>{formData.email}</strong> via Resend.
+              We've dispatched verification codes to your mobile <strong>+91 {formData.mobileNumber}</strong> (via Google Firebase SMS) and email <strong>{formData.email}</strong> (via Resend).
             </p>
           </div>
+
+          {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
+          <div id="candidate-recaptcha-container" style={{ margin: 0, padding: 0 }}></div>
 
           {(localError || errorMsg) && (
             <div
@@ -214,6 +300,63 @@ export const Step2BasicDetails: React.FC = () => {
               }}
             >
               {localError || errorMsg}
+            </div>
+          )}
+
+          {smsSuccess && (
+            <div
+              style={{
+                padding: '10px 14px',
+                backgroundColor: '#ecfdf5',
+                border: '1px solid #a7f3d0',
+                color: '#065f46',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 600,
+                marginBottom: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <CheckCircle2 size={16} /> Cellular SMS OTP dispatched to +91 {formData.mobileNumber} via Firebase!
+            </div>
+          )}
+
+          {smsError && (
+            <div
+              style={{
+                padding: '10px 14px',
+                backgroundColor: '#fefce8',
+                border: '1px solid #fef08a',
+                color: '#854d0e',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                marginBottom: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <span>ℹ️ Mobile SMS notice: {smsError} (You can enter the OTP received in your email).</span>
+              <button
+                type="button"
+                onClick={handleSendFirebaseSms}
+                disabled={isSendingSms}
+                style={{
+                  background: '#854d0e',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  marginLeft: '8px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {isSendingSms ? 'Sending...' : 'Retry SMS'}
+              </button>
             </div>
           )}
 
@@ -233,9 +376,76 @@ export const Step2BasicDetails: React.FC = () => {
                 gap: '8px'
               }}
             >
-              <CheckCircle2 size={16} /> New 6-digit OTP code has been dispatched to your mobile & email.
+              <CheckCircle2 size={16} /> Fresh OTP verification code dispatched to your email & mobile.
             </div>
           )}
+
+          {/* Delivery Channels Status Card */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '12px',
+              marginBottom: '16px'
+            }}
+          >
+            {/* Email Channel */}
+            <div
+              style={{
+                padding: '12px 14px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+            >
+              <Mail size={18} color="#2563eb" style={{ flexShrink: 0 }} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>EMAIL (RESEND)</div>
+                <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {formData.email}
+                </div>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#16a34a', backgroundColor: '#dcfce7', padding: '2px 6px', borderRadius: '4px' }}>
+                Sent
+              </span>
+            </div>
+
+            {/* Mobile Channel */}
+            <div
+              style={{
+                padding: '12px 14px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+            >
+              <Smartphone size={18} color="#2563eb" style={{ flexShrink: 0 }} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>MOBILE SMS (FIREBASE)</div>
+                <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 600 }}>
+                  +91 {formData.mobileNumber}
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: confirmationResult ? '#16a34a' : isSendingSms ? '#2563eb' : '#d97706',
+                  backgroundColor: confirmationResult ? '#dcfce7' : isSendingSms ? '#dbeafe' : '#fef3c7',
+                  padding: '2px 6px',
+                  borderRadius: '4px'
+                }}
+              >
+                {isSendingSms ? 'Sending' : confirmationResult ? 'SMS Sent' : 'Ready'}
+              </span>
+            </div>
+          </div>
 
           <div
             style={{
@@ -243,12 +453,12 @@ export const Step2BasicDetails: React.FC = () => {
               border: '1.5px solid #e2e8f0',
               borderRadius: '16px',
               padding: '24px',
-              marginTop: '12px'
+              marginTop: '4px'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
-                Enter 6-Digit OTP
+                Enter 6-Digit OTP Code
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#64748b' }}>
                 <Clock size={14} />
@@ -291,25 +501,47 @@ export const Step2BasicDetails: React.FC = () => {
               <span style={{ fontSize: '12.5px', color: '#64748b' }}>
                 Didn't receive the OTP?
               </span>
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={!canResend || isSubmitting}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: canResend ? '#2563eb' : '#94a3b8',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: canResend ? 'pointer' : 'not-allowed',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: 0
-                }}
-              >
-                <RotateCcw size={14} /> Resend OTP
-              </button>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={handleSendFirebaseSms}
+                  disabled={isSendingSms}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: isSendingSms ? '#94a3b8' : '#2563eb',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    cursor: isSendingSms ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: 0
+                  }}
+                >
+                  <Smartphone size={13} /> {isSendingSms ? 'Sending SMS...' : 'Resend SMS'}
+                </button>
+                <span style={{ color: '#cbd5e1' }}>|</span>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={!canResend || isSubmitting}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: canResend ? '#2563eb' : '#94a3b8',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: canResend ? 'pointer' : 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: 0
+                  }}
+                >
+                  <RotateCcw size={14} /> Resend All
+                </button>
+              </div>
             </div>
           </div>
 

@@ -30,7 +30,7 @@ interface CandidateContextType {
 
   // Actions
   submitBasicDetails: () => Promise<void>
-  submitVerifyOtp: (otpCode: string) => Promise<void>
+  submitVerifyOtp: (otpCode?: string, firebaseVerified?: boolean) => Promise<void>
   resendVerificationOtp: () => Promise<void>
   completeRegistration: () => Promise<void>
   loginCandidate: (emailOrPhone: string, pass: string) => Promise<void>
@@ -208,7 +208,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   /**
    * Verify the 6-digit OTP dispatched to candidate's mobile and Gmail
    */
-  const submitVerifyOtp = async (otpCode: string) => {
+  const submitVerifyOtp = async (otpCode?: string, firebaseVerified?: boolean) => {
     setIsSubmitting(true)
     setErrorMsg(null)
 
@@ -218,7 +218,8 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         userId: userId || undefined,
         email: formData.email.trim().toLowerCase(),
         mobileNumber: cleanMobile,
-        otpCode: otpCode.trim(),
+        otpCode: otpCode?.trim(),
+        firebaseVerified: !!firebaseVerified,
         purpose: 'CANDIDATE_REGISTRATION'
       })
 
