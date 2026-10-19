@@ -49,6 +49,10 @@ export interface CandidateRegistrationState {
 
   // Step 3: Resume, Education & Skills
   resumeFileName?: string
+  resumeDataUrl?: string
+  resumeUrl?: string
+  resumeFileType?: string
+  resumeFileSize?: number
   profileSummary: string
   educations: EducationItem[]
   skills: string[]

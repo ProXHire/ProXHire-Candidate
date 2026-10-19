@@ -11,12 +11,14 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
+import { uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
 
 export const Step3ResumeSkills: React.FC = () => {
   const { formData, updateField, nextStep, prevStep } = useCandidate()
   const [showEduModal, setShowEduModal] = useState(false)
   const [showSkillModal, setShowSkillModal] = useState(false)
   const [newSkill, setNewSkill] = useState('')
+  const [isUploadingResume, setIsUploadingResume] = useState(false)
 
   // Education form state
   const [inst, setInst] = useState('')
@@ -26,7 +28,39 @@ export const Step3ResumeSkills: React.FC = () => {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      updateField('resumeFileName', e.target.files[0].name)
+      const file = e.target.files[0]
+      updateField('resumeFileName', file.name)
+      updateField('resumeFileSize', file.size)
+      updateField('resumeFileType', file.type || 'application/pdf')
+
+      setIsUploadingResume(true)
+      const reader = new FileReader()
+      reader.onload = async (event) => {
+        const dataUrl = event.target?.result as string
+        if (dataUrl) {
+          updateField('resumeDataUrl', dataUrl)
+
+          // Save to localStorage for instant preview
+          if (formData.email) {
+            try {
+              localStorage.setItem('resume_' + formData.email.toLowerCase().trim(), dataUrl)
+            } catch {
+              // Ignore local quota limit
+            }
+          }
+
+          // Upload to Firebase Storage
+          try {
+            const downloadUrl = await uploadResumeToFirebaseStorage(file, formData.email || 'candidate')
+            updateField('resumeUrl', downloadUrl)
+          } catch (storageErr: any) {
+            console.warn('Firebase Storage direct upload notice (Firestore fallback will be used):', storageErr.message)
+          }
+        }
+        setIsUploadingResume(false)
+      }
+      reader.onerror = () => setIsUploadingResume(false)
+      reader.readAsDataURL(file)
     }
   }
 
@@ -122,9 +156,11 @@ export const Step3ResumeSkills: React.FC = () => {
             <Upload size={22} />
           </div>
           <p style={{ fontSize: '14px', fontWeight: 600, color: '#09090b', margin: 0 }}>
-            {formData.resumeFileName ? (
+            {isUploadingResume ? (
+              <span style={{ color: '#2563eb' }}>Processing & uploading resume...</span>
+            ) : formData.resumeFileName ? (
               <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                <CheckCircle2 size={16} /> {formData.resumeFileName} (Uploaded)
+                <CheckCircle2 size={16} /> {formData.resumeFileName} (Uploaded & Ready)
               </span>
             ) : (
               'Drag & drop your resume here or browse files'
