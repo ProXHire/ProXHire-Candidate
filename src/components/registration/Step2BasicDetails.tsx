@@ -186,9 +186,9 @@ export const Step2BasicDetails: React.FC = () => {
         <div>
           <div className="cand-step-intro">
             <div className="cand-step-indicator">TWO-FACTOR VERIFICATION</div>
-            <h2 className="cand-step-title">Verify Mobile & Gmail OTP</h2>
+            <h2 className="cand-step-title">Verify Mobile & Email OTP</h2>
             <p className="cand-step-subtitle">
-              We've dispatched a secure 6-digit verification code to your mobile <strong>+91 {formData.mobileNumber}</strong> and Gmail <strong>{formData.email}</strong>.
+              We've dispatched a secure 6-digit verification code to your mobile <strong>+91 {formData.mobileNumber}</strong> and email <strong>{formData.email}</strong> via Resend.
             </p>
           </div>
 
@@ -225,7 +225,7 @@ export const Step2BasicDetails: React.FC = () => {
                 gap: '8px'
               }}
             >
-              <CheckCircle2 size={16} /> New 6-digit OTP code has been dispatched to your mobile & Gmail.
+              <CheckCircle2 size={16} /> New 6-digit OTP code has been dispatched to your mobile & email.
             </div>
           )}
 
@@ -358,7 +358,7 @@ export const Step2BasicDetails: React.FC = () => {
         <div className="cand-step-indicator">STEP 2 OF 6</div>
         <h2 className="cand-step-title">Basic Account Details</h2>
         <p className="cand-step-subtitle">
-          Create your account with a few quick details. Real verification codes will be sent to your mobile and Gmail.
+          Create your account with a few quick details. Real verification codes will be sent to your mobile and email via Resend.
         </p>
       </div>
 
