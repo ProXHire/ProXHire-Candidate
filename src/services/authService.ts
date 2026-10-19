@@ -18,7 +18,8 @@ export interface VerifyOtpPayload {
   userId?: string;
   email?: string;
   mobileNumber?: string;
-  otpCode: string;
+  otpCode?: string;
+  firebaseVerified?: boolean;
   purpose?: string;
 }
 
