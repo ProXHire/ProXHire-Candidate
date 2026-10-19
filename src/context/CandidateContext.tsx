@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { CandidateStep, CandidateRegistrationState } from '../types'
 import { authService } from '../services/authService'
+import { syncCandidateToFirebase } from '../services/firebaseCandidateSync'
 import confetti from 'canvas-confetti'
 
 interface CandidateContextType {
@@ -232,6 +233,11 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       localStorage.setItem('proxhire_candidate_verified', 'true')
       setOtpPending(false)
 
+      // Sync verified candidate record to Firebase Firestore in real-time
+      syncCandidateToFirebase(formData, userId || undefined).catch((fbErr) => {
+        console.warn('Firebase sync notice on verify:', fbErr.message)
+      })
+
       // Advance to next step (Profile Details)
       nextStep()
     } catch (err: any) {
@@ -275,6 +281,12 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setErrorMsg(null)
 
     try {
+      // 1. Sync complete candidate registration and resume PDF to Google Firebase (for Admin Portal)
+      await syncCandidateToFirebase(formData, userId || undefined).catch((fbErr) => {
+        console.warn('Firebase sync notice on complete registration:', fbErr.message)
+      })
+
+      // 2. Persist profile details to PostgreSQL backend
       if (authToken) {
         await authService.updateProfile(authToken, {
           fullName: formData.fullName,
