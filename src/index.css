@@ -1110,12 +1110,18 @@ input, select, textarea {
 }
 
 .cand-step-2-col .cand-action-footer {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #f1f5f9;
+  margin-top: auto;
+  padding-top: clamp(12px, 1.5vh, 18px);
+  padding-bottom: clamp(6px, 1vh, 14px);
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
+  z-index: 20;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-top: 1px solid #f1f5f9;
 }
 
 .cand-footer-next-hint {
@@ -1131,13 +1137,48 @@ input, select, textarea {
   font-weight: 600;
 }
 
-.cand-step-2-col .cand-btn-primary,
+.cand-step-2-col .cand-btn-primary {
+  height: clamp(42px, 4.8vh, 46px);
+  padding: 0 clamp(24px, 2.5vw, 32px);
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background-color: #09090b;
+  color: #ffffff;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.cand-step-2-col .cand-btn-primary:hover:not(:disabled) {
+  background-color: #27272a;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
 .cand-step-2-col .cand-btn-back {
-  height: 50px;
-  padding: 0 28px;
-  font-size: 14.5px;
+  height: clamp(42px, 4.8vh, 46px);
+  padding: 0 clamp(20px, 2.2vw, 26px);
+  font-size: 14px;
   font-weight: 600;
   border-radius: 10px;
+  border: 1.5px solid var(--border-subtle);
+  background-color: #ffffff;
+  color: #18181b;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cand-step-2-col .cand-btn-back:hover:not(:disabled) {
+  border-color: #a1a1aa;
+  background-color: #f8fafc;
 }
 
 /* ========================================================
