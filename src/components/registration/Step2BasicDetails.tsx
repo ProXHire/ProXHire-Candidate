@@ -16,7 +16,8 @@ import {
   Clock,
   Sparkles,
   Check,
-  AlertCircle
+  AlertCircle,
+  Zap
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import { phoneAuthService } from '../../services/phoneAuthService'
@@ -41,7 +42,6 @@ export const Step2BasicDetails: React.FC = () => {
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [showBgvModal, setShowBgvModal] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
 
   // Real-time password criteria evaluation
@@ -520,7 +520,7 @@ export const Step2BasicDetails: React.FC = () => {
   // Default Account Details Form
   // --------------------------------------------------------------------------
   return (
-    <form onSubmit={handleSubmitDetails} className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, justifyContent: 'space-between' }}>
+    <form onSubmit={handleSubmitDetails} className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
       <div id="candidate-recaptcha-container" style={{ margin: 0, padding: 0 }}></div>
       <div className="cand-step-intro">
@@ -736,55 +736,53 @@ export const Step2BasicDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Trust & Verification Strip */}
-      <div className="cand-trust-badge-strip">
-        <div className="cand-trust-badge-icon">
-          <ShieldCheck size={18} />
+      {/* Trust & Data Privacy Assurance Strip */}
+      <div className="cand-trust-assurance-grid">
+        <div className="cand-trust-item">
+          <div className="cand-trust-icon-box">
+            <Lock size={15} color="#09090b" />
+          </div>
+          <div className="cand-trust-text">
+            <h4>256-Bit SSL Encrypted</h4>
+            <p>Your password & credentials are encrypted at rest.</p>
+          </div>
         </div>
-        <div className="cand-trust-badge-text">
-          <strong>256-Bit SSL Encrypted:</strong> Your data is secured end-to-end. We verify candidates to boost your profile visibility with verified employers.
+
+        <div className="cand-trust-item">
+          <div className="cand-trust-icon-box">
+            <ShieldCheck size={15} color="#09090b" />
+          </div>
+          <div className="cand-trust-text">
+            <h4>DPDP Act 2023 Compliant</h4>
+            <p>Strict data privacy adhering to Indian laws.</p>
+          </div>
+        </div>
+
+        <div className="cand-trust-item">
+          <div className="cand-trust-icon-box">
+            <CheckCircle2 size={15} color="#09090b" />
+          </div>
+          <div className="cand-trust-text">
+            <h4>Zero Spam Guarantee</h4>
+            <p>Only verified employers can view your profile.</p>
+          </div>
         </div>
       </div>
 
-      {/* Consent Checkboxes */}
-      <div className="cand-consents-wrapper">
-        {/* Pre-BGV Consent */}
-        <label className="cand-checkbox-label">
-          <input
-            type="checkbox"
-            className="cand-custom-checkbox"
-            checked={formData.preBgvConsent}
-            onChange={e => updateField('preBgvConsent', e.target.checked)}
-          />
-          <span>
-            I consent to automated pre-BGV checks to receive a verified profile badge.{' '}
-            <button
-              type="button"
-              className="cand-learn-more-btn"
-              onClick={() => setShowBgvModal(true)}
-            >
-              Learn more
-            </button>
-          </span>
-        </label>
-
-        {/* Terms & Conditions */}
-        <label className="cand-checkbox-label">
-          <input
-            type="checkbox"
-            className="cand-custom-checkbox"
-            checked={formData.agreeTerms}
-            onChange={e => updateField('agreeTerms', e.target.checked)}
-            required
-          />
-          <span>
-            I agree to the{' '}
-            <a href="#terms">Terms & Conditions</a>{' '}
-            and{' '}
-            <a href="#privacy">Privacy Policy</a>.
-          </span>
-        </label>
-      </div>
+      {/* Terms & Privacy Checkbox */}
+      <label className="cand-checkbox-label" style={{ margin: '4px 0 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', color: '#334155' }}>
+        <input
+          type="checkbox"
+          checked={formData.agreeTerms}
+          onChange={e => updateField('agreeTerms', e.target.checked)}
+          style={{ width: '16px', height: '16px', accentColor: '#09090b', cursor: 'pointer' }}
+          required
+        />
+        <span>
+          I agree to the <a href="#terms" style={{ color: '#09090b', fontWeight: 600, textDecoration: 'underline' }}>Terms & Conditions</a> and{' '}
+          <a href="#privacy" style={{ color: '#09090b', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</a> *
+        </span>
+      </label>
 
       {/* Footer Buttons */}
       <div className="cand-action-footer">
@@ -797,6 +795,10 @@ export const Step2BasicDetails: React.FC = () => {
           <ArrowLeft size={16} /> Back
         </button>
 
+        <div className="cand-footer-next-hint">
+          <span>Verification via <strong>Instant OTP</strong></span>
+        </div>
+
         <button
           type="submit"
           className="cand-btn-primary"
@@ -806,49 +808,6 @@ export const Step2BasicDetails: React.FC = () => {
           {isSubmitting ? 'Sending OTP...' : 'Send OTP & Verify'} <ArrowRight size={16} />
         </button>
       </div>
-
-      {/* Pre-BGV Modal */}
-      {showBgvModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '20px'
-          }}
-          onClick={() => setShowBgvModal(false)}
-        >
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              padding: '28px',
-              maxWidth: '500px',
-              width: '100%'
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#09090b', marginBottom: '8px' }}>
-              Pre-BGV Verification Notice
-            </h4>
-            <p style={{ fontSize: '13.5px', color: '#475467', lineHeight: 1.5, marginBottom: '16px' }}>
-              ProXHire conducts non-intrusive automated credential verification (Aadhaar/PAN format validity, academic records and employment tenure checks) to grant job seekers the verified candidate badge. Verified badges lead to 3x higher interview invite rates from top corporate recruiters.
-            </p>
-            <button
-              type="button"
-              className="cand-btn-primary"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => setShowBgvModal(false)}
-            >
-              I Understand
-            </button>
-          </div>
-        </div>
-      )}
     </form>
   )
 }
