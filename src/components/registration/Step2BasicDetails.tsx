@@ -15,7 +15,9 @@ import {
   LockKeyhole,
   RotateCcw,
   Clock,
-  Sparkles
+  Sparkles,
+  Check,
+  AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import { phoneAuthService } from '../../services/phoneAuthService'
