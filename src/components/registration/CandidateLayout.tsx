@@ -54,33 +54,16 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
             />
           </div>
 
-          {/* Dynamic Headline & Features */}
+          {/* Constant Headline & Features across all screens */}
           <div className="cand-hero-main">
-            {step === 1 ? (
-              <>
-                <h1 className="cand-hero-title">
-                  One Profile.<br />
-                  Limitless<br />
-                  <span className="muted-text">Opportunities.</span>
-                </h1>
-                <p className="cand-hero-desc">
-                  Create your professional profile, get verified and connect with leading employers across India.
-                </p>
-              </>
-            ) : (
-              <>
-                <h1 className="cand-hero-title">
-                  One Profile.<br />
-                  More<br />
-                  <span className="muted-text">Opportunities.</span>
-                </h1>
-                <p className="cand-hero-desc">
-                  {step === 2
-                    ? 'Get verified, showcase your skills and connect with top employers across India.'
-                    : 'Showcase your skills, experience and achievements to connect with top employers across India.'}
-                </p>
-              </>
-            )}
+            <h1 className="cand-hero-title">
+              One Profile.<br />
+              More<br />
+              <span className="muted-text">Opportunities.</span>
+            </h1>
+            <p className="cand-hero-desc">
+              Get verified, showcase your skills and connect with top employers across India.
+            </p>
 
             <div className="cand-feature-list">
               {[
@@ -101,15 +84,15 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
                 },
                 {
                   icon: FileText,
-                  title: step === 1 ? 'Data Privacy' : 'Secure & Private',
-                  desc: step === 1 ? 'Your information stays secure' : 'Your information stays protected'
+                  title: 'Secure & Private',
+                  desc: 'Your information stays protected'
                 }
               ].map((item, idx) => {
                 const Icon = item.icon
                 return (
                   <div key={idx} className="cand-feature-item">
                     <div className="cand-feature-icon-box">
-                      <Icon size={20} strokeWidth={2} />
+                      <Icon size={22} strokeWidth={2} />
                     </div>
                     <div className="cand-feature-text">
                       <h4>{item.title}</h4>
@@ -121,15 +104,9 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
             </div>
           </div>
 
-          {/* Footer Area: For Step 1 show script signature, for others show kicker */}
+          {/* Footer Area: Constant kicker across all screens */}
           <div className="cand-hero-footer">
-            {step === 1 ? (
-              <div className="cand-hero-script-tag">
-                Shape<br />What's Next
-              </div>
-            ) : (
-              <div className="cand-hero-kicker">SKILLS &nbsp;|&nbsp; OPPORTUNITIES &nbsp;|&nbsp; GROWTH</div>
-            )}
+            <div className="cand-hero-kicker">SKILLS &nbsp;|&nbsp; OPPORTUNITIES &nbsp;|&nbsp; GROWTH</div>
           </div>
         </div>
       </div>

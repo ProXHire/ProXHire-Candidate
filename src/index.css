@@ -79,15 +79,19 @@ input, select, textarea {
 .cand-hero-col {
   width: 40%;
   min-width: 420px;
-  max-width: 560px;
+  max-width: 540px;
   background-color: #040406;
-  position: relative;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  max-height: 100vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 44px 48px;
+  padding: clamp(28px, 3.8vh, 48px) clamp(28px, 3.2vw, 48px);
   color: #ffffff;
+  flex-shrink: 0;
 }
 
 .cand-hero-bg {
@@ -162,16 +166,16 @@ input, select, textarea {
 }
 
 .cand-hero-main {
-  margin: 36px 0;
+  margin: clamp(16px, 2.4vh, 32px) 0;
 }
 
 .cand-hero-title {
-  font-size: 38px;
+  font-size: clamp(34px, 4.2vh, 44px);
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -1px;
   color: #ffffff;
-  margin-bottom: 16px;
+  margin-bottom: clamp(10px, 1.4vh, 16px);
 }
 
 .cand-hero-title .muted-text {
@@ -181,18 +185,18 @@ input, select, textarea {
 }
 
 .cand-hero-desc {
-  font-size: 14.5px;
+  font-size: clamp(14.5px, 1.75vh, 16px);
   color: #cbd5e1;
   line-height: 1.55;
-  margin-bottom: 32px;
-  max-width: 380px;
+  margin-bottom: clamp(20px, 2.6vh, 32px);
+  max-width: 400px;
 }
 
 /* Feature List */
 .cand-feature-list {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: clamp(16px, 2vh, 24px);
 }
 
 .cand-feature-item {
@@ -202,11 +206,11 @@ input, select, textarea {
 }
 
 .cand-feature-icon-box {
-  width: 44px;
-  height: 44px;
+  width: clamp(42px, 4.8vh, 48px);
+  height: clamp(42px, 4.8vh, 48px);
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -223,14 +227,14 @@ input, select, textarea {
 }
 
 .cand-feature-text h4 {
-  font-size: 15px;
+  font-size: clamp(15.5px, 1.85vh, 17px);
   font-weight: 700;
   color: #ffffff;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .cand-feature-text p {
-  font-size: 13px;
+  font-size: clamp(13px, 1.55vh, 14.5px);
   color: #94a3b8;
   line-height: 1.4;
 }
@@ -246,14 +250,14 @@ input, select, textarea {
 }
 
 .cand-hero-footer {
-  padding-top: 24px;
+  padding-top: clamp(14px, 2vh, 24px);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .cand-hero-kicker {
-  font-size: 11px;
+  font-size: clamp(11.5px, 1.3vh, 12.5px);
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 3.5px;
   color: #64748b;
   text-transform: uppercase;
 }
@@ -550,7 +554,6 @@ input, select, textarea {
   height: 100vh;
   max-height: 100vh;
   overflow: hidden;
-  padding: clamp(18px, 2.8vh, 36px) clamp(24px, 3.5vw, 44px);
 }
 
 .cand-single-page-hero .cand-hero-content,
@@ -560,74 +563,6 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-}
-
-.cand-single-page-hero .cand-hero-main,
-.cand-step-1-hero .cand-hero-main,
-.cand-step-2-hero .cand-hero-main {
-  margin: clamp(8px, 1.8vh, 22px) 0;
-}
-
-.cand-single-page-hero .cand-hero-title,
-.cand-step-1-hero .cand-hero-title,
-.cand-step-2-hero .cand-hero-title {
-  font-size: clamp(24px, 3.2vh, 34px);
-  line-height: 1.15;
-  margin-bottom: clamp(6px, 1vh, 12px);
-}
-
-.cand-single-page-hero .cand-hero-desc,
-.cand-step-1-hero .cand-hero-desc,
-.cand-step-2-hero .cand-hero-desc {
-  font-size: clamp(12px, 1.4vh, 13.5px);
-  line-height: 1.45;
-  margin-bottom: clamp(10px, 1.6vh, 20px);
-  max-width: 340px;
-}
-
-.cand-single-page-hero .cand-feature-list,
-.cand-step-1-hero .cand-feature-list,
-.cand-step-2-hero .cand-feature-list {
-  gap: clamp(8px, 1.4vh, 16px);
-}
-
-.cand-single-page-hero .cand-feature-item,
-.cand-step-1-hero .cand-feature-item,
-.cand-step-2-hero .cand-feature-item {
-  gap: 12px;
-}
-
-.cand-single-page-hero .cand-feature-icon-box,
-.cand-step-1-hero .cand-feature-icon-box,
-.cand-step-2-hero .cand-feature-icon-box {
-  width: clamp(32px, 3.8vh, 40px);
-  height: clamp(32px, 3.8vh, 40px);
-}
-
-.cand-single-page-hero .cand-feature-text h4,
-.cand-step-1-hero .cand-feature-text h4,
-.cand-step-2-hero .cand-feature-text h4 {
-  font-size: clamp(12px, 1.45vh, 13.5px);
-  margin-bottom: 2px;
-}
-
-.cand-single-page-hero .cand-feature-text p,
-.cand-step-1-hero .cand-feature-text p,
-.cand-step-2-hero .cand-feature-text p {
-  font-size: clamp(11px, 1.3vh, 12px);
-  line-height: 1.35;
-}
-
-.cand-single-page-hero .cand-hero-footer,
-.cand-step-1-hero .cand-hero-footer,
-.cand-step-2-hero .cand-hero-footer {
-  padding-top: clamp(6px, 1.2vh, 14px);
-}
-
-.cand-single-page-hero .cand-hero-script-tag,
-.cand-step-1-hero .cand-hero-script-tag {
-  font-size: clamp(22px, 3vh, 32px);
-  line-height: 1.1;
 }
 
 /* Right Form Column for Single-Page Steps (1 & 2) */
