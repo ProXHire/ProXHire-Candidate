@@ -488,10 +488,10 @@ export const Step2BasicDetails: React.FC = () => {
         </div>
 
         {/* Buttons */}
-        <div className="cand-step-footer cand-otp-action-footer">
+        <div className="cand-action-footer cand-otp-action-footer">
           <button
             type="button"
-            className="cand-btn-secondary"
+            className="cand-btn-back"
             onClick={() => setOtpPending(false)}
             disabled={isSubmitting}
           >
@@ -595,28 +595,17 @@ export const Step2BasicDetails: React.FC = () => {
           <label className="cand-field-label">
             Mobile Number <span className="req">*</span>
           </label>
-          <div className="cand-input-wrapper" style={{ display: 'flex' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 10px',
-                borderRight: '1px solid #e2e8f0',
-                backgroundColor: '#f8fafc',
-                fontSize: '13px',
-                fontWeight: 600,
-                color: '#475467'
-              }}
-            >
-              🇮🇳 +91
+          <div className="cand-phone-group">
+            <div className="cand-phone-prefix">
+              <span className="cand-phone-flag">🇮🇳</span>
+              <span className="cand-phone-code">+91</span>
             </div>
             <input
               type="tel"
-              className="cand-input"
-              style={{ paddingLeft: '12px' }}
+              className="cand-phone-input"
               placeholder="10-digit mobile number"
               value={formData.mobileNumber}
-              onChange={e => updateField('mobileNumber', e.target.value)}
+              onChange={e => updateField('mobileNumber', e.target.value.replace(/\D/g, '').slice(0, 10))}
               maxLength={10}
               required
             />
@@ -635,7 +624,7 @@ export const Step2BasicDetails: React.FC = () => {
             <input
               type={showPassword ? 'text' : 'password'}
               className="cand-input"
-              placeholder="Min. 8 chars (A-Z, a-z, 0-9, symbol)"
+              placeholder="Min. 8 chars"
               value={formData.password}
               onChange={e => updateField('password', e.target.value)}
               required
@@ -672,30 +661,6 @@ export const Step2BasicDetails: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* Real-time Security Criteria Checklist */}
-          <div className="cand-pwd-criteria-grid">
-            <span className={`cand-pwd-chip ${pwdCriteria.minLength ? 'met' : ''}`}>
-              {pwdCriteria.minLength ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
-              8+ chars
-            </span>
-            <span className={`cand-pwd-chip ${pwdCriteria.uppercase ? 'met' : ''}`}>
-              {pwdCriteria.uppercase ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
-              Uppercase (A-Z)
-            </span>
-            <span className={`cand-pwd-chip ${pwdCriteria.lowercase ? 'met' : ''}`}>
-              {pwdCriteria.lowercase ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
-              Lowercase (a-z)
-            </span>
-            <span className={`cand-pwd-chip ${pwdCriteria.number ? 'met' : ''}`}>
-              {pwdCriteria.number ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
-              Number (0-9)
-            </span>
-            <span className={`cand-pwd-chip ${pwdCriteria.specialChar ? 'met' : ''}`}>
-              {pwdCriteria.specialChar ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
-              Special char (!@#...)
-            </span>
-          </div>
         </div>
 
         {/* Confirm Password */}
@@ -710,7 +675,7 @@ export const Step2BasicDetails: React.FC = () => {
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               className="cand-input"
-              placeholder="Re-enter your password"
+              placeholder="Re-enter password"
               value={formData.confirmPassword}
               onChange={e => updateField('confirmPassword', e.target.value)}
               required
@@ -742,61 +707,61 @@ export const Step2BasicDetails: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Real-time Security Criteria Checklist spanning full width */}
+        <div className="cand-pwd-requirements-bar">
+          <span className="cand-pwd-req-title">Password must include:</span>
+          <div className="cand-pwd-chips-row">
+            <span className={`cand-pwd-chip ${pwdCriteria.minLength ? 'met' : ''}`}>
+              {pwdCriteria.minLength ? <Check size={11} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              8+ chars
+            </span>
+            <span className={`cand-pwd-chip ${pwdCriteria.uppercase ? 'met' : ''}`}>
+              {pwdCriteria.uppercase ? <Check size={11} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              Uppercase (A-Z)
+            </span>
+            <span className={`cand-pwd-chip ${pwdCriteria.lowercase ? 'met' : ''}`}>
+              {pwdCriteria.lowercase ? <Check size={11} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              Lowercase (a-z)
+            </span>
+            <span className={`cand-pwd-chip ${pwdCriteria.number ? 'met' : ''}`}>
+              {pwdCriteria.number ? <Check size={11} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              Number (0-9)
+            </span>
+            <span className={`cand-pwd-chip ${pwdCriteria.specialChar ? 'met' : ''}`}>
+              {pwdCriteria.specialChar ? <Check size={11} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              Special char (!@#...)
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Trust & Verification Strip */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '10px 14px',
-          backgroundColor: '#f0fdf4',
-          borderRadius: '8px',
-          border: '1px solid #bbf7d0',
-          margin: '10px 0'
-        }}
-      >
-        <ShieldCheck size={18} color="#16a34a" style={{ flexShrink: 0 }} />
-        <span style={{ fontSize: '12px', color: '#166534', fontWeight: 500 }}>
-          Your data is encrypted end-to-end. We verify candidates to boost your profile visibility with verified employers.
-        </span>
+      <div className="cand-trust-badge-strip">
+        <div className="cand-trust-badge-icon">
+          <ShieldCheck size={18} />
+        </div>
+        <div className="cand-trust-badge-text">
+          <strong>256-Bit SSL Encrypted:</strong> Your data is secured end-to-end. We verify candidates to boost your profile visibility with verified employers.
+        </div>
       </div>
 
       {/* Consent Checkboxes */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0 12px' }}>
+      <div className="cand-consents-wrapper">
         {/* Pre-BGV Consent */}
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '8px',
-            fontSize: '12px',
-            color: '#344054',
-            cursor: 'pointer'
-          }}
-        >
+        <label className="cand-checkbox-label">
           <input
             type="checkbox"
+            className="cand-custom-checkbox"
             checked={formData.preBgvConsent}
             onChange={e => updateField('preBgvConsent', e.target.checked)}
-            style={{ marginTop: '2px', cursor: 'pointer' }}
           />
           <span>
             I consent to automated pre-BGV checks to receive a verified profile badge.{' '}
             <button
               type="button"
+              className="cand-learn-more-btn"
               onClick={() => setShowBgvModal(true)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#2563eb',
-                fontSize: '12px',
-                fontWeight: 600,
-                textDecoration: 'underline',
-                padding: 0,
-                cursor: 'pointer'
-              }}
             >
               Learn more
             </button>
@@ -804,42 +769,28 @@ export const Step2BasicDetails: React.FC = () => {
         </label>
 
         {/* Terms & Conditions */}
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '8px',
-            fontSize: '12px',
-            color: '#344054',
-            cursor: 'pointer'
-          }}
-        >
+        <label className="cand-checkbox-label">
           <input
             type="checkbox"
+            className="cand-custom-checkbox"
             checked={formData.agreeTerms}
             onChange={e => updateField('agreeTerms', e.target.checked)}
-            style={{ marginTop: '2px', cursor: 'pointer' }}
             required
           />
           <span>
             I agree to the{' '}
-            <a href="#terms" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>
-              Terms & Conditions
-            </a>{' '}
+            <a href="#terms">Terms & Conditions</a>{' '}
             and{' '}
-            <a href="#privacy" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>
-              Privacy Policy
-            </a>
-            .
+            <a href="#privacy">Privacy Policy</a>.
           </span>
         </label>
       </div>
 
       {/* Footer Buttons */}
-      <div className="cand-step-footer">
+      <div className="cand-action-footer">
         <button
           type="button"
-          className="cand-btn-secondary"
+          className="cand-btn-back"
           onClick={prevStep}
           disabled={isSubmitting}
         >
