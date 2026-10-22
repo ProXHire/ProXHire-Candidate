@@ -107,7 +107,19 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isCompleted, setIsCompleted] = useState<boolean>(() => {
     return localStorage.getItem('proxhire_candidate_registered') === 'true'
   })
-  const [viewModeState, setViewModeState] = useState<'registration' | 'dashboard' | 'login'>('registration')
+  const [viewModeState, setViewModeState] = useState<'registration' | 'dashboard' | 'login'>(() => {
+    const savedMode = localStorage.getItem('proxhire_candidate_view_mode')
+    if (savedMode === 'dashboard' && localStorage.getItem('proxhire_candidate_verified') === 'true') {
+      return 'dashboard'
+    }
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search)
+      if (p.get('view') === 'dashboard' || p.get('preview') === 'true') {
+        return 'dashboard'
+      }
+    }
+    return 'registration'
+  })
 
   // Form State with clean storage hydration
   const [formData, setFormData] = useState<CandidateRegistrationState>(() => {
@@ -225,6 +237,8 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       setIsVerified(true)
       localStorage.setItem('proxhire_candidate_verified', 'true')
+      setIsCompleted(true)
+      localStorage.setItem('proxhire_candidate_registered', 'true')
       setOtpPending(false)
 
       // Sync verified candidate record to Firebase Firestore in real-time
@@ -232,8 +246,9 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.warn('Firebase sync notice on verify:', fbErr.message)
       })
 
-      // Advance to next step (Profile Details)
-      nextStep()
+      // Direct redirection to dashboard / home screen as requested
+      setViewModeState('dashboard')
+      localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
     } catch (err: any) {
       setErrorMsg(err.message || 'Invalid or expired OTP. Please try again.')
       throw err

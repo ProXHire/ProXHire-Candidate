@@ -14,10 +14,12 @@ import {
   ChevronDown,
   Menu,
   X,
-  LogOut
+  LogOut,
+  User
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import type { JobCardData, ApplicationRowData } from '../../types'
+import { CompleteProfileWorkspace } from './CompleteProfileWorkspace'
 
 export const CandidateDashboard: React.FC = () => {
   const { formData, setViewMode, setStep, isVerified, isCompleted, logout } = useCandidate()
@@ -25,9 +27,63 @@ export const CandidateDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedJob, setSelectedJob] = useState<JobCardData | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [profileInitialTab, setProfileInitialTab] = useState<'profile' | 'career' | 'personal' | 'review'>('profile')
+
+  // Support deep-linking to Complete Profile workspace via URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const nav = params.get('nav')
+    if (nav === 'profile' || nav === 'Complete Profile') {
+      setActiveNav('Complete Profile')
+      const tab = params.get('tab') as any
+      if (tab) setProfileInitialTab(tab)
+    }
+  }, [])
+
+  // Dynamic profile completion checklist based on candidate data
+  const profileChecklist = [
+    {
+      name: 'Basic Information',
+      done: Boolean(formData.fullName && (formData.email || formData.mobileNumber)),
+      tab: 'personal' as const
+    },
+    {
+      name: 'Resume & Summary',
+      done: Boolean(formData.resumeFileName || formData.resumeUrl || formData.profileSummary),
+      tab: 'profile' as const
+    },
+    {
+      name: 'Education Details',
+      done: Boolean(formData.educations && formData.educations.length > 0),
+      tab: 'profile' as const
+    },
+    {
+      name: 'Work Experience',
+      done: Boolean(formData.experiences && formData.experiences.length > 0),
+      tab: 'career' as const
+    },
+    {
+      name: 'Skills & Proficiencies',
+      done: Boolean(formData.skills && formData.skills.length > 0),
+      tab: 'profile' as const
+    },
+    {
+      name: 'Career Preferences',
+      done: Boolean(
+        formData.preferredRole ||
+        formData.workType ||
+        (formData.preferredLocations && formData.preferredLocations.length > 0)
+      ),
+      tab: 'career' as const
+    }
+  ]
+  const completedCount = profileChecklist.filter(item => item.done).length
+  const profileCompletionPct = Math.round((completedCount / profileChecklist.length) * 100)
 
   // Guard dashboard: unverified candidates must complete verification
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('view') === 'dashboard' || params.get('preview') === 'true') return
     if (!isVerified || !isCompleted) {
       setViewMode('registration')
     }
@@ -137,11 +193,16 @@ export const CandidateDashboard: React.FC = () => {
 
           {/* Desktop Navigation Links */}
           <nav className="cand-dash-nav">
-            {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages', 'Career Resources'].map(nav => (
+            {['Dashboard', 'Complete Profile', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages', 'Career Resources'].map(nav => (
               <span
                 key={nav}
                 className={`cand-dash-link ${activeNav === nav ? 'active' : ''}`}
-                onClick={() => setActiveNav(nav)}
+                onClick={() => {
+                  if (nav === 'Complete Profile') {
+                    setProfileInitialTab('profile')
+                  }
+                  setActiveNav(nav)
+                }}
               >
                 {nav} {nav === 'Career Resources' && <ChevronDown size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />}
               </span>
@@ -163,9 +224,11 @@ export const CandidateDashboard: React.FC = () => {
           {/* Profile pill */}
           <div
             className="cand-dash-profile-pill"
+            style={{ cursor: 'pointer' }}
+            title="Manage and complete your profile"
             onClick={() => {
-              setStep(6)
-              setViewMode('registration')
+              setProfileInitialTab('profile')
+              setActiveNav('Complete Profile')
             }}
           >
             <div className="cand-dash-avatar">
@@ -202,12 +265,15 @@ export const CandidateDashboard: React.FC = () => {
       {/* Mobile Nav Tabs Bar (Visible on mobile/tablet) */}
       <div className="cand-mobile-tabs-container">
         <nav className="cand-mobile-tabs-scroll">
-          {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages', 'Career Resources'].map(nav => (
+          {['Dashboard', 'Complete Profile', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages'].map(nav => (
             <button
               key={nav}
               type="button"
               className={`cand-mobile-tab-btn ${activeNav === nav ? 'active' : ''}`}
               onClick={() => {
+                if (nav === 'Complete Profile') {
+                  setProfileInitialTab('profile')
+                }
                 setActiveNav(nav)
                 setIsMobileMenuOpen(false)
               }}
@@ -235,13 +301,14 @@ export const CandidateDashboard: React.FC = () => {
                 </p>
               </div>
               <span style={{ fontSize: '11px', fontWeight: 700, backgroundColor: '#ecfdf5', color: '#059669', padding: '3px 8px', borderRadius: '9999px' }}>
-                75%
+                {profileCompletionPct}%
               </span>
             </div>
 
             <div className="cand-drawer-nav-list">
               {[
                 { name: 'Dashboard', icon: TrendingUp },
+                { name: 'Complete Profile', icon: User },
                 { name: 'Find Jobs', icon: Search },
                 { name: 'Applications', icon: Send },
                 { name: 'Saved Jobs', icon: Bookmark },
@@ -254,6 +321,9 @@ export const CandidateDashboard: React.FC = () => {
                     type="button"
                     className={`cand-drawer-link ${activeNav === item.name ? 'active' : ''}`}
                     onClick={() => {
+                      if (item.name === 'Complete Profile') {
+                        setProfileInitialTab('profile')
+                      }
                       setActiveNav(item.name)
                       setIsMobileMenuOpen(false)
                     }}
@@ -271,12 +341,12 @@ export const CandidateDashboard: React.FC = () => {
                 className="cand-btn-primary"
                 style={{ width: '100%', justifyContent: 'center', height: '42px', fontSize: '13px' }}
                 onClick={() => {
-                  setStep(6)
-                  setViewMode('registration')
+                  setProfileInitialTab('profile')
+                  setActiveNav('Complete Profile')
                   setIsMobileMenuOpen(false)
                 }}
               >
-                Edit Profile Details →
+                Complete Your Profile →
               </button>
             </div>
           </div>
@@ -285,8 +355,15 @@ export const CandidateDashboard: React.FC = () => {
 
       {/* Main Content Dashboard */}
       <main className="cand-dash-main">
-        {/* Banner with dark modern architectural background */}
-        <div className="cand-banner-hero">
+        {activeNav === 'Complete Profile' ? (
+          <CompleteProfileWorkspace
+            onBack={() => setActiveNav('Dashboard')}
+            initialTab={profileInitialTab}
+          />
+        ) : (
+          <>
+            {/* Banner with dark modern architectural background */}
+            <div className="cand-banner-hero">
           <div className="cand-banner-left">
             <span className="kicker">WELCOME BACK,</span>
             <h1>{formData.fullName || 'Candidate'}</h1>
@@ -530,7 +607,7 @@ export const CandidateDashboard: React.FC = () => {
             <div className="cand-complete-profile-card">
               <div className="cand-profile-ring-head">
                 <div className="cand-progress-ring">
-                  75%
+                  {profileCompletionPct}%
                 </div>
                 <div>
                   <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#09090b', margin: 0 }}>
@@ -543,19 +620,23 @@ export const CandidateDashboard: React.FC = () => {
               </div>
 
               <div className="cand-checklist">
-                {[
-                  { name: 'Basic Information', done: true },
-                  { name: 'Resume', done: true },
-                  { name: 'Education Details', done: true },
-                  { name: 'Work Experience', done: false },
-                  { name: 'Skills', done: true },
-                  { name: 'Career Preferences', done: false }
-                ].map(item => (
-                  <div key={item.name} className="cand-check-item">
+                {profileChecklist.map(item => (
+                  <div
+                    key={item.name}
+                    className="cand-check-item"
+                    style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                    onClick={() => {
+                      setProfileInitialTab(item.tab)
+                      setActiveNav('Complete Profile')
+                    }}
+                    title={`Click to edit ${item.name}`}
+                  >
                     <div className={`cand-check-dot ${item.done ? 'done' : 'pending'}`}>
                       {item.done && '✓'}
                     </div>
-                    <span style={{ color: item.done ? '#09090b' : '#64748b' }}>{item.name}</span>
+                    <span style={{ color: item.done ? '#09090b' : '#64748b', textDecoration: item.done ? 'none' : 'underline' }}>
+                      {item.name}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -565,8 +646,8 @@ export const CandidateDashboard: React.FC = () => {
                 className="cand-btn-primary"
                 style={{ width: '100%', justifyContent: 'center' }}
                 onClick={() => {
-                  setStep(3)
-                  setViewMode('registration')
+                  setProfileInitialTab('profile')
+                  setActiveNav('Complete Profile')
                 }}
               >
                 Complete Profile →
@@ -593,8 +674,8 @@ export const CandidateDashboard: React.FC = () => {
                 <div
                   className="cand-quick-box"
                   onClick={() => {
-                    setStep(3)
-                    setViewMode('registration')
+                    setProfileInitialTab('profile')
+                    setActiveNav('Complete Profile')
                   }}
                 >
                   <FileText size={20} color="#000000" />
@@ -675,6 +756,8 @@ export const CandidateDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+          </>
+        )}
       </main>
 
       {/* View Job Details Modal */}

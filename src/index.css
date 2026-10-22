@@ -52,6 +52,8 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 button {
@@ -2413,10 +2415,22 @@ select.cand-input option,
   .cand-step-1-container,
   .cand-step-2-container,
   .cand-login-container {
-    height: auto;
-    max-height: none;
+    height: auto !important;
+    max-height: none !important;
     min-height: 100vh;
-    overflow: visible;
+    overflow: visible !important;
+  }
+  .cand-single-page-col,
+  .cand-step-1-col,
+  .cand-step-2-col {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .cand-step-1-col .cand-step-1-content,
+  .cand-step-2-col .cand-step-2-content {
+    height: auto !important;
+    max-height: none !important;
   }
   .cand-split-container {
     flex-direction: column;
@@ -2425,7 +2439,10 @@ select.cand-input option,
     width: 100%;
     max-width: 100%;
     min-width: auto;
-    min-height: 380px;
+    height: auto !important;
+    max-height: none !important;
+    position: relative !important;
+    min-height: auto;
   }
   .cand-form-col {
     padding: 32px 24px;
@@ -2529,8 +2546,20 @@ select.cand-input option,
 }
 
 @media (max-width: 640px) {
-  .cand-exp-choice-grid {
-    grid-template-columns: 1fr;
+  .cand-exp-choice-grid,
+  .cand-step-1-col .cand-exp-choice-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .cand-form-header-bar {
+    justify-content: center !important;
+    margin-bottom: 12px !important;
+  }
+  .cand-step-label,
+  .cand-single-page-col .cand-step-label,
+  .cand-step-1-col .cand-step-label,
+  .cand-step-2-col .cand-step-label {
+    display: none !important;
   }
   .cand-form-grid {
     grid-template-columns: 1fr;
@@ -2542,8 +2571,8 @@ select.cand-input option,
     grid-template-columns: 1fr;
   }
   .cand-hero-col {
-    min-height: 220px;
-    padding: 24px 20px;
+    min-height: auto;
+    padding: 24px 20px 20px;
   }
   .cand-hero-title {
     font-size: 26px;
@@ -2564,8 +2593,11 @@ select.cand-input option,
   .cand-hero-script-tag {
     font-size: 28px;
   }
-  .cand-form-col {
-    padding: 24px 16px 40px;
+  .cand-form-col,
+  .cand-single-page-col,
+  .cand-step-1-col,
+  .cand-step-2-col {
+    padding: 20px 14px 40px !important;
   }
   .cand-stepper-wrap {
     margin-bottom: 24px;
@@ -2699,4 +2731,55 @@ select.cand-input option,
     padding: 8px 10px;
     font-size: 12px;
   }
+  .cand-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .cand-otp-container {
+    gap: 6px !important;
+  }
+  .cand-otp-input {
+    width: 38px !important;
+    height: 46px !important;
+    font-size: 17px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .cand-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .cand-otp-container {
+    gap: 4px !important;
+  }
+  .cand-otp-input {
+    width: 34px !important;
+    height: 42px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* Base styles for candidate 2-column grids & tabs */
+.cand-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.cand-tabs-bar {
+  display: flex;
+  border-bottom: 2px solid #e4e4e7;
+  margin-bottom: 28px;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.cand-tabs-bar::-webkit-scrollbar {
+  display: none;
 }

@@ -403,6 +403,7 @@ export const Step2BasicDetails: React.FC = () => {
 
           {/* Delivery Channels Status Card */}
           <div
+            className="cand-grid-2col"
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -488,7 +489,7 @@ export const Step2BasicDetails: React.FC = () => {
             </div>
 
             {/* 6 Digit Inputs */}
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
+            <div className="cand-otp-container" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
               {otpDigits.map((digit, idx) => (
                 <input
                   key={idx}
@@ -497,6 +498,7 @@ export const Step2BasicDetails: React.FC = () => {
                   inputMode="numeric"
                   maxLength={1}
                   value={digit}
+                  className="cand-otp-input"
                   onChange={e => handleDigitChange(idx, e.target.value)}
                   onKeyDown={e => handleDigitKeyDown(idx, e)}
                   style={{
@@ -615,6 +617,8 @@ export const Step2BasicDetails: React.FC = () => {
   // --------------------------------------------------------------------------
   return (
     <form onSubmit={handleSubmitDetails} className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, justifyContent: 'space-between' }}>
+      {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
+      <div id="candidate-recaptcha-container" style={{ margin: 0, padding: 0 }}></div>
       <div className="cand-step-intro">
         <div className="cand-step-indicator">STEP 2 OF 6</div>
         <h2 className="cand-step-title">Basic Account Details</h2>
