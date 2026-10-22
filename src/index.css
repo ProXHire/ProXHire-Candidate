@@ -932,45 +932,47 @@ input, select, textarea {
 }
 
 /* ========================================================
-   STEP 2 SPECIFICS: BASIC DETAILS (OPTIMIZED SPACE UTILIZATION)
+   STEP 2 SPECIFICS: BASIC DETAILS (GENEROUS & BALANCED HEIGHTS)
    ======================================================== */
 .cand-step-2-col .cand-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(8px, 1.3vh, 14px) clamp(16px, 2vw, 24px);
-  margin-bottom: clamp(6px, 1vh, 10px);
+  gap: 18px 24px;
+  margin-bottom: 18px;
 }
 
 .cand-step-2-col .cand-field-group {
-  gap: 4px;
+  gap: 6px;
 }
 
 .cand-step-2-col .cand-field-label {
-  font-size: clamp(12px, 1.35vh, 13px);
+  font-size: 13.5px;
   font-weight: 600;
+  color: #18181b;
 }
 
 .cand-step-2-col .cand-input,
 .cand-step-2-col .cand-country-code-select {
-  height: clamp(38px, 4.8vh, 44px);
-  font-size: clamp(12.5px, 1.4vh, 13.5px);
-  padding-left: 38px;
-  padding-right: 40px;
+  height: 52px;
+  font-size: 14.5px;
+  padding-left: 44px;
+  padding-right: 44px;
+  border-radius: 10px;
 }
 
 .cand-step-2-col .cand-country-code-select {
   padding-left: 32px;
-  width: clamp(82px, 6vw, 94px);
+  width: 96px;
 }
 
 .cand-step-2-col .cand-input-icon {
-  left: 12px;
+  left: 14px;
 }
 
 .cand-step-2-col .cand-pwd-strength-row {
-  margin-top: clamp(-3px, -0.4vh, 0px);
-  margin-bottom: clamp(6px, 1vh, 12px);
-  font-size: 11px;
+  margin-top: 2px;
+  margin-bottom: 6px;
+  font-size: 11.5px;
   gap: 8px;
 }
 
@@ -1108,8 +1110,8 @@ input, select, textarea {
 }
 
 .cand-step-2-col .cand-action-footer {
-  margin-top: auto;
-  padding-top: clamp(8px, 1.4vh, 16px);
+  margin-top: 24px;
+  padding-top: 20px;
   border-top: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
@@ -1117,7 +1119,7 @@ input, select, textarea {
 }
 
 .cand-footer-next-hint {
-  font-size: clamp(11px, 1.25vh, 12px);
+  font-size: 12px;
   color: #64748b;
   display: flex;
   align-items: center;
@@ -1131,9 +1133,11 @@ input, select, textarea {
 
 .cand-step-2-col .cand-btn-primary,
 .cand-step-2-col .cand-btn-back {
-  height: clamp(38px, 4.8vh, 44px);
-  padding: 0 clamp(18px, 2.2vw, 26px);
-  font-size: clamp(12.5px, 1.4vh, 14px);
+  height: 50px;
+  padding: 0 28px;
+  font-size: 14.5px;
+  font-weight: 600;
+  border-radius: 10px;
 }
 
 /* ========================================================
@@ -1421,11 +1425,12 @@ input, select, textarea {
 }
 
 .cand-step-2-col .cand-phone-group {
-  height: clamp(38px, 4.8vh, 44px);
+  height: 52px;
+  border-radius: 10px;
 }
 
 .cand-step-2-col .cand-phone-input {
-  font-size: clamp(12.5px, 1.4vh, 13.5px);
+  font-size: 14.5px;
 }
 
 /* Full-width Password Requirements Bar */

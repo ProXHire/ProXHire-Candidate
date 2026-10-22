@@ -520,7 +520,7 @@ export const Step2BasicDetails: React.FC = () => {
   // Default Account Details Form
   // --------------------------------------------------------------------------
   return (
-    <form onSubmit={handleSubmitDetails} className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+    <form onSubmit={handleSubmitDetails} className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
       <div id="candidate-recaptcha-container" style={{ margin: 0, padding: 0 }}></div>
       <div className="cand-step-intro">
