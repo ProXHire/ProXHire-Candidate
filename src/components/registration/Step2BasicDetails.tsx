@@ -292,15 +292,22 @@ export const Step2BasicDetails: React.FC = () => {
   // --------------------------------------------------------------------------
   if (otpPending) {
     const formattedTimer = `00:${otpTimer < 10 ? `0${otpTimer}` : otpTimer}`
+    
+    // Friendly error messaging for SMS carrier sandbox fallback
+    const friendlySmsNotice = smsError
+      ? smsError.includes('billing-not-enabled') || smsError.includes('auth/')
+        ? 'Carrier SMS delivery is in fallback mode. Please use the 6-digit OTP code sent to your registered email.'
+        : smsError
+      : null
 
     return (
       <div className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, justifyContent: 'space-between' }}>
         <div>
           <div className="cand-step-intro">
-            <div className="cand-step-indicator">TWO-FACTOR VERIFICATION</div>
-            <h2 className="cand-step-title">Verify Mobile & Email OTP</h2>
+            <div className="cand-step-indicator">TWO-FACTOR AUTHENTICATION</div>
+            <h2 className="cand-step-title">Verify Your Account</h2>
             <p className="cand-step-subtitle">
-              We've dispatched verification codes to your mobile <strong>+91 {formData.mobileNumber}</strong> (via Google Firebase SMS) and email <strong>{formData.email}</strong> (via Resend).
+              We've dispatched a 6-digit verification code to your registered mobile and email address.
             </p>
           </div>
 
@@ -310,28 +317,31 @@ export const Step2BasicDetails: React.FC = () => {
           {(localError || errorMsg) && (
             <div
               style={{
-                padding: '10px 14px',
+                padding: '12px 16px',
                 backgroundColor: '#fef2f2',
                 border: '1px solid #fecaca',
                 color: '#b91c1c',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: 600,
-                marginBottom: '16px'
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}
             >
-              {localError || errorMsg}
+              <AlertCircle size={16} /> {localError || errorMsg}
             </div>
           )}
 
           {smsSuccess && (
             <div
               style={{
-                padding: '10px 14px',
+                padding: '12px 16px',
                 backgroundColor: '#ecfdf5',
                 border: '1px solid #a7f3d0',
                 color: '#065f46',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: 600,
                 marginBottom: '14px',
@@ -340,41 +350,21 @@ export const Step2BasicDetails: React.FC = () => {
                 gap: '8px'
               }}
             >
-              <CheckCircle2 size={16} /> Cellular SMS OTP dispatched to +91 {formData.mobileNumber} via Firebase!
+              <CheckCircle2 size={16} /> Mobile SMS OTP dispatched to +91 {formData.mobileNumber}
             </div>
           )}
 
-          {smsError && (
-            <div
-              style={{
-                padding: '10px 14px',
-                backgroundColor: '#fefce8',
-                border: '1px solid #fef08a',
-                color: '#854d0e',
-                borderRadius: '8px',
-                fontSize: '12.5px',
-                marginBottom: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <span>ℹ️ Mobile SMS notice: {smsError} (You can enter the OTP received in your email).</span>
+          {friendlySmsNotice && (
+            <div className="cand-otp-notice-banner">
+              <div className="cand-otp-notice-content">
+                <Info size={16} style={{ flexShrink: 0, color: '#b45309' }} />
+                <span>{friendlySmsNotice}</span>
+              </div>
               <button
                 type="button"
+                className="cand-otp-notice-retry"
                 onClick={handleSendFirebaseSms}
                 disabled={isSendingSms}
-                style={{
-                  background: '#854d0e',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '4px 8px',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                  marginLeft: '8px',
-                  whiteSpace: 'nowrap'
-                }}
               >
                 {isSendingSms ? 'Sending...' : 'Retry SMS'}
               </button>
@@ -384,11 +374,11 @@ export const Step2BasicDetails: React.FC = () => {
           {resendSuccess && (
             <div
               style={{
-                padding: '10px 14px',
+                padding: '12px 16px',
                 backgroundColor: '#ecfdf5',
                 border: '1px solid #a7f3d0',
                 color: '#065f46',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 fontSize: '13px',
                 fontWeight: 600,
                 marginBottom: '16px',
@@ -401,194 +391,104 @@ export const Step2BasicDetails: React.FC = () => {
             </div>
           )}
 
-          {/* Delivery Channels Status Card */}
-          <div
-            className="cand-grid-2col"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '12px',
-              marginBottom: '16px'
-            }}
-          >
+          {/* Delivery Channels Status Cards */}
+          <div className="cand-otp-channel-grid">
             {/* Email Channel */}
-            <div
-              style={{
-                padding: '12px 14px',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px'
-              }}
-            >
-              <Mail size={18} color="#2563eb" style={{ flexShrink: 0 }} />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>EMAIL (RESEND)</div>
-                <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {formData.email}
-                </div>
+            <div className="cand-otp-channel-card">
+              <div className="cand-otp-channel-icon email">
+                <Mail size={18} />
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#16a34a', backgroundColor: '#dcfce7', padding: '2px 6px', borderRadius: '4px' }}>
-                Sent
+              <div className="cand-otp-channel-info">
+                <span className="cand-otp-channel-label">Email Address</span>
+                <span className="cand-otp-channel-val">{formData.email}</span>
+              </div>
+              <span className="cand-otp-badge-sent">
+                <span className="cand-badge-dot"></span> Sent
               </span>
             </div>
 
             {/* Mobile Channel */}
-            <div
-              style={{
-                padding: '12px 14px',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px'
-              }}
-            >
-              <Smartphone size={18} color="#2563eb" style={{ flexShrink: 0 }} />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>MOBILE SMS (FIREBASE)</div>
-                <div style={{ fontSize: '12px', color: '#0f172a', fontWeight: 600 }}>
-                  +91 {formData.mobileNumber}
-                </div>
+            <div className="cand-otp-channel-card">
+              <div className="cand-otp-channel-icon phone">
+                <Smartphone size={18} />
               </div>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: confirmationResult ? '#16a34a' : isSendingSms ? '#2563eb' : '#d97706',
-                  backgroundColor: confirmationResult ? '#dcfce7' : isSendingSms ? '#dbeafe' : '#fef3c7',
-                  padding: '2px 6px',
-                  borderRadius: '4px'
-                }}
-              >
-                {isSendingSms ? 'Sending' : confirmationResult ? 'SMS Sent' : 'Ready'}
+              <div className="cand-otp-channel-info">
+                <span className="cand-otp-channel-label">Mobile Number</span>
+                <span className="cand-otp-channel-val">+91 {formData.mobileNumber}</span>
+              </div>
+              <span className={confirmationResult ? "cand-otp-badge-sent" : "cand-otp-badge-ready"}>
+                <span className="cand-badge-dot"></span> {confirmationResult ? 'Sent' : isSendingSms ? 'Sending' : 'Ready'}
               </span>
             </div>
           </div>
 
-          <div
-            style={{
-              backgroundColor: '#f8fafc',
-              border: '1.5px solid #e2e8f0',
-              borderRadius: '16px',
-              padding: '24px',
-              marginTop: '4px'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
-                Enter 6-Digit OTP Code
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#64748b' }}>
-                <Clock size={14} />
-                <span>Expires in <strong style={{ color: '#0f172a' }}>{formattedTimer}</strong></span>
+          {/* Main OTP Input Card */}
+          <div className="cand-otp-main-card">
+            <div className="cand-otp-header-row">
+              <span className="cand-otp-card-title">Enter 6-Digit OTP Code</span>
+              <div className="cand-otp-timer-badge">
+                <Clock size={13} />
+                <span>Expires in <strong>{formattedTimer}</strong></span>
               </div>
             </div>
 
             {/* 6 Digit Inputs */}
-            <div className="cand-otp-container" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
+            <div className="cand-otp-container">
               {otpDigits.map((digit, idx) => (
                 <input
                   key={idx}
                   ref={el => { otpInputRefs.current[idx] = el }}
                   type="text"
                   inputMode="numeric"
+                  autoComplete="one-time-code"
                   maxLength={1}
                   value={digit}
-                  className="cand-otp-input"
+                  className={`cand-otp-input ${digit ? 'filled' : ''}`}
                   onChange={e => handleDigitChange(idx, e.target.value)}
                   onKeyDown={e => handleDigitKeyDown(idx, e)}
-                  style={{
-                    width: '46px',
-                    height: '52px',
-                    textAlign: 'center',
-                    fontSize: '22px',
-                    fontWeight: 700,
-                    borderRadius: '10px',
-                    border: digit ? '2px solid #2563eb' : '1.5px solid #cbd5e1',
-                    backgroundColor: '#ffffff',
-                    color: '#0f172a',
-                    outline: 'none',
-                    boxShadow: digit ? '0 0 0 3px rgba(37,99,235,0.12)' : 'none',
-                    transition: 'all 0.15s ease'
-                  }}
+                  onFocus={e => e.target.select()}
                 />
               ))}
             </div>
 
             {/* Resend actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '12.5px', color: '#64748b' }}>
-                Didn't receive the OTP?
-              </span>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <div className="cand-otp-footer-row">
+              <span className="cand-otp-resend-prompt">Didn't receive the OTP?</span>
+              <div className="cand-otp-actions-group">
                 <button
                   type="button"
+                  className="cand-otp-text-btn"
                   onClick={handleSendFirebaseSms}
                   disabled={isSendingSms}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: isSendingSms ? '#94a3b8' : '#2563eb',
-                    fontSize: '12.5px',
-                    fontWeight: 600,
-                    cursor: isSendingSms ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: 0
-                  }}
                 >
                   <Smartphone size={13} /> {isSendingSms ? 'Sending SMS...' : 'Resend SMS'}
                 </button>
-                <span style={{ color: '#cbd5e1' }}>|</span>
+                <span className="cand-otp-action-sep">|</span>
                 <button
                   type="button"
+                  className="cand-otp-text-btn bold"
                   onClick={handleResend}
                   disabled={!canResend || isSubmitting}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: canResend ? '#2563eb' : '#94a3b8',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: canResend ? 'pointer' : 'not-allowed',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: 0
-                  }}
                 >
-                  <RotateCcw size={14} /> Resend All
+                  <RotateCcw size={13} /> Resend All {!canResend ? `(${otpTimer}s)` : ''}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Quick Notice */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '10px',
-              padding: '14px',
-              backgroundColor: '#eff6ff',
-              borderRadius: '10px',
-              marginTop: '16px',
-              border: '1px solid #bfdbfe'
-            }}
-          >
-            <ShieldCheck size={18} color="#2563eb" style={{ flexShrink: 0, marginTop: '2px' }} />
-            <p style={{ margin: 0, fontSize: '12.5px', color: '#1e40af', lineHeight: 1.5 }}>
+          {/* Trust Notice Box */}
+          <div className="cand-otp-trust-box">
+            <div className="cand-otp-trust-icon">
+              <ShieldCheck size={18} />
+            </div>
+            <p className="cand-otp-trust-text">
               For your account safety and candidate credibility, your mobile number and email must be verified. Dashboard access is unlocked immediately following verification.
             </p>
           </div>
         </div>
 
         {/* Buttons */}
-        <div className="cand-step-footer" style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="cand-step-footer cand-otp-action-footer">
           <button
             type="button"
             className="cand-btn-secondary"
@@ -603,9 +503,13 @@ export const Step2BasicDetails: React.FC = () => {
             className="cand-btn-primary"
             onClick={handleVerifyOtp}
             disabled={isSubmitting || otpDigits.join('').length < 6}
-            style={{ minWidth: '160px', justifyContent: 'center' }}
+            style={{ minWidth: '170px', justifyContent: 'center' }}
           >
-            {isSubmitting ? 'Verifying...' : 'Verify & Continue'} <ArrowRight size={16} />
+            {isSubmitting ? 'Verifying...' : (
+              <>
+                Verify & Continue <ArrowRight size={16} />
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -620,10 +524,10 @@ export const Step2BasicDetails: React.FC = () => {
       {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
       <div id="candidate-recaptcha-container" style={{ margin: 0, padding: 0 }}></div>
       <div className="cand-step-intro">
-        <div className="cand-step-indicator">STEP 2 OF 6</div>
+        <div className="cand-step-indicator">STEP 2 OF 2</div>
         <h2 className="cand-step-title">Basic Account Details</h2>
         <p className="cand-step-subtitle">
-          Create your account with a few quick details. Real verification codes will be sent to your mobile and email via Resend.
+          Create your account with a few quick details. Real verification codes will be sent to your mobile and email.
         </p>
       </div>
 

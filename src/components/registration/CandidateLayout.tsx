@@ -18,17 +18,13 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
 
   const stepsList: { num: CandidateStep; label: string }[] = [
     { num: 1, label: 'Experience' },
-    { num: 2, label: 'Basic Details' },
-    { num: 3, label: 'Profile Details' },
-    { num: 4, label: 'Career Profile' },
-    { num: 5, label: 'Personal Details' },
-    { num: 6, label: 'Review' }
+    { num: 2, label: 'Basic Details' }
   ]
 
   // Stepper progress line width
   const halfStepPercent = 100 / (stepsList.length * 2)
   const totalTrackPercent = 100 - halfStepPercent * 2
-  const progressPercent = ((step - 1) / (stepsList.length - 1)) * totalTrackPercent
+  const progressPercent = stepsList.length > 1 ? ((step - 1) / (stepsList.length - 1)) * totalTrackPercent : 100
   const isSinglePageStep = step === 1 || step === 2
 
   return (
@@ -134,10 +130,15 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
           </div>
         </div>
 
-        {/* 6-step Stepper */}
+        {/* 2-step Stepper */}
         <div
           className="cand-stepper-wrap"
-          style={{ '--stepper-inset': `${halfStepPercent}%` } as React.CSSProperties}
+          style={{
+            '--stepper-inset': `${halfStepPercent}%`,
+            maxWidth: '520px',
+            width: '100%',
+            margin: '0 auto clamp(12px, 1.8vh, 22px)'
+          } as React.CSSProperties}
         >
           <div className="cand-stepper-line" />
           <div className="cand-stepper-progress" style={{ width: `${progressPercent}%` }} />

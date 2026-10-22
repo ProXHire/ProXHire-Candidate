@@ -430,7 +430,6 @@ input, select, textarea {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  max-width: 620px;
   width: 100%;
   margin-bottom: 20px;
 }
@@ -573,7 +572,8 @@ input, select, textarea {
 .cand-step-2-col {
   height: 100vh;
   max-height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: clamp(14px, 2.2vh, 24px) clamp(28px, 4vw, 56px);
   display: flex;
   flex-direction: column;
@@ -650,21 +650,28 @@ input, select, textarea {
 /* ========================================================
    STEP 1 SPECIFICS: CARDS (ENTERPRISE / PROFESSIONAL LOOK)
    ======================================================== */
+.cand-step-1-col .cand-form-body {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+}
+
 .cand-step-1-content {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  max-width: 840px;
+  max-width: 100%;
   width: 100%;
 }
 
 .cand-step-1-col .cand-exp-choice-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: clamp(16px, 2vw, 24px);
   width: 100%;
-  margin-bottom: 20px;
+  max-width: 100%;
+  margin-bottom: clamp(12px, 1.6vh, 18px);
   flex: 0 0 auto;
   align-items: stretch;
 }
@@ -888,15 +895,39 @@ input, select, textarea {
 
 .cand-step-1-col .cand-action-footer {
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: clamp(12px, 1.5vh, 18px);
+  padding-bottom: clamp(6px, 1vh, 14px);
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
+  z-index: 20;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .cand-step-1-col .cand-btn-primary {
-  height: 44px;
-  padding: 0 28px;
-  font-size: 13.5px;
+  height: clamp(42px, 4.8vh, 46px);
+  padding: 0 clamp(24px, 2.5vw, 32px);
+  font-size: 14px;
+  font-weight: 700;
   border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background-color: #09090b;
+  color: #ffffff;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.cand-step-1-col .cand-btn-primary:hover {
+  background-color: #27272a;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
 }
 
 /* ========================================================
@@ -2782,4 +2813,534 @@ select.cand-input option,
 
 .cand-tabs-bar::-webkit-scrollbar {
   display: none;
+}
+
+/* ========================================================
+   PREMIUM 2FA / OTP VERIFICATION EXPERIENCE
+   ======================================================== */
+.cand-otp-channel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.cand-otp-channel-card {
+  padding: 14px 16px;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.cand-otp-channel-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.cand-otp-channel-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cand-otp-channel-icon.email {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.cand-otp-channel-icon.phone {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.cand-otp-channel-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cand-otp-channel-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cand-otp-channel-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #09090b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cand-otp-badge-sent,
+.cand-otp-badge-ready {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.cand-otp-badge-sent {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.cand-otp-badge-ready {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.cand-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* Friendly SMS notice banner */
+.cand-otp-notice-banner {
+  padding: 12px 16px;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cand-otp-notice-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+.cand-otp-notice-retry {
+  background: #b45309;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.cand-otp-notice-retry:hover:not(:disabled) {
+  background: #78350f;
+}
+
+/* Main OTP Card */
+.cand-otp-main-card {
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  margin-bottom: 16px;
+}
+
+.cand-otp-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cand-otp-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #09090b;
+}
+
+.cand-otp-timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475467;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.cand-otp-timer-badge strong {
+  color: #09090b;
+  font-variant-numeric: tabular-nums;
+}
+
+.cand-otp-container {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.cand-otp-input {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #09090b;
+  outline: none;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.cand-otp-input:focus {
+  border-color: #09090b;
+  box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.12);
+  transform: translateY(-1px);
+}
+
+.cand-otp-input.filled {
+  border-color: #09090b;
+  background-color: #fafafa;
+}
+
+.cand-otp-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cand-otp-resend-prompt {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.cand-otp-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cand-otp-text-btn {
+  background: none;
+  border: none;
+  color: #09090b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.15s ease;
+}
+
+.cand-otp-text-btn:hover:not(:disabled) {
+  color: #475467;
+}
+
+.cand-otp-text-btn:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.cand-otp-action-sep {
+  color: #cbd5e1;
+}
+
+/* Trust Box */
+.cand-otp-trust-box {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  align-items: flex-start;
+}
+
+.cand-otp-trust-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #09090b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.cand-otp-trust-text {
+  margin: 0;
+  font-size: 12.5px;
+  color: #475467;
+  line-height: 1.5;
+}
+
+/* Action Footer */
+.cand-otp-action-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Ensure Google reCAPTCHA badge doesn't overlap action footer buttons */
+.grecaptcha-badge {
+  bottom: 84px !important;
+  right: 20px !important;
+  z-index: 10 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ========================================================
+   FLUID & SMOOTH ANIMATIONS: REGISTRATION & LOGIN
+   ======================================================== */
+
+@keyframes candFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes candScalePop {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.6;
+  }
+  65% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes candCheckBounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes candDigitPop {
+  0% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes candTimerSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Step 1 & 2 Entrance Animation */
+.cand-step-1-content {
+  animation: candFadeInUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cand-step-2-form {
+  animation: candFadeInUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cand-login-form-wrapper {
+  animation: candFadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered entrance for Left Hero items */
+.cand-feature-item {
+  animation: candFadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cand-feature-item:nth-child(1) { animation-delay: 0.05s; }
+.cand-feature-item:nth-child(2) { animation-delay: 0.12s; }
+.cand-feature-item:nth-child(3) { animation-delay: 0.19s; }
+.cand-feature-item:nth-child(4) { animation-delay: 0.26s; }
+
+.cand-feature-item:hover {
+  transform: translateX(4px);
+}
+
+.cand-feature-icon-box {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cand-feature-item:hover .cand-feature-icon-box {
+  transform: scale(1.08);
+  background-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+/* Step 1 Choice Cards Spring Physics */
+.cand-step-1-col .cand-exp-card {
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cand-step-1-col .cand-exp-card:hover {
+  border-color: #09090b;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.09), 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.cand-step-1-col .cand-exp-card.selected {
+  border-color: #09090b;
+  box-shadow: 0 0 0 2px #09090b, 0 14px 34px -4px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.cand-exp-radio-indicator svg {
+  animation: candCheckBounce 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Stepper Animation */
+.cand-stepper-progress {
+  transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cand-step-circle {
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cand-step-circle.active {
+  animation: candScalePop 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 0 4px rgba(9, 9, 11, 0.1);
+}
+
+.cand-step-circle.completed svg {
+  animation: candCheckBounce 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Form Inputs & Button Physics */
+.cand-input {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease, background-color 0.2s ease;
+}
+
+.cand-input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.cand-btn-primary {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.cand-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.cand-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.cand-btn-secondary {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cand-btn-secondary:hover:not(:disabled) {
+  border-color: #09090b;
+  color: #09090b;
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+}
+
+/* Login Segmented Tabs */
+.cand-login-tab-pill {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cand-login-tab-pill.active {
+  animation: candScalePop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* OTP Input Boxes Interaction */
+.cand-otp-input {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cand-otp-input:focus {
+  border-color: #09090b;
+  box-shadow: 0 0 0 3.5px rgba(9, 9, 11, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.cand-otp-input.filled {
+  animation: candDigitPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cand-otp-timer-badge svg {
+  animation: candTimerSpin 12s linear infinite;
+}
+
+/* Role Switcher Hover */
+.cand-role-switch-btn {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.cand-role-switch-btn:hover {
+  border-color: #09090b !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }

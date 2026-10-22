@@ -12,7 +12,7 @@ export const Step1ExperienceType: React.FC = () => {
     <div className="cand-step-1-content">
       {/* Intro Header */}
       <div className="cand-step-intro">
-        <div className="cand-step-indicator">STEP 1 OF 6</div>
+        <div className="cand-step-indicator">STEP 1 OF 2</div>
         <h2 className="cand-step-title">Let's get started</h2>
         <p className="cand-step-subtitle">
           Tell us about your work experience so we can personalize your journey and match you with the most relevant opportunities across India.

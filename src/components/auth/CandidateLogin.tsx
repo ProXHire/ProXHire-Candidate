@@ -15,7 +15,8 @@ import {
   LockKeyhole,
   Check,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Smartphone
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import { authService } from '../../services/authService'
@@ -129,7 +130,7 @@ export const CandidateLogin: React.FC = () => {
 
   return (
     <div className="cand-split-container cand-login-container cand-single-page-container">
-      {/* Left Column - Hero Visual Branding */}
+      {/* Left Column - Constant Architectural Visual Branding */}
       <div className="cand-hero-col cand-login-hero cand-single-page-hero">
         <div className="cand-hero-bg" />
         <div className="cand-hero-overlay" />
@@ -150,40 +151,45 @@ export const CandidateLogin: React.FC = () => {
             />
           </div>
 
-          {/* Headline */}
+          {/* Constant Headline & Features across all screens */}
           <div className="cand-hero-main">
             <h1 className="cand-hero-title">
-              Welcome<br />
-              Back to<br />
+              One Profile.<br />
+              More<br />
               <span className="muted-text">Opportunities.</span>
             </h1>
             <p className="cand-hero-desc">
-              Log in to your verified candidate profile, track applications, and engage with top corporate recruiters across India.
+              Get verified, showcase your skills and connect with top employers across India.
             </p>
 
             <div className="cand-feature-list">
               {[
                 {
                   icon: Search,
-                  title: 'Real-Time Job Alerts',
-                  desc: 'Handpicked openings matching your skills'
+                  title: 'Relevant Job Opportunities',
+                  desc: 'Find roles that match your skills'
                 },
                 {
                   icon: ShieldCheck,
-                  title: 'Verified Badged Status',
-                  desc: 'High priority ranking with hiring managers'
+                  title: 'Verified & Trusted Platform',
+                  desc: 'Build credibility with employers'
                 },
                 {
                   icon: TrendingUp,
-                  title: 'Application Pipeline',
-                  desc: 'Live interview feedback & progress updates'
+                  title: 'Career Growth',
+                  desc: 'More interviews, better opportunities'
+                },
+                {
+                  icon: FileText,
+                  title: 'Secure & Private',
+                  desc: 'Your information stays protected'
                 }
               ].map((item, idx) => {
                 const Icon = item.icon
                 return (
                   <div key={idx} className="cand-feature-item">
                     <div className="cand-feature-icon-box">
-                      <Icon size={20} strokeWidth={2} />
+                      <Icon size={22} strokeWidth={2} />
                     </div>
                     <div className="cand-feature-text">
                       <h4>{item.title}</h4>
@@ -195,9 +201,9 @@ export const CandidateLogin: React.FC = () => {
             </div>
           </div>
 
-          {/* Footer Kicker */}
+          {/* Footer Area: Constant kicker across all screens */}
           <div className="cand-hero-footer">
-            <div className="cand-hero-kicker">AUTHENTIC &nbsp;|&nbsp; VERIFIED &nbsp;|&nbsp; EMPOWERED</div>
+            <div className="cand-hero-kicker">SKILLS &nbsp;|&nbsp; OPPORTUNITIES &nbsp;|&nbsp; GROWTH</div>
           </div>
         </div>
       </div>
@@ -205,9 +211,9 @@ export const CandidateLogin: React.FC = () => {
       {/* Right Column - Login Form */}
       <div className="cand-form-col cand-login-col cand-single-page-col">
         {/* Top Header Bar */}
-        <div className="cand-form-header-bar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>
+        <div className="cand-form-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 'clamp(14px, 2.4vh, 28px)' }}>
+          <div>
+            <span style={{ fontSize: '13.5px', color: '#64748b' }}>
               Don't have an account?{' '}
               <a
                 href="#register"
@@ -216,7 +222,7 @@ export const CandidateLogin: React.FC = () => {
                   setStep(1)
                   setViewMode('registration')
                 }}
-                style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}
+                style={{ color: '#09090b', fontWeight: 700, textDecoration: 'underline' }}
               >
                 Register as Candidate
               </a>
@@ -226,19 +232,34 @@ export const CandidateLogin: React.FC = () => {
           <button
             type="button"
             className="cand-role-switch-btn"
-            onClick={() => window.open('http://localhost:5175', '_blank')}
+            onClick={() => window.open('http://localhost:5178', '_blank')}
+            style={{
+              padding: '6px 14px',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              borderRadius: '8px',
+              border: '1.5px solid #e2e8f0',
+              background: '#ffffff',
+              color: '#09090b',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              transition: 'all 0.15s ease'
+            }}
           >
             Employer Portal →
           </button>
         </div>
 
-        {/* Scrollable Form Content */}
-        <div className="cand-form-content">
-          <div className="cand-login-form-wrapper">
-            <div className="cand-step-intro" style={{ marginBottom: '14px' }}>
+        {/* Centered Form Body */}
+        <div className="cand-login-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+          <div className="cand-login-form-wrapper" style={{ width: '100%', maxWidth: '440px', margin: '0 auto' }}>
+            <div className="cand-step-intro" style={{ marginBottom: '18px' }}>
               <div className="cand-step-indicator">CANDIDATE SIGN IN</div>
-              <h2 className="cand-step-title">Welcome Back</h2>
-              <p className="cand-step-subtitle">
+              <h2 className="cand-step-title" style={{ fontSize: '28px', fontWeight: 800, marginBottom: '6px' }}>Welcome Back</h2>
+              <p className="cand-step-subtitle" style={{ fontSize: '13.5px', color: '#64748b', margin: 0 }}>
                 Access your candidate dashboard, saved jobs, and application status.
               </p>
             </div>
@@ -250,14 +271,14 @@ export const CandidateLogin: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '10px 14px',
+                  padding: '12px 14px',
                   backgroundColor: '#fef2f2',
                   border: '1px solid #fecaca',
                   color: '#b91c1c',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   fontSize: '12.5px',
                   fontWeight: 600,
-                  marginBottom: '12px'
+                  marginBottom: '16px'
                 }}
               >
                 <AlertCircle size={16} style={{ flexShrink: 0 }} />
@@ -265,33 +286,33 @@ export const CandidateLogin: React.FC = () => {
               </div>
             )}
 
-            {/* Login Method Toggle */}
-            <div className="cand-login-tabs">
+            {/* Login Method Toggle (Segmented Control) */}
+            <div className="cand-login-tabs-segmented" style={{ marginBottom: '18px' }}>
               <button
                 type="button"
-                className={`cand-login-tab-btn ${loginMethod === 'password' ? 'active' : ''}`}
+                className={`cand-login-tab-pill ${loginMethod === 'password' ? 'active' : ''}`}
                 onClick={() => {
                   setLoginMethod('password')
                   setErrorMsg(null)
                 }}
               >
-                Password Login
+                <Lock size={14} /> Password Login
               </button>
               <button
                 type="button"
-                className={`cand-login-tab-btn ${loginMethod === 'otp' ? 'active' : ''}`}
+                className={`cand-login-tab-pill ${loginMethod === 'otp' ? 'active' : ''}`}
                 onClick={() => {
                   setLoginMethod('otp')
                   setErrorMsg(null)
                 }}
               >
-                Mobile OTP Login
+                <Smartphone size={14} /> Mobile OTP Login
               </button>
             </div>
 
             {/* PASSWORD LOGIN FORM */}
             {loginMethod === 'password' && (
-              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {/* Email / Mobile Field */}
                 <div className="cand-field-group">
                   <label className="cand-field-label">
@@ -323,9 +344,10 @@ export const CandidateLogin: React.FC = () => {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#2563eb',
+                        color: '#09090b',
                         fontSize: '12px',
-                        fontWeight: 600,
+                        fontWeight: 700,
+                        textDecoration: 'underline',
                         cursor: 'pointer',
                         padding: 0
                       }}
@@ -359,12 +381,12 @@ export const CandidateLogin: React.FC = () => {
 
                 {/* Remember Me */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#475467', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475467', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={e => setRememberMe(e.target.checked)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#09090b' }}
                     />
                     Remember my credentials
                   </label>
@@ -374,7 +396,16 @@ export const CandidateLogin: React.FC = () => {
                 <button
                   type="submit"
                   className="cand-btn-primary"
-                  style={{ height: '44px', marginTop: '4px', justifyContent: 'center' }}
+                  style={{
+                    height: '46px',
+                    marginTop: '6px',
+                    justifyContent: 'center',
+                    width: '100%',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)'
+                  }}
                   disabled={isLoading}
                 >
                   {isLoading ? 'Authenticating...' : 'Sign In to Dashboard'} <ArrowRight size={16} />
@@ -384,7 +415,7 @@ export const CandidateLogin: React.FC = () => {
 
             {/* OTP LOGIN FORM */}
             {loginMethod === 'otp' && (
-              <form onSubmit={otpSent ? handleVerifyOtpLogin : e => { e.preventDefault(); handleSendOtp(); }} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <form onSubmit={otpSent ? handleVerifyOtpLogin : e => { e.preventDefault(); handleSendOtp(); }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div className="cand-field-group">
                   <label className="cand-field-label">
                     Registered Mobile Number <span className="req">*</span>
@@ -418,19 +449,28 @@ export const CandidateLogin: React.FC = () => {
                   <button
                     type="button"
                     className="cand-btn-primary"
-                    style={{ height: '42px', marginTop: '6px', justifyContent: 'center' }}
+                    style={{
+                      height: '46px',
+                      marginTop: '6px',
+                      justifyContent: 'center',
+                      width: '100%',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)'
+                    }}
                     onClick={handleSendOtp}
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Dispatching OTP...' : 'Send OTP to Mobile'} <ArrowRight size={15} />
+                    {isLoading ? 'Dispatching OTP...' : 'Send OTP to Mobile'} <ArrowRight size={16} />
                   </button>
                 ) : (
-                  <div className="cand-field-group" style={{ marginTop: '6px' }}>
+                  <div className="cand-field-group" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <label className="cand-field-label">
                         Enter 6-Digit OTP <span className="req">*</span>
                       </label>
-                      <span style={{ fontSize: '11.5px', color: '#10b981', fontWeight: 600 }}>
+                      <span style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
                         OTP sent to {countryCode} {mobileNumber}
                       </span>
                     </div>
@@ -441,22 +481,24 @@ export const CandidateLogin: React.FC = () => {
                       <input
                         type="text"
                         className="cand-input"
-                        placeholder="Enter 6-digit OTP"
+                        placeholder="Enter 6-digit OTP code"
                         value={otpCode}
                         maxLength={6}
                         onChange={e => setOtpCode(e.target.value)}
                         required
+                        autoFocus
                       />
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <button
                         type="button"
                         style={{
                           background: 'none',
                           border: 'none',
-                          fontSize: '11.5px',
-                          color: '#475467',
+                          fontSize: '12px',
+                          color: '#09090b',
                           cursor: 'pointer',
+                          fontWeight: 600,
                           textDecoration: 'underline'
                         }}
                         onClick={handleSendOtp}
@@ -469,10 +511,19 @@ export const CandidateLogin: React.FC = () => {
                     <button
                       type="submit"
                       className="cand-btn-primary"
-                      style={{ height: '42px', marginTop: '10px', justifyContent: 'center' }}
+                      style={{
+                        height: '46px',
+                        marginTop: '6px',
+                        justifyContent: 'center',
+                        width: '100%',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        borderRadius: '10px',
+                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)'
+                      }}
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Verifying OTP...' : 'Verify OTP & Enter'} <ArrowRight size={15} />
+                      {isLoading ? 'Verifying OTP...' : 'Verify OTP & Enter'} <ArrowRight size={16} />
                     </button>
                   </div>
                 )}
@@ -480,17 +531,18 @@ export const CandidateLogin: React.FC = () => {
             )}
 
             {/* Quick Registration Redirect */}
-            <div style={{ textAlign: 'center', marginTop: '16px' }}>
-              <span style={{ fontSize: '13px', color: '#64748b' }}>
+            <div style={{ textAlign: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+              <span style={{ fontSize: '13.5px', color: '#64748b' }}>
                 New to ProXHire?{' '}
                 <button
                   type="button"
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#2563eb',
-                    fontSize: '13px',
+                    color: '#09090b',
+                    fontSize: '13.5px',
                     fontWeight: 700,
+                    textDecoration: 'underline',
                     cursor: 'pointer',
                     padding: 0
                   }}
