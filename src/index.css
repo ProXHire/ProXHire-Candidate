@@ -967,6 +967,9 @@ input, select, textarea {
 
 .cand-step-2-col .cand-input-icon {
   left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
 
 .cand-step-2-col .cand-pwd-strength-row {
@@ -1228,14 +1231,25 @@ input, select, textarea {
 .cand-input-icon {
   position: absolute;
   left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #71717a;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  z-index: 10;
+  transition: color 0.18s ease;
+}
+
+.cand-input-wrapper:focus-within .cand-input-icon {
+  color: #09090b;
+  z-index: 10;
 }
 
 .cand-input {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 48px;
   padding: 0 42px 0 44px;
@@ -1251,6 +1265,7 @@ input, select, textarea {
 .cand-input:focus {
   border-color: #000000;
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+  z-index: 2;
 }
 
 .cand-toggle-pwd {
@@ -1268,7 +1283,7 @@ input, select, textarea {
   cursor: pointer;
   border-radius: 4px;
   transition: color 0.15s ease, background-color 0.15s ease;
-  z-index: 3;
+  z-index: 10;
 }
 
 .cand-toggle-pwd:hover {
