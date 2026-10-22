@@ -146,7 +146,7 @@ export const Step6ProfileReview: React.FC = () => {
               <div><strong>Name:</strong> {formData.fullName}</div>
               <div><strong>Email:</strong> {formData.email}</div>
               <div><strong>Mobile:</strong> {formData.countryCode} {formData.mobileNumber}</div>
-              <div><strong>PAN:</strong> {formData.panNumber}</div>
+              {formData.panNumber ? <div><strong>PAN:</strong> {formData.panNumber}</div> : null}
             </div>
           )}
         </div>

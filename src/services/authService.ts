@@ -9,7 +9,7 @@ export interface RegisterCandidatePayload {
   fullName: string;
   email: string;
   mobileNumber: string;
-  panNumber: string;
+  panNumber?: string;
   password?: string;
   experienceCategory?: 'fresher' | 'experienced';
 }

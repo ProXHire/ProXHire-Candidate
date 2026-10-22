@@ -41,7 +41,7 @@ export interface CandidateRegistrationState {
   email: string
   countryCode: string
   mobileNumber: string
-  panNumber: string
+  panNumber?: string
   password: string
   confirmPassword: string
   preBgvConsent: boolean

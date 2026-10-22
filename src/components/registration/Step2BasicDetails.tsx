@@ -3,7 +3,6 @@ import {
   User,
   Mail,
   Smartphone,
-  CreditCard,
   Lock,
   Eye,
   EyeOff,
@@ -140,16 +139,9 @@ export const Step2BasicDetails: React.FC = () => {
       !formData.fullName.trim() ||
       !formData.email.trim() ||
       !formData.mobileNumber.trim() ||
-      !formData.panNumber.trim() ||
       !formData.password
     ) {
       setLocalError('Please complete all mandatory fields marked with *')
-      return
-    }
-
-    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/
-    if (!panRegex.test(formData.panNumber.trim().toUpperCase())) {
-      setLocalError('Invalid PAN format. Must be 10 characters: 5 letters, 4 numbers, 1 letter (e.g. ABCDE1234F).')
       return
     }
 
@@ -651,7 +643,7 @@ export const Step2BasicDetails: React.FC = () => {
       {/* Grid Inputs */}
       <div className="cand-form-grid">
         {/* Full Name */}
-        <div className="cand-field-group">
+        <div className="cand-field-group full-width">
           <label className="cand-field-label">
             Full Name <span className="req">*</span>
           </label>
@@ -717,27 +709,6 @@ export const Step2BasicDetails: React.FC = () => {
               placeholder="10-digit mobile number"
               value={formData.mobileNumber}
               onChange={e => updateField('mobileNumber', e.target.value)}
-              maxLength={10}
-              required
-            />
-          </div>
-        </div>
-
-        {/* PAN Number */}
-        <div className="cand-field-group">
-          <label className="cand-field-label">
-            PAN Number <span className="req">*</span>
-          </label>
-          <div className="cand-input-wrapper">
-            <span className="cand-input-icon">
-              <CreditCard size={16} />
-            </span>
-            <input
-              type="text"
-              className="cand-input"
-              placeholder="10-digit PAN (e.g. ABCDE1234F)"
-              value={formData.panNumber}
-              onChange={e => updateField('panNumber', e.target.value.toUpperCase())}
               maxLength={10}
               required
             />

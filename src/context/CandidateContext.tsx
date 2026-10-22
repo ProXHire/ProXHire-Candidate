@@ -178,7 +178,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         fullName: formData.fullName.trim(),
         email: formData.email.trim().toLowerCase(),
         mobileNumber: cleanMobile,
-        panNumber: formData.panNumber.trim().toUpperCase(),
+        panNumber: formData.panNumber ? formData.panNumber.trim().toUpperCase() : undefined,
         password: formData.password,
         experienceCategory: formData.experienceCategory
       })
