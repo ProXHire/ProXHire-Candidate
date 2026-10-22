@@ -45,6 +45,29 @@ export const Step2BasicDetails: React.FC = () => {
   const [showBgvModal, setShowBgvModal] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
 
+  // Real-time password criteria evaluation
+  const pwd = formData.password || ''
+  const pwdCriteria = {
+    minLength: pwd.length >= 8,
+    uppercase: /[A-Z]/.test(pwd),
+    lowercase: /[a-z]/.test(pwd),
+    number: /[0-9]/.test(pwd),
+    specialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pwd)
+  }
+  const metCount = Object.values(pwdCriteria).filter(Boolean).length
+  const isPwdAllValid = metCount === 5
+
+  const getPwdStrength = () => {
+    if (!pwd) return { score: 0, label: '', color: '#e4e4e7' }
+    if (metCount <= 2) return { score: 1, label: 'Weak', color: '#ef4444' }
+    if (metCount === 3) return { score: 2, label: 'Fair', color: '#f59e0b' }
+    if (metCount === 4) return { score: 3, label: 'Good', color: '#3b82f6' }
+    return { score: 4, label: 'Strong', color: '#10b981' }
+  }
+
+  const pwdStrength = getPwdStrength()
+  const passwordsMatch = Boolean(formData.confirmPassword && formData.password === formData.confirmPassword)
+
   // OTP inputs state (6 digits)
   const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', ''])
   const [otpTimer, setOtpTimer] = useState(60)
@@ -130,13 +153,19 @@ export const Step2BasicDetails: React.FC = () => {
       return
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      setLocalError('Passwords do not match. Please verify.')
+    if (!isPwdAllValid) {
+      const missing: string[] = []
+      if (!pwdCriteria.minLength) missing.push('at least 8 characters')
+      if (!pwdCriteria.uppercase) missing.push('an uppercase letter (A-Z)')
+      if (!pwdCriteria.lowercase) missing.push('a lowercase letter (a-z)')
+      if (!pwdCriteria.number) missing.push('a number (0-9)')
+      if (!pwdCriteria.specialChar) missing.push('a special character (!@#$%...)')
+      setLocalError(`Password does not meet security requirements. Please include: ${missing.join(', ')}.`)
       return
     }
 
-    if (formData.password.length < 8) {
-      setLocalError('Password must be at least 8 characters long.')
+    if (formData.password !== formData.confirmPassword) {
+      setLocalError('Passwords do not match. Please verify both passwords.')
       return
     }
 
@@ -727,7 +756,7 @@ export const Step2BasicDetails: React.FC = () => {
             <input
               type={showPassword ? 'text' : 'password'}
               className="cand-input"
-              placeholder="Min. 8 characters"
+              placeholder="Min. 8 chars (A-Z, a-z, 0-9, symbol)"
               value={formData.password}
               onChange={e => updateField('password', e.target.value)}
               required
@@ -740,6 +769,53 @@ export const Step2BasicDetails: React.FC = () => {
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
+          </div>
+
+          {/* Password Strength Meter */}
+          {pwd.length > 0 && (
+            <div className="cand-pwd-meter-box">
+              <div className="cand-pwd-meter-header">
+                <span className="cand-pwd-meter-text">Strength:</span>
+                <span className="cand-pwd-meter-label" style={{ color: pwdStrength.color }}>
+                  {pwdStrength.label}
+                </span>
+              </div>
+              <div className="cand-pwd-bars">
+                {[1, 2, 3, 4].map(level => (
+                  <div
+                    key={level}
+                    className="cand-pwd-bar-segment"
+                    style={{
+                      backgroundColor: level <= pwdStrength.score ? pwdStrength.color : '#e4e4e7'
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Real-time Security Criteria Checklist */}
+          <div className="cand-pwd-criteria-grid">
+            <span className={`cand-pwd-chip ${pwdCriteria.minLength ? 'met' : ''}`}>
+              {pwdCriteria.minLength ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              8+ chars
+            </span>
+            <span className={`cand-pwd-chip ${pwdCriteria.uppercase ? 'met' : ''}`}>
+              {pwdCriteria.uppercase ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              Uppercase (A-Z)
+            </span>
+            <span className={`cand-pwd-chip ${pwdCriteria.lowercase ? 'met' : ''}`}>
+              {pwdCriteria.lowercase ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              Lowercase (a-z)
+            </span>
+            <span className={`cand-pwd-chip ${pwdCriteria.number ? 'met' : ''}`}>
+              {pwdCriteria.number ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              Number (0-9)
+            </span>
+            <span className={`cand-pwd-chip ${pwdCriteria.specialChar ? 'met' : ''}`}>
+              {pwdCriteria.specialChar ? <Check size={10} strokeWidth={3} /> : <span className="cand-pwd-dot" />}
+              Special char (!@#...)
+            </span>
           </div>
         </div>
 
@@ -769,6 +845,23 @@ export const Step2BasicDetails: React.FC = () => {
               {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+
+          {/* Confirm Password Match Feedback */}
+          {formData.confirmPassword.length > 0 && (
+            <div className={`cand-pwd-match-pill ${passwordsMatch ? 'matched' : 'mismatch'}`}>
+              {passwordsMatch ? (
+                <>
+                  <CheckCircle2 size={12} strokeWidth={2.5} />
+                  <span>Passwords match</span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle size={12} strokeWidth={2.5} />
+                  <span>Passwords do not match</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

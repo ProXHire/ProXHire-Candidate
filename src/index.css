@@ -1264,15 +1264,30 @@ input, select, textarea {
   width: 96px;
 }
 
-/* Password strength bars */
-.cand-pwd-strength-row {
+/* Password strength bars & criteria checklist */
+.cand-pwd-meter-box {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: -12px;
-  margin-bottom: 20px;
-  font-size: 12.5px;
-  color: #64748b;
+  justify-content: space-between;
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+.cand-pwd-meter-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.cand-pwd-meter-text {
+  color: #71717a;
+  font-weight: 500;
+}
+
+.cand-pwd-meter-label {
+  font-weight: 700;
+  text-transform: capitalize;
 }
 
 .cand-pwd-bars {
@@ -1281,14 +1296,71 @@ input, select, textarea {
 }
 
 .cand-pwd-bar-segment {
-  width: 32px;
+  width: 24px;
   height: 4px;
   border-radius: 2px;
   background-color: #e4e4e7;
+  transition: background-color 0.25s ease;
 }
 
-.cand-pwd-bar-segment.filled {
-  background-color: #10b981;
+.cand-pwd-criteria-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.cand-pwd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 4px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.cand-pwd-chip.met {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+  font-weight: 600;
+}
+
+.cand-pwd-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #94a3b8;
+}
+
+.cand-pwd-match-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  width: fit-content;
+  transition: all 0.2s ease;
+}
+
+.cand-pwd-match-pill.matched {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.cand-pwd-match-pill.mismatch {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 /* Pre-BGV box */
