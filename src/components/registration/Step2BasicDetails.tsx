@@ -544,7 +544,9 @@ export const Step2BasicDetails: React.FC = () => {
             marginBottom: '10px'
           }}
         >
-          {localError || errorMsg}
+          {String(localError || errorMsg).includes('Failed to fetch')
+            ? 'Authentication server is reconnecting. Please click "Send OTP & Verify" again.'
+            : (localError || errorMsg)}
         </div>
       )}
 
