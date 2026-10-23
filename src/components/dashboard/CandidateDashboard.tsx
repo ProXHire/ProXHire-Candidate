@@ -14,7 +14,6 @@ import {
   Menu,
   X,
   LogOut,
-  User,
   SlidersHorizontal
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
@@ -274,14 +273,11 @@ export const CandidateDashboard: React.FC = () => {
 
           {/* Desktop Navigation Links */}
           <nav className="cand-dash-nav">
-            {['Dashboard', 'Complete Profile', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages', 'Career Resources'].map(nav => (
+            {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages', 'Career Resources'].map(nav => (
               <span
                 key={nav}
                 className={`cand-dash-link ${activeNav === nav ? 'active' : ''}`}
                 onClick={() => {
-                  if (nav === 'Complete Profile') {
-                    setProfileInitialTab('profile')
-                  }
                   setActiveNav(nav)
                 }}
               >
@@ -346,15 +342,12 @@ export const CandidateDashboard: React.FC = () => {
       {/* Mobile Nav Tabs Bar (Visible on mobile/tablet) */}
       <div className="cand-mobile-tabs-container">
         <nav className="cand-mobile-tabs-scroll">
-          {['Dashboard', 'Complete Profile', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages'].map(nav => (
+          {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages'].map(nav => (
             <button
               key={nav}
               type="button"
               className={`cand-mobile-tab-btn ${activeNav === nav ? 'active' : ''}`}
               onClick={() => {
-                if (nav === 'Complete Profile') {
-                  setProfileInitialTab('profile')
-                }
                 setActiveNav(nav)
                 setIsMobileMenuOpen(false)
               }}
@@ -389,7 +382,6 @@ export const CandidateDashboard: React.FC = () => {
             <div className="cand-drawer-nav-list">
               {[
                 { name: 'Dashboard', icon: TrendingUp },
-                { name: 'Complete Profile', icon: User },
                 { name: 'Find Jobs', icon: Search },
                 { name: 'Applications', icon: Send },
                 { name: 'Saved Jobs', icon: Bookmark },
@@ -402,9 +394,6 @@ export const CandidateDashboard: React.FC = () => {
                     type="button"
                     className={`cand-drawer-link ${activeNav === item.name ? 'active' : ''}`}
                     onClick={() => {
-                      if (item.name === 'Complete Profile') {
-                        setProfileInitialTab('profile')
-                      }
                       setActiveNav(item.name)
                       setIsMobileMenuOpen(false)
                     }}
