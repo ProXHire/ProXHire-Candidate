@@ -21,6 +21,7 @@ import type { JobCardData, ApplicationRowData } from '../../types'
 import { CompleteProfileWorkspace } from './CompleteProfileWorkspace'
 import { JobDetailsScreen } from './JobDetailsScreen'
 import { SavedJobsWorkspace } from './SavedJobsWorkspace'
+import { FindJobsWorkspace } from './FindJobsWorkspace'
 
 export const CandidateDashboard: React.FC = () => {
   const { formData, setViewMode, setStep, isVerified, isCompleted, logout } = useCandidate()
@@ -28,6 +29,7 @@ export const CandidateDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterWorkType, setFilterWorkType] = useState<string>('all')
   const [filterExperience, setFilterExperience] = useState<string>('all')
+  const [filterLocation, setFilterLocation] = useState<string>('all')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const filterRef = useRef<HTMLDivElement>(null)
   const [selectedJob, setSelectedJob] = useState<JobCardData | null>(null)
@@ -45,15 +47,19 @@ export const CandidateDashboard: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const activeFilterCount = (filterWorkType !== 'all' ? 1 : 0) + (filterExperience !== 'all' ? 1 : 0)
+  const activeFilterCount =
+    (filterWorkType !== 'all' ? 1 : 0) +
+    (filterExperience !== 'all' ? 1 : 0) +
+    (filterLocation !== 'all' ? 1 : 0)
 
   const resetFilters = () => {
     setFilterWorkType('all')
     setFilterExperience('all')
+    setFilterLocation('all')
     setSearchQuery('')
   }
 
-  // Support deep-linking to Complete Profile or Saved Jobs via URL
+  // Support deep-linking to Complete Profile, Saved Jobs, or Find Jobs via URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const nav = params.get('nav')
@@ -63,6 +69,8 @@ export const CandidateDashboard: React.FC = () => {
       if (tab) setProfileInitialTab(tab)
     } else if (nav === 'saved' || nav === 'saved-jobs' || nav === 'Saved Jobs') {
       setActiveNav('Saved Jobs')
+    } else if (nav === 'find' || nav === 'find-jobs' || nav === 'jobs' || nav === 'Find Jobs') {
+      setActiveNav('Find Jobs')
     }
   }, [])
 
@@ -216,6 +224,36 @@ export const CandidateDashboard: React.FC = () => {
       extraTagsCount: 2,
       postedTime: 'Posted 3 days ago',
       isSaved: true
+    },
+    {
+      id: '7',
+      company: 'Zomato',
+      companyLogoText: 'ZOM',
+      role: 'Product Designer',
+      location: 'Gurugram, Delhi NCR',
+      workType: 'On-site',
+      jobType: 'Full Time',
+      experienceLevel: 'Mid Level',
+      experienceYears: '2-5 Yrs',
+      tags: ['Figma', 'Design Systems', 'UI/UX'],
+      extraTagsCount: 2,
+      postedTime: 'Posted 1 day ago',
+      isSaved: false
+    },
+    {
+      id: '8',
+      company: 'Jio',
+      companyLogoText: 'JIO',
+      role: 'DevOps Engineer',
+      location: 'Mumbai, Maharashtra',
+      workType: 'Hybrid',
+      jobType: 'Full Time',
+      experienceLevel: 'Senior Level',
+      experienceYears: '4-8 Yrs',
+      tags: ['Docker', 'AWS', 'CI/CD', 'Terraform'],
+      extraTagsCount: 3,
+      postedTime: 'Posted 2 days ago',
+      isSaved: false
     }
   ])
 
@@ -236,7 +274,14 @@ export const CandidateDashboard: React.FC = () => {
       filterExperience === 'all' ||
       job.experienceLevel.toLowerCase() === filterExperience.toLowerCase()
 
-    return matchesSearch && matchesWorkType && matchesExperience
+    const matchesLocation =
+      filterLocation === 'all' ||
+      job.location.toLowerCase().includes(filterLocation.toLowerCase()) ||
+      (filterLocation.toLowerCase() === 'bengaluru' && job.location.toLowerCase().includes('bangalore')) ||
+      (filterLocation.toLowerCase() === 'bangalore' && job.location.toLowerCase().includes('bengaluru')) ||
+      (filterLocation.toLowerCase() === 'delhi ncr' && (job.location.toLowerCase().includes('delhi') || job.location.toLowerCase().includes('gurugram') || job.location.toLowerCase().includes('noida')))
+
+    return matchesSearch && matchesWorkType && matchesExperience && matchesLocation
   })
 
   const [applications, setApplications] = useState<ApplicationRowData[]>([
@@ -476,7 +521,34 @@ export const CandidateDashboard: React.FC = () => {
             onViewJob={(job) => setSelectedJob(job)}
             onBrowseJobs={() => {
               setSelectedJob(null)
+              setActiveNav('Find Jobs')
+            }}
+            onApply={(appliedJob) => {
+              setApplications(prev => [
+                {
+                  id: String(Date.now()),
+                  jobTitle: appliedJob.role,
+                  company: appliedJob.company,
+                  appliedOn: 'Today',
+                  status: 'Under Review'
+                },
+                ...prev
+              ])
+            }}
+          />
+        ) : activeNav === 'Find Jobs' ? (
+          <FindJobsWorkspace
+            jobs={jobs}
+            applications={applications}
+            onToggleSave={(jobId) => toggleSaveJob(jobId)}
+            onViewJob={(job) => setSelectedJob(job)}
+            onBackToDashboard={() => {
+              setSelectedJob(null)
               setActiveNav('Dashboard')
+            }}
+            onGoToSavedJobs={() => {
+              setSelectedJob(null)
+              setActiveNav('Saved Jobs')
             }}
             onApply={(appliedJob) => {
               setApplications(prev => [
@@ -523,7 +595,9 @@ export const CandidateDashboard: React.FC = () => {
                 >
                   <SlidersHorizontal size={14} />
                   <span>
-                    {filterWorkType !== 'all'
+                    {filterLocation !== 'all'
+                      ? filterLocation
+                      : filterWorkType !== 'all'
                       ? filterWorkType
                       : filterExperience !== 'all'
                       ? filterExperience
@@ -554,6 +628,7 @@ export const CandidateDashboard: React.FC = () => {
                           onClick={() => {
                             setFilterWorkType('all')
                             setFilterExperience('all')
+                            setFilterLocation('all')
                           }}
                         >
                           Clear
@@ -599,6 +674,27 @@ export const CandidateDashboard: React.FC = () => {
                       ))}
                     </div>
 
+                    <div className="cand-filter-section-title">Location</div>
+                    <div className="cand-filter-pills-row">
+                      {[
+                        { id: 'all', label: 'All Locations' },
+                        { id: 'Bengaluru', label: 'Bengaluru' },
+                        { id: 'Hyderabad', label: 'Hyderabad' },
+                        { id: 'Pune', label: 'Pune' },
+                        { id: 'Mumbai', label: 'Mumbai' },
+                        { id: 'Delhi NCR', label: 'Delhi NCR' }
+                      ].map(loc => (
+                        <button
+                          key={loc.id}
+                          type="button"
+                          className={`cand-filter-pill-opt ${filterLocation.toLowerCase() === loc.id.toLowerCase() ? 'selected' : ''}`}
+                          onClick={() => setFilterLocation(loc.id)}
+                        >
+                          {loc.label}
+                        </button>
+                      ))}
+                    </div>
+
                     <div className="cand-filter-popover-footer">
                       <span style={{ fontSize: '12px', color: '#64748b' }}>
                         {filteredJobs.length} {filteredJobs.length === 1 ? 'job found' : 'jobs found'}
@@ -631,6 +727,8 @@ export const CandidateDashboard: React.FC = () => {
             <div className="cand-quick-filters-row">
               <span className="cand-quick-filter-label">Quick filter:</span>
               {[
+                { label: 'Bengaluru', type: 'loc', value: 'Bengaluru' },
+                { label: 'Hyderabad', type: 'loc', value: 'Hyderabad' },
                 { label: 'Remote', type: 'work', value: 'Remote' },
                 { label: 'Hybrid', type: 'work', value: 'Hybrid' },
                 { label: 'On-site', type: 'work', value: 'On-site' },
@@ -640,6 +738,7 @@ export const CandidateDashboard: React.FC = () => {
                 { label: 'Node.js', type: 'query', value: 'Node.js' }
               ].map(item => {
                 const isActive =
+                  (item.type === 'loc' && filterLocation.toLowerCase() === item.value.toLowerCase()) ||
                   (item.type === 'work' && filterWorkType.toLowerCase() === item.value.toLowerCase()) ||
                   (item.type === 'exp' && filterExperience.toLowerCase() === item.value.toLowerCase()) ||
                   (item.type === 'query' && searchQuery.toLowerCase().includes(item.value.toLowerCase()))
@@ -650,7 +749,9 @@ export const CandidateDashboard: React.FC = () => {
                     type="button"
                     className={`cand-quick-filter-tag ${isActive ? 'active' : ''}`}
                     onClick={() => {
-                      if (item.type === 'work') {
+                      if (item.type === 'loc') {
+                        setFilterLocation(isActive ? 'all' : item.value)
+                      } else if (item.type === 'work') {
                         setFilterWorkType(isActive ? 'all' : item.value)
                       } else if (item.type === 'exp') {
                         setFilterExperience(isActive ? 'all' : item.value)
@@ -663,7 +764,7 @@ export const CandidateDashboard: React.FC = () => {
                   </button>
                 )
               })}
-              {(searchQuery || filterWorkType !== 'all' || filterExperience !== 'all') && (
+              {(searchQuery || filterWorkType !== 'all' || filterExperience !== 'all' || filterLocation !== 'all') && (
                 <button
                   type="button"
                   className="cand-quick-filter-tag"
@@ -691,12 +792,20 @@ export const CandidateDashboard: React.FC = () => {
           <div>
             {/* 3 Metric Cards */}
             <div className="cand-stats-grid">
-              <div className="cand-stat-card">
+              <div
+                className="cand-stat-card"
+                onClick={() => {
+                  setSelectedJob(null)
+                  setActiveNav('Find Jobs')
+                }}
+                style={{ cursor: 'pointer' }}
+                title="Browse and find jobs"
+              >
                 <div className="cand-stat-icon-wrap">
                   <FileText size={20} />
                 </div>
                 <div>
-                  <div className="cand-stat-number">24</div>
+                  <div className="cand-stat-number">{jobs.length}</div>
                   <div className="cand-stat-title">Matching Jobs</div>
                   <span className="cand-stat-link">View Jobs →</span>
                 </div>
@@ -744,7 +853,7 @@ export const CandidateDashboard: React.FC = () => {
                     Based on your profile, skills and preferences
                   </p>
                 </div>
-                {(searchQuery || filterWorkType !== 'all' || filterExperience !== 'all') ? (
+                {(searchQuery || filterWorkType !== 'all' || filterExperience !== 'all' || filterLocation !== 'all') ? (
                   <span
                     style={{ fontSize: '13px', fontWeight: 700, color: '#ef4444', cursor: 'pointer' }}
                     onClick={resetFilters}
@@ -752,7 +861,13 @@ export const CandidateDashboard: React.FC = () => {
                     Clear Filters ✕
                   </span>
                 ) : (
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#09090b', cursor: 'pointer' }}>
+                  <span
+                    style={{ fontSize: '13px', fontWeight: 700, color: '#09090b', cursor: 'pointer' }}
+                    onClick={() => {
+                      setSelectedJob(null)
+                      setActiveNav('Find Jobs')
+                    }}
+                  >
                     View All →
                   </span>
                 )}
