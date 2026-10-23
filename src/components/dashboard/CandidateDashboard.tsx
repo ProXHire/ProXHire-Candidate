@@ -291,7 +291,7 @@ export const CandidateDashboard: React.FC = () => {
 
           {/* Desktop Navigation Links */}
           <nav className="cand-dash-nav">
-            {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages', 'Career Resources'].map(nav => (
+            {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs'].map(nav => (
               <span
                 key={nav}
                 className={`cand-dash-link ${activeNav === nav ? 'active' : ''}`}
@@ -300,7 +300,7 @@ export const CandidateDashboard: React.FC = () => {
                   setActiveNav(nav)
                 }}
               >
-                {nav} {nav === 'Career Resources' && <ChevronDown size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />}
+                {nav}
               </span>
             ))}
           </nav>
@@ -361,7 +361,7 @@ export const CandidateDashboard: React.FC = () => {
       {/* Mobile Nav Tabs Bar (Visible on mobile/tablet) */}
       <div className="cand-mobile-tabs-container">
         <nav className="cand-mobile-tabs-scroll">
-          {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs', 'Messages'].map(nav => (
+          {['Dashboard', 'Find Jobs', 'Applications', 'Saved Jobs'].map(nav => (
             <button
               key={nav}
               type="button"
@@ -404,8 +404,7 @@ export const CandidateDashboard: React.FC = () => {
                 { name: 'Dashboard', icon: TrendingUp },
                 { name: 'Find Jobs', icon: Search },
                 { name: 'Applications', icon: Send },
-                { name: 'Saved Jobs', icon: Bookmark },
-                { name: 'Career Resources', icon: FileText }
+                { name: 'Saved Jobs', icon: Bookmark }
               ].map(item => {
                 const Icon = item.icon
                 return (
