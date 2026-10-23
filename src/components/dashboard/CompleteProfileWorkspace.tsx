@@ -87,17 +87,34 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
     'Bengaluru', 'Hyderabad', 'Pune', 'Mumbai', 'Delhi NCR', 'Chennai', 'Kolkata', 'Remote India'
   ]
 
-  // Calculate dynamic completion score
+  // Calculate dynamic completion score based on registration data + data left to complete
   const calculateCompletion = () => {
-    let score = 20 // Basic details verified
-    if (formData.resumeFileName) score += 15
-    if (formData.profileSummary && formData.profileSummary.trim().length > 20) score += 10
-    if (formData.educations && formData.educations.length > 0) score += 15
-    if (formData.skills && formData.skills.length >= 3) score += 10
-    if ((formData.experiences && formData.experiences.length > 0) || (formData.projects && formData.projects.length > 0)) score += 15
-    if (formData.preferredRole && formData.expectedCtc) score += 10
-    if (formData.city && formData.dateOfBirth) score += 5
-    return Math.min(score, 100)
+    let completed = 0
+    const total = 6
+
+    // 1. Basic Information (from registration)
+    if (formData.fullName && (formData.email || formData.mobileNumber)) completed++
+
+    // 2. Resume & Summary
+    if (formData.resumeFileName || formData.resumeUrl || (formData.profileSummary && formData.profileSummary.trim().length > 10)) completed++
+
+    // 3. Education Details
+    if (formData.educations && formData.educations.length > 0) completed++
+
+    // 4. Work Experience & Projects
+    if (formData.experienceCategory === 'fresher') {
+      if ((formData.experiences && formData.experiences.length > 0) || (formData.projects && formData.projects.length > 0)) completed++
+    } else {
+      if (formData.experiences && formData.experiences.length > 0) completed++
+    }
+
+    // 5. Skills & Proficiencies
+    if (formData.skills && formData.skills.length > 0) completed++
+
+    // 6. Career Preferences
+    if (formData.preferredRole || (formData.preferredLocations && formData.preferredLocations.length > 0) || formData.expectedCtc) completed++
+
+    return Math.round((completed / total) * 100)
   }
 
   const completionPercent = calculateCompletion()
@@ -401,22 +418,43 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div
-            style={{
-              width: '54px',
-              height: '54px',
-              borderRadius: '50%',
-              backgroundColor: '#f8fafc',
-              border: '3.5px solid #09090b',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '16px',
-              fontWeight: 800,
-              color: '#09090b'
-            }}
-          >
-            {completionPercent}%
+          <div style={{ position: 'relative', width: '54px', height: '54px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="54" height="54" viewBox="0 0 54 54" style={{ transform: 'rotate(-90deg)', display: 'block' }}>
+              <circle
+                cx="27"
+                cy="27"
+                r="22"
+                fill="none"
+                stroke="#e4e4e7"
+                strokeWidth="4"
+              />
+              <circle
+                cx="27"
+                cy="27"
+                r="22"
+                fill="none"
+                stroke="#09090b"
+                strokeWidth="4"
+                strokeDasharray={2 * Math.PI * 22}
+                strokeDashoffset={2 * Math.PI * 22 - (completionPercent / 100) * (2 * Math.PI * 22)}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
+              />
+            </svg>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 800,
+                color: '#09090b'
+              }}
+            >
+              {completionPercent}%
+            </div>
           </div>
           <div>
             <div style={{ fontSize: '15px', fontWeight: 800, color: '#09090b' }}>

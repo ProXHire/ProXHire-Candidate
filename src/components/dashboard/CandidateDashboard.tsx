@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Bell,
   Search,
   FileText,
   Send,
   Bookmark,
-  Calendar,
   MapPin,
   Clock,
   ArrowRight,
@@ -15,19 +14,44 @@ import {
   Menu,
   X,
   LogOut,
-  User
+  User,
+  SlidersHorizontal
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import type { JobCardData, ApplicationRowData } from '../../types'
 import { CompleteProfileWorkspace } from './CompleteProfileWorkspace'
+import { JobDetailsScreen } from './JobDetailsScreen'
 
 export const CandidateDashboard: React.FC = () => {
   const { formData, setViewMode, setStep, isVerified, isCompleted, logout } = useCandidate()
   const [activeNav, setActiveNav] = useState('Dashboard')
   const [searchQuery, setSearchQuery] = useState('')
+  const [filterWorkType, setFilterWorkType] = useState<string>('all')
+  const [filterExperience, setFilterExperience] = useState<string>('all')
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const filterRef = useRef<HTMLDivElement>(null)
   const [selectedJob, setSelectedJob] = useState<JobCardData | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [profileInitialTab, setProfileInitialTab] = useState<'profile' | 'career' | 'personal' | 'review'>('profile')
+
+  // Close filter popover on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const activeFilterCount = (filterWorkType !== 'all' ? 1 : 0) + (filterExperience !== 'all' ? 1 : 0)
+
+  const resetFilters = () => {
+    setFilterWorkType('all')
+    setFilterExperience('all')
+    setSearchQuery('')
+  }
 
   // Support deep-linking to Complete Profile workspace via URL
   useEffect(() => {
@@ -40,7 +64,7 @@ export const CandidateDashboard: React.FC = () => {
     }
   }, [])
 
-  // Dynamic profile completion checklist based on candidate data
+  // Dynamic profile completion checklist based on candidate registration & profile data
   const profileChecklist = [
     {
       name: 'Basic Information',
@@ -49,7 +73,7 @@ export const CandidateDashboard: React.FC = () => {
     },
     {
       name: 'Resume & Summary',
-      done: Boolean(formData.resumeFileName || formData.resumeUrl || formData.profileSummary),
+      done: Boolean(formData.resumeFileName || formData.resumeUrl || (formData.profileSummary && formData.profileSummary.trim().length > 10)),
       tab: 'profile' as const
     },
     {
@@ -59,7 +83,9 @@ export const CandidateDashboard: React.FC = () => {
     },
     {
       name: 'Work Experience',
-      done: Boolean(formData.experiences && formData.experiences.length > 0),
+      done: formData.experienceCategory === 'fresher'
+        ? Boolean((formData.experiences && formData.experiences.length > 0) || (formData.projects && formData.projects.length > 0))
+        : Boolean(formData.experiences && formData.experiences.length > 0),
       tab: 'career' as const
     },
     {
@@ -71,14 +97,19 @@ export const CandidateDashboard: React.FC = () => {
       name: 'Career Preferences',
       done: Boolean(
         formData.preferredRole ||
-        formData.workType ||
-        (formData.preferredLocations && formData.preferredLocations.length > 0)
+        (formData.preferredLocations && formData.preferredLocations.length > 0) ||
+        formData.expectedCtc
       ),
       tab: 'career' as const
     }
   ]
   const completedCount = profileChecklist.filter(item => item.done).length
   const profileCompletionPct = Math.round((completedCount / profileChecklist.length) * 100)
+  const ringRadius = 27
+  const ringStroke = 5
+  const ringCircumference = 2 * Math.PI * ringRadius
+  const ringOffset = ringCircumference - (profileCompletionPct / 100) * ringCircumference
+  const firstPendingItem = profileChecklist.find(item => !item.done)
 
   // Guard dashboard: unverified candidates must complete verification
   useEffect(() => {
@@ -138,10 +169,60 @@ export const CandidateDashboard: React.FC = () => {
       extraTagsCount: 3,
       postedTime: 'Posted 3 days ago',
       isSaved: false
+    },
+    {
+      id: '4',
+      company: 'Razorpay',
+      companyLogoText: 'RZP',
+      role: 'Senior Frontend Engineer',
+      location: 'Bengaluru / Remote',
+      workType: 'Remote',
+      jobType: 'Full Time',
+      experienceLevel: 'Senior Level',
+      experienceYears: '5-8 Yrs',
+      tags: ['React', 'TypeScript', 'Next.js'],
+      extraTagsCount: 3,
+      postedTime: 'Posted 4 hours ago',
+      isSaved: false
+    },
+    {
+      id: '5',
+      company: 'Swiggy',
+      companyLogoText: 'SWG',
+      role: 'Frontend Developer',
+      location: 'Bengaluru, Karnataka',
+      workType: 'Remote',
+      jobType: 'Full Time',
+      experienceLevel: 'Entry Level',
+      experienceYears: '1-3 Yrs',
+      tags: ['JavaScript', 'React', 'Tailwind'],
+      extraTagsCount: 2,
+      postedTime: 'Posted today',
+      isSaved: false
     }
   ])
 
-  const applications: ApplicationRowData[] = [
+  const filteredJobs = jobs.filter(job => {
+    const q = searchQuery.trim().toLowerCase()
+    const matchesSearch =
+      !q ||
+      job.role.toLowerCase().includes(q) ||
+      job.company.toLowerCase().includes(q) ||
+      job.location.toLowerCase().includes(q) ||
+      job.tags.some(t => t.toLowerCase().includes(q))
+
+    const matchesWorkType =
+      filterWorkType === 'all' ||
+      job.workType.toLowerCase() === filterWorkType.toLowerCase()
+
+    const matchesExperience =
+      filterExperience === 'all' ||
+      job.experienceLevel.toLowerCase() === filterExperience.toLowerCase()
+
+    return matchesSearch && matchesWorkType && matchesExperience
+  })
+
+  const [applications, setApplications] = useState<ApplicationRowData[]>([
     {
       id: '1',
       jobTitle: 'Software Engineer',
@@ -163,7 +244,7 @@ export const CandidateDashboard: React.FC = () => {
       appliedOn: '05 Oct 2026',
       status: 'Applied'
     }
-  ]
+  ])
 
   const toggleSaveJob = (id: string) => {
     setJobs(prev =>
@@ -355,7 +436,26 @@ export const CandidateDashboard: React.FC = () => {
 
       {/* Main Content Dashboard */}
       <main className="cand-dash-main">
-        {activeNav === 'Complete Profile' ? (
+        {selectedJob ? (
+          <JobDetailsScreen
+            job={selectedJob}
+            onBack={() => setSelectedJob(null)}
+            onApply={(appliedJob) => {
+              setApplications(prev => [
+                {
+                  id: String(Date.now()),
+                  jobTitle: appliedJob.role,
+                  company: appliedJob.company,
+                  appliedOn: 'Today',
+                  status: 'Under Review'
+                },
+                ...prev
+              ])
+            }}
+            onToggleSave={(jobId) => toggleSaveJob(jobId)}
+            candidateName={formData.fullName || 'Candidate'}
+          />
+        ) : activeNav === 'Complete Profile' ? (
           <CompleteProfileWorkspace
             onBack={() => setActiveNav('Dashboard')}
             initialTab={profileInitialTab}
@@ -378,13 +478,170 @@ export const CandidateDashboard: React.FC = () => {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
+
+              <div className="cand-search-divider" />
+
+              {/* Filter Dropdown Popover */}
+              <div className="cand-search-filter-wrapper" ref={filterRef}>
+                <button
+                  type="button"
+                  className={`cand-search-filter-btn ${activeFilterCount > 0 ? 'active' : ''}`}
+                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  aria-expanded={isFilterOpen}
+                  aria-label="Filter jobs"
+                >
+                  <SlidersHorizontal size={14} />
+                  <span>
+                    {filterWorkType !== 'all'
+                      ? filterWorkType
+                      : filterExperience !== 'all'
+                      ? filterExperience
+                      : 'Filter'}
+                  </span>
+                  {activeFilterCount > 0 && (
+                    <span className="cand-search-filter-badge">{activeFilterCount}</span>
+                  )}
+                  <ChevronDown
+                    size={13}
+                    style={{
+                      transform: isFilterOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.2s'
+                    }}
+                  />
+                </button>
+
+                {isFilterOpen && (
+                  <div className="cand-search-filter-popover">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#09090b' }}>
+                        Filter Jobs
+                      </div>
+                      {activeFilterCount > 0 && (
+                        <button
+                          type="button"
+                          className="cand-filter-reset-btn"
+                          onClick={() => {
+                            setFilterWorkType('all')
+                            setFilterExperience('all')
+                          }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="cand-filter-section-title">Work Mode</div>
+                    <div className="cand-filter-pills-row">
+                      {[
+                        { id: 'all', label: 'All Modes' },
+                        { id: 'Remote', label: 'Remote' },
+                        { id: 'Hybrid', label: 'Hybrid' },
+                        { id: 'On-site', label: 'On-site' }
+                      ].map(mode => (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          className={`cand-filter-pill-opt ${filterWorkType.toLowerCase() === mode.id.toLowerCase() ? 'selected' : ''}`}
+                          onClick={() => setFilterWorkType(mode.id)}
+                        >
+                          {mode.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="cand-filter-section-title">Experience Level</div>
+                    <div className="cand-filter-pills-row">
+                      {[
+                        { id: 'all', label: 'All Levels' },
+                        { id: 'Entry Level', label: 'Entry' },
+                        { id: 'Mid Level', label: 'Mid' },
+                        { id: 'Senior Level', label: 'Senior' }
+                      ].map(exp => (
+                        <button
+                          key={exp.id}
+                          type="button"
+                          className={`cand-filter-pill-opt ${filterExperience.toLowerCase() === exp.id.toLowerCase() ? 'selected' : ''}`}
+                          onClick={() => setFilterExperience(exp.id)}
+                        >
+                          {exp.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="cand-filter-popover-footer">
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>
+                        {filteredJobs.length} {filteredJobs.length === 1 ? 'job found' : 'jobs found'}
+                      </span>
+                      <button
+                        type="button"
+                        className="cand-filter-apply-btn"
+                        onClick={() => setIsFilterOpen(false)}
+                      >
+                        Apply Filters
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button
                 type="button"
                 className="cand-search-btn"
-                onClick={() => alert(`Searching opportunities for: "${searchQuery || 'Software Engineer'}"`)}
+                onClick={() => {
+                  const elem = document.getElementById('recommended-jobs-section')
+                  if (elem) elem.scrollIntoView({ behavior: 'smooth' })
+                }}
               >
                 Search Jobs <ArrowRight size={14} />
               </button>
+            </div>
+
+            {/* Quick Filter Tag Pills below the expanded search bar */}
+            <div className="cand-quick-filters-row">
+              <span className="cand-quick-filter-label">Quick filter:</span>
+              {[
+                { label: 'Remote', type: 'work', value: 'Remote' },
+                { label: 'Hybrid', type: 'work', value: 'Hybrid' },
+                { label: 'On-site', type: 'work', value: 'On-site' },
+                { label: 'Senior', type: 'exp', value: 'Senior Level' },
+                { label: 'Mid Level', type: 'exp', value: 'Mid Level' },
+                { label: 'React', type: 'query', value: 'React' },
+                { label: 'Node.js', type: 'query', value: 'Node.js' }
+              ].map(item => {
+                const isActive =
+                  (item.type === 'work' && filterWorkType.toLowerCase() === item.value.toLowerCase()) ||
+                  (item.type === 'exp' && filterExperience.toLowerCase() === item.value.toLowerCase()) ||
+                  (item.type === 'query' && searchQuery.toLowerCase().includes(item.value.toLowerCase()))
+
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    className={`cand-quick-filter-tag ${isActive ? 'active' : ''}`}
+                    onClick={() => {
+                      if (item.type === 'work') {
+                        setFilterWorkType(isActive ? 'all' : item.value)
+                      } else if (item.type === 'exp') {
+                        setFilterExperience(isActive ? 'all' : item.value)
+                      } else if (item.type === 'query') {
+                        setSearchQuery(isActive ? '' : item.value)
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                )
+              })}
+              {(searchQuery || filterWorkType !== 'all' || filterExperience !== 'all') && (
+                <button
+                  type="button"
+                  className="cand-quick-filter-tag"
+                  style={{ color: '#f87171', borderColor: 'rgba(248, 113, 113, 0.4)' }}
+                  onClick={resetFilters}
+                >
+                  ✕ Clear
+                </button>
+              )}
             </div>
           </div>
 
@@ -401,7 +658,7 @@ export const CandidateDashboard: React.FC = () => {
         <div className="cand-dash-grid">
           {/* Left Column */}
           <div>
-            {/* 4 Metric Cards */}
+            {/* 3 Metric Cards */}
             <div className="cand-stats-grid">
               <div className="cand-stat-card">
                 <div className="cand-stat-icon-wrap">
@@ -435,99 +692,122 @@ export const CandidateDashboard: React.FC = () => {
                   <span className="cand-stat-link">View Saved →</span>
                 </div>
               </div>
-
-              <div className="cand-stat-card">
-                <div className="cand-stat-icon-wrap">
-                  <Calendar size={20} />
-                </div>
-                <div>
-                  <div className="cand-stat-number">3</div>
-                  <div className="cand-stat-title">Interviews</div>
-                  <span className="cand-stat-link">View Schedule →</span>
-                </div>
-              </div>
             </div>
 
             {/* Recommended Jobs */}
-            <div style={{ marginBottom: '28px' }}>
+            <div style={{ marginBottom: '28px' }} id="recommended-jobs-section">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '14px' }}>
                 <div>
                   <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#09090b', margin: 0 }}>
-                    Recommended Jobs for You
+                    Recommended Jobs for You {filteredJobs.length !== jobs.length && `(${filteredJobs.length})`}
                   </h3>
                   <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0' }}>
                     Based on your profile, skills and preferences
                   </p>
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#09090b', cursor: 'pointer' }}>
-                  View All →
-                </span>
+                {(searchQuery || filterWorkType !== 'all' || filterExperience !== 'all') ? (
+                  <span
+                    style={{ fontSize: '13px', fontWeight: 700, color: '#ef4444', cursor: 'pointer' }}
+                    onClick={resetFilters}
+                  >
+                    Clear Filters ✕
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#09090b', cursor: 'pointer' }}>
+                    View All →
+                  </span>
+                )}
               </div>
 
               <div className="cand-job-cards-grid">
-                {jobs.map(job => (
-                  <div key={job.id} className="cand-job-card">
-                    <div>
-                      <div className="cand-job-head">
-                        <div className="cand-comp-badge">
-                          <div className="cand-comp-logo-square">
-                            {job.company.slice(0, 2).toUpperCase()}
+                {filteredJobs.length > 0 ? (
+                  filteredJobs.map(job => (
+                    <div key={job.id} className="cand-job-card">
+                      <div>
+                        <div className="cand-job-head">
+                          <div className="cand-comp-badge">
+                            <div className="cand-comp-logo-square">
+                              {job.company.slice(0, 2).toUpperCase()}
+                            </div>
+                            <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#09090b' }}>
+                              {job.company}
+                            </span>
                           </div>
-                          <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#09090b' }}>
-                            {job.company}
-                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => toggleSaveJob(job.id)}
+                            style={{ color: job.isSaved ? '#000000' : '#a1a1aa' }}
+                          >
+                            <Bookmark size={18} fill={job.isSaved ? '#000000' : 'none'} />
+                          </button>
                         </div>
 
+                        <h4 className="cand-job-role">{job.role}</h4>
+                        <div className="cand-job-loc-row">
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <MapPin size={13} /> {job.location}
+                          </span>
+                          <span>&bull;</span>
+                          <span>{job.workType}</span>
+                        </div>
+
+                        <div className="cand-job-chips">
+                          <span className="cand-chip">{job.jobType}</span>
+                          <span className="cand-chip">{job.experienceLevel}</span>
+                          <span className="cand-chip">{job.experienceYears}</span>
+                        </div>
+
+                        <div className="cand-job-chips" style={{ marginBottom: 0 }}>
+                          {job.tags.map(t => (
+                            <span key={t} className="cand-chip" style={{ backgroundColor: '#f8fafc', color: '#334155' }}>
+                              {t}
+                            </span>
+                          ))}
+                          {job.extraTagsCount > 0 && (
+                            <span className="cand-chip" style={{ backgroundColor: '#f8fafc', color: '#64748b' }}>
+                              +{job.extraTagsCount}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="cand-job-foot">
+                        <span>{job.postedTime}</span>
                         <button
                           type="button"
-                          onClick={() => toggleSaveJob(job.id)}
-                          style={{ color: job.isSaved ? '#000000' : '#a1a1aa' }}
+                          className="cand-btn-view-job"
+                          onClick={() => setSelectedJob(job)}
                         >
-                          <Bookmark size={18} fill={job.isSaved ? '#000000' : 'none'} />
+                          View Details →
                         </button>
                       </div>
-
-                      <h4 className="cand-job-role">{job.role}</h4>
-                      <div className="cand-job-loc-row">
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <MapPin size={13} /> {job.location}
-                        </span>
-                        <span>&bull;</span>
-                        <span>{job.workType}</span>
-                      </div>
-
-                      <div className="cand-job-chips">
-                        <span className="cand-chip">{job.jobType}</span>
-                        <span className="cand-chip">{job.experienceLevel}</span>
-                        <span className="cand-chip">{job.experienceYears}</span>
-                      </div>
-
-                      <div className="cand-job-chips" style={{ marginBottom: 0 }}>
-                        {job.tags.map(t => (
-                          <span key={t} className="cand-chip" style={{ backgroundColor: '#f8fafc', color: '#334155' }}>
-                            {t}
-                          </span>
-                        ))}
-                        {job.extraTagsCount > 0 && (
-                          <span className="cand-chip" style={{ backgroundColor: '#f8fafc', color: '#64748b' }}>
-                            +{job.extraTagsCount}
-                          </span>
-                        )}
-                      </div>
                     </div>
-
-                    <div className="cand-job-foot">
-                      <span>{job.postedTime}</span>
-                      <button
-                        type="button"
-                        className="cand-btn-view-job"
-                        onClick={() => setSelectedJob(job)}
-                      >
-                        View Details →
-                      </button>
-                    </div>
+                  ))
+                ) : (
+                  <div style={{
+                    padding: '36px 20px',
+                    textAlign: 'center',
+                    background: '#ffffff',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px dashed #cbd5e1',
+                    gridColumn: '1 / -1'
+                  }}>
+                    <p style={{ fontSize: '15px', fontWeight: 600, color: '#334155', margin: '0 0 6px' }}>
+                      No matching jobs found
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px' }}>
+                      Try adjusting your keywords or clearing the active filters
+                    </p>
+                    <button
+                      type="button"
+                      className="cand-btn-secondary"
+                      onClick={resetFilters}
+                    >
+                      Clear All Filters
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -607,14 +887,44 @@ export const CandidateDashboard: React.FC = () => {
             <div className="cand-complete-profile-card">
               <div className="cand-profile-ring-head">
                 <div className="cand-progress-ring">
-                  {profileCompletionPct}%
+                  <svg width="68" height="68" viewBox="0 0 68 68">
+                    {/* Background Track Circle */}
+                    <circle
+                      cx="34"
+                      cy="34"
+                      r={ringRadius}
+                      fill="none"
+                      stroke="#e4e4e7"
+                      strokeWidth={ringStroke}
+                    />
+                    {/* Active Progress Circle */}
+                    <circle
+                      cx="34"
+                      cy="34"
+                      r={ringRadius}
+                      fill="none"
+                      stroke="#09090b"
+                      strokeWidth={ringStroke}
+                      strokeDasharray={ringCircumference}
+                      strokeDashoffset={ringOffset}
+                      strokeLinecap="round"
+                      style={{
+                        transition: 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
+                    />
+                  </svg>
+                  <div className="cand-progress-ring-text">
+                    {profileCompletionPct}%
+                  </div>
                 </div>
                 <div>
                   <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#09090b', margin: 0 }}>
                     Complete Your Profile
                   </h4>
                   <p style={{ fontSize: '12px', color: '#64748b', margin: '3px 0 0' }}>
-                    A complete profile gets 3x more views from recruiters.
+                    {profileCompletionPct === 100
+                      ? 'Your profile is 100% complete! Recruiter visibility maximized.'
+                      : `A complete profile gets 3x more views from recruiters.`}
                   </p>
                 </div>
               </div>
@@ -624,17 +934,30 @@ export const CandidateDashboard: React.FC = () => {
                   <div
                     key={item.name}
                     className="cand-check-item"
-                    style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                    style={{
+                      cursor: 'pointer',
+                      padding: '4px 6px',
+                      borderRadius: '6px',
+                      margin: '0 -6px',
+                      transition: 'background-color 0.15s ease'
+                    }}
                     onClick={() => {
                       setProfileInitialTab(item.tab)
                       setActiveNav('Complete Profile')
                     }}
-                    title={`Click to edit ${item.name}`}
+                    title={item.done ? `${item.name} completed (click to view)` : `Click to complete ${item.name}`}
                   >
                     <div className={`cand-check-dot ${item.done ? 'done' : 'pending'}`}>
                       {item.done && '✓'}
                     </div>
-                    <span style={{ color: item.done ? '#09090b' : '#64748b', textDecoration: item.done ? 'none' : 'underline' }}>
+                    <span
+                      style={{
+                        color: item.done ? '#09090b' : '#64748b',
+                        textDecoration: item.done ? 'none' : 'underline',
+                        textUnderlineOffset: '3px',
+                        fontWeight: item.done ? 600 : 500
+                      }}
+                    >
                       {item.name}
                     </span>
                   </div>
@@ -646,11 +969,11 @@ export const CandidateDashboard: React.FC = () => {
                 className="cand-btn-primary"
                 style={{ width: '100%', justifyContent: 'center' }}
                 onClick={() => {
-                  setProfileInitialTab('profile')
+                  setProfileInitialTab(firstPendingItem ? firstPendingItem.tab : 'profile')
                   setActiveNav('Complete Profile')
                 }}
               >
-                Complete Profile →
+                {profileCompletionPct === 100 ? 'View Full Profile →' : 'Complete Profile →'}
               </button>
             </div>
 
@@ -760,74 +1083,6 @@ export const CandidateDashboard: React.FC = () => {
         )}
       </main>
 
-      {/* View Job Details Modal */}
-      {selectedJob && (
-        <div
-          className="cand-modal-backdrop"
-          onClick={() => setSelectedJob(null)}
-        >
-          <div
-            className="cand-modal-dialog"
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-              <div>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                  {selectedJob.company}
-                </span>
-                <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#09090b', margin: '4px 0' }}>
-                  {selectedJob.role}
-                </h3>
-                <div style={{ fontSize: '13px', color: '#475467' }}>
-                  {selectedJob.location} &bull; {selectedJob.workType} &bull; {selectedJob.jobType}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedJob(null)}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  border: '1px solid #e4e4e7',
-                  backgroundColor: '#f4f4f5',
-                  color: '#71717a',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer'
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <p style={{ fontSize: '14px', color: '#475467', lineHeight: 1.5, marginBottom: '20px' }}>
-              We are looking for a talented engineer to join our high-impact team. As part of this role, you will design scalable web applications, collaborate directly with product and design leads, and write reliable, clean code.
-            </p>
-
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
-              {selectedJob.tags.map(t => (
-                <span key={t} className="cand-chip" style={{ backgroundColor: '#f1f5f9' }}>{t}</span>
-              ))}
-            </div>
-
-            <div className="cand-modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button type="button" className="cand-btn-back" onClick={() => setSelectedJob(null)}>Close</button>
-              <button
-                type="button"
-                className="cand-btn-primary"
-                onClick={() => {
-                  alert('Application submitted with your pre-verified ProXHire profile!')
-                  setSelectedJob(null)
-                }}
-              >
-                1-Click Apply with ProXHire →
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
