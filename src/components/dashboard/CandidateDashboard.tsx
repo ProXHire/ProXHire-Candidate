@@ -20,6 +20,7 @@ import { useCandidate } from '../../context/CandidateContext'
 import type { JobCardData, ApplicationRowData } from '../../types'
 import { CompleteProfileWorkspace } from './CompleteProfileWorkspace'
 import { JobDetailsScreen } from './JobDetailsScreen'
+import { SavedJobsWorkspace } from './SavedJobsWorkspace'
 
 export const CandidateDashboard: React.FC = () => {
   const { formData, setViewMode, setStep, isVerified, isCompleted, logout } = useCandidate()
@@ -52,7 +53,7 @@ export const CandidateDashboard: React.FC = () => {
     setSearchQuery('')
   }
 
-  // Support deep-linking to Complete Profile workspace via URL
+  // Support deep-linking to Complete Profile or Saved Jobs via URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const nav = params.get('nav')
@@ -60,6 +61,8 @@ export const CandidateDashboard: React.FC = () => {
       setActiveNav('Complete Profile')
       const tab = params.get('tab') as any
       if (tab) setProfileInitialTab(tab)
+    } else if (nav === 'saved' || nav === 'saved-jobs' || nav === 'Saved Jobs') {
+      setActiveNav('Saved Jobs')
     }
   }, [])
 
@@ -182,7 +185,7 @@ export const CandidateDashboard: React.FC = () => {
       tags: ['React', 'TypeScript', 'Next.js'],
       extraTagsCount: 3,
       postedTime: 'Posted 4 hours ago',
-      isSaved: false
+      isSaved: true
     },
     {
       id: '5',
@@ -197,7 +200,22 @@ export const CandidateDashboard: React.FC = () => {
       tags: ['JavaScript', 'React', 'Tailwind'],
       extraTagsCount: 2,
       postedTime: 'Posted today',
-      isSaved: false
+      isSaved: true
+    },
+    {
+      id: '6',
+      company: 'Microsoft',
+      companyLogoText: 'MSFT',
+      role: 'Cloud Solutions Architect',
+      location: 'Hyderabad, Telangana',
+      workType: 'Hybrid',
+      jobType: 'Full Time',
+      experienceLevel: 'Senior Level',
+      experienceYears: '5-9 Yrs',
+      tags: ['Azure', 'Kubernetes', 'Microservices'],
+      extraTagsCount: 2,
+      postedTime: 'Posted 3 days ago',
+      isSaved: true
     }
   ])
 
@@ -278,6 +296,7 @@ export const CandidateDashboard: React.FC = () => {
                 key={nav}
                 className={`cand-dash-link ${activeNav === nav ? 'active' : ''}`}
                 onClick={() => {
+                  setSelectedJob(null)
                   setActiveNav(nav)
                 }}
               >
@@ -348,6 +367,7 @@ export const CandidateDashboard: React.FC = () => {
               type="button"
               className={`cand-mobile-tab-btn ${activeNav === nav ? 'active' : ''}`}
               onClick={() => {
+                setSelectedJob(null)
                 setActiveNav(nav)
                 setIsMobileMenuOpen(false)
               }}
@@ -394,6 +414,7 @@ export const CandidateDashboard: React.FC = () => {
                     type="button"
                     className={`cand-drawer-link ${activeNav === item.name ? 'active' : ''}`}
                     onClick={() => {
+                      setSelectedJob(null)
                       setActiveNav(item.name)
                       setIsMobileMenuOpen(false)
                     }}
@@ -448,6 +469,29 @@ export const CandidateDashboard: React.FC = () => {
           <CompleteProfileWorkspace
             onBack={() => setActiveNav('Dashboard')}
             initialTab={profileInitialTab}
+          />
+        ) : activeNav === 'Saved Jobs' ? (
+          <SavedJobsWorkspace
+            jobs={jobs}
+            applications={applications}
+            onToggleSave={(jobId) => toggleSaveJob(jobId)}
+            onViewJob={(job) => setSelectedJob(job)}
+            onBrowseJobs={() => {
+              setSelectedJob(null)
+              setActiveNav('Dashboard')
+            }}
+            onApply={(appliedJob) => {
+              setApplications(prev => [
+                {
+                  id: String(Date.now()),
+                  jobTitle: appliedJob.role,
+                  company: appliedJob.company,
+                  appliedOn: 'Today',
+                  status: 'Under Review'
+                },
+                ...prev
+              ])
+            }}
           />
         ) : (
           <>
@@ -671,12 +715,20 @@ export const CandidateDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="cand-stat-card">
+              <div
+                className="cand-stat-card"
+                onClick={() => {
+                  setSelectedJob(null)
+                  setActiveNav('Saved Jobs')
+                }}
+                style={{ cursor: 'pointer' }}
+                title="View your saved jobs"
+              >
                 <div className="cand-stat-icon-wrap">
                   <Bookmark size={20} />
                 </div>
                 <div>
-                  <div className="cand-stat-number">12</div>
+                  <div className="cand-stat-number">{jobs.filter(j => j.isSaved).length}</div>
                   <div className="cand-stat-title">Saved Jobs</div>
                   <span className="cand-stat-link">View Saved →</span>
                 </div>
@@ -999,12 +1051,17 @@ export const CandidateDashboard: React.FC = () => {
 
                 <div
                   className="cand-quick-box"
-                  onClick={() => alert('Viewing your 12 saved positions')}
+                  onClick={() => {
+                    setSelectedJob(null)
+                    setActiveNav('Saved Jobs')
+                  }}
+                  style={{ cursor: 'pointer' }}
+                  title="View your saved jobs"
                 >
                   <Bookmark size={20} color="#000000" />
                   <div>
                     <h5>Saved Jobs</h5>
-                    <p>View your saved positions →</p>
+                    <p>View your {jobs.filter(j => j.isSaved).length} saved positions →</p>
                   </div>
                 </div>
 
