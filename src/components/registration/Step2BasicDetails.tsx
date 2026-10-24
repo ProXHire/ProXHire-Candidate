@@ -700,7 +700,7 @@ export const Step2BasicDetails: React.FC = () => {
                 {/* Helpful note */}
                 <div style={{ marginTop: '10px' }}>
                   <span style={{ fontSize: '11px', color: '#64748b' }}>
-                    Enter code received via SMS, or find your dedicated Mobile Verification Code in the email sent to {formData.email}.
+                    Enter the 6-digit code received via SMS on +91 {formData.mobileNumber}.
                   </span>
                 </div>
               </div>
