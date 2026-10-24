@@ -32,7 +32,16 @@ interface CandidateContextType {
 
   // Actions
   submitBasicDetails: () => Promise<void>
-  submitVerifyOtp: (otpCode?: string, firebaseVerified?: boolean) => Promise<void>
+  submitVerifyOtp: (
+    optionsOrOtp?: string | {
+      channel?: 'EMAIL' | 'MOBILE' | 'ALL';
+      otpCode?: string;
+      emailOtp?: string;
+      mobileOtp?: string;
+      firebaseVerified?: boolean;
+    },
+    firebaseVerified?: boolean
+  ) => Promise<any>
   resendVerificationOtp: () => Promise<void>
   completeRegistration: () => Promise<void>
   loginCandidate: (emailOrPhone: string, pass: string) => Promise<void>
@@ -263,11 +272,25 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }
 
   /**
-   * Verify the 6-digit OTP dispatched to candidate's mobile and Gmail
+   * Verify candidate OTPs (Email and/or Mobile)
+   * Redirects to dashboard ONLY when BOTH channels are verified!
    */
-  const submitVerifyOtp = async (otpCode?: string, firebaseVerified?: boolean) => {
+  const submitVerifyOtp = async (
+    optionsOrOtp?: string | {
+      channel?: 'EMAIL' | 'MOBILE' | 'ALL';
+      otpCode?: string;
+      emailOtp?: string;
+      mobileOtp?: string;
+      firebaseVerified?: boolean;
+    },
+    firebaseVerifiedLegacy?: boolean
+  ) => {
     setIsSubmitting(true)
     setErrorMsg(null)
+
+    const opts = typeof optionsOrOtp === 'string'
+      ? { otpCode: optionsOrOtp, firebaseVerified: firebaseVerifiedLegacy }
+      : (optionsOrOtp || {})
 
     try {
       const cleanMobile = formData.mobileNumber.replace(/[\s\-\+]/g, '')
@@ -275,41 +298,21 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         userId: userId || undefined,
         email: formData.email.trim().toLowerCase(),
         mobileNumber: cleanMobile,
-        otpCode: otpCode?.trim(),
-        firebaseVerified: !!firebaseVerified,
+        channel: opts.channel,
+        otpCode: opts.otpCode?.trim(),
+        emailOtp: opts.emailOtp?.trim(),
+        mobileOtp: opts.mobileOtp?.trim(),
+        firebaseVerified: !!opts.firebaseVerified,
         purpose: 'CANDIDATE_REGISTRATION'
       })
 
-      if (response.token) {
-        setAuthToken(response.token)
-        localStorage.setItem('proxhire_candidate_token', response.token)
-      }
+      // ONLY when BOTH Email and Mobile are verified (response.isVerified === true)
+      if (response.isVerified) {
+        if (response.token) {
+          setAuthToken(response.token)
+          localStorage.setItem('proxhire_candidate_token', response.token)
+        }
 
-      setIsVerified(true)
-      localStorage.setItem('proxhire_candidate_verified', 'true')
-      setIsCompleted(true)
-      localStorage.setItem('proxhire_candidate_registered', 'true')
-      setOtpPending(false)
-
-      // Sync verified candidate record to Firebase Firestore in real-time
-      syncCandidateToFirebase(formData, userId || undefined).catch((fbErr) => {
-        console.warn('Firebase sync notice on verify:', fbErr.message)
-      })
-
-      // Direct redirection to dashboard / home screen as requested
-      setViewModeState('dashboard')
-      localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
-    } catch (err: any) {
-      // Verification fallback: If verified via Firebase Phone Auth or network error
-      const isNetworkError =
-        err.message?.includes('Failed to fetch') ||
-        err.message?.includes('NetworkError') ||
-        err.name === 'TypeError'
-
-      if (firebaseVerified || isNetworkError) {
-        const token = 'proxhire_verified_' + Date.now()
-        setAuthToken(token)
-        localStorage.setItem('proxhire_candidate_token', token)
         setIsVerified(true)
         localStorage.setItem('proxhire_candidate_verified', 'true')
         setIsCompleted(true)
@@ -317,12 +320,15 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setOtpPending(false)
 
         syncCandidateToFirebase(formData, userId || undefined).catch(() => null)
+
+        // Strict redirection to dashboard only on dual verification
         setViewModeState('dashboard')
         localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
-        return
       }
 
-      setErrorMsg(err.message || 'Invalid or expired OTP. Please try again.')
+      return response
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Invalid or expired OTP. Please check your verification code.')
       throw err
     } finally {
       setIsSubmitting(false)

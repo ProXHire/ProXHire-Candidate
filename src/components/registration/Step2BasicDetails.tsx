@@ -199,6 +199,10 @@ export const Step2BasicDetails: React.FC = () => {
 
     try {
       await submitBasicDetails()
+      setEmailVerified(false)
+      setMobileVerified(false)
+      setEmailOtpDigits(['', '', '', '', '', ''])
+      setMobileOtpDigits(['', '', '', '', '', ''])
       setEmailTimer(60)
       setCanResendEmail(false)
       setMobileTimer(60)
@@ -325,16 +329,22 @@ export const Step2BasicDetails: React.FC = () => {
   const handleVerifyEmail = async () => {
     const code = emailOtpDigits.join('').trim()
     if (code.length < 6) {
-      setLocalError('Please enter the 6-digit code sent to your email.')
+      setLocalError('Please enter the complete 6-digit code sent to your email.')
       return
     }
     setIsVerifyingEmail(true)
     setLocalError(null)
     setErrorMsg(null)
     try {
-      await submitVerifyOtp(code, false)
+      const res = await submitVerifyOtp({
+        channel: 'EMAIL',
+        otpCode: code,
+        emailOtp: code
+      })
       setEmailVerified(true)
-      setMobileVerified(true)
+      if (res?.isMobileVerified) {
+        setMobileVerified(true)
+      }
     } catch (err: any) {
       setLocalError(err.message || 'Invalid email verification code. Please check your inbox.')
     } finally {
@@ -346,7 +356,7 @@ export const Step2BasicDetails: React.FC = () => {
   const handleVerifyMobile = async () => {
     const code = mobileOtpDigits.join('').trim()
     if (code.length < 6) {
-      setLocalError('Please enter the 6-digit code for your mobile number.')
+      setLocalError('Please enter the complete 6-digit code for your mobile number.')
       return
     }
     setIsVerifyingMobile(true)
@@ -356,27 +366,40 @@ export const Step2BasicDetails: React.FC = () => {
     if (confirmationResult) {
       try {
         await phoneAuthService.verifyPhoneOtp(confirmationResult, code)
-        await submitVerifyOtp(code, true)
-        setEmailVerified(true)
+        const res = await submitVerifyOtp({
+          channel: 'MOBILE',
+          otpCode: code,
+          mobileOtp: code,
+          firebaseVerified: true
+        })
         setMobileVerified(true)
+        if (res?.isEmailVerified) {
+          setEmailVerified(true)
+        }
         return
       } catch (fbErr: any) {
-        console.warn('Firebase SMS verify notice, falling back...', fbErr.message)
+        console.warn('Firebase SMS verify notice, falling back to backend verification...', fbErr.message)
       }
     }
 
     try {
-      await submitVerifyOtp(code, false)
-      setEmailVerified(true)
+      const res = await submitVerifyOtp({
+        channel: 'MOBILE',
+        otpCode: code,
+        mobileOtp: code
+      })
       setMobileVerified(true)
+      if (res?.isEmailVerified) {
+        setEmailVerified(true)
+      }
     } catch (err: any) {
-      setLocalError(err.message || 'Invalid mobile verification code.')
+      setLocalError(err.message || 'Invalid mobile verification code. Please check your SMS or email.')
     } finally {
       setIsVerifyingMobile(false)
     }
   }
 
-  // Master Verify All & Continue
+  // Master Verify All & Continue - STRICT DUAL VERIFICATION REQUIREMENT
   const handleMasterVerify = async (e: React.FormEvent) => {
     e.preventDefault()
     setLocalError(null)
@@ -385,28 +408,44 @@ export const Step2BasicDetails: React.FC = () => {
     const emailCode = emailOtpDigits.join('').trim()
     const mobileCode = mobileOtpDigits.join('').trim()
 
-    if (emailCode.length < 6 && mobileCode.length < 6) {
-      setLocalError('Please enter at least one 6-digit verification code to proceed.')
+    const hasEmail = emailVerified || emailCode.length === 6
+    const hasMobile = mobileVerified || mobileCode.length === 6
+
+    if (!hasEmail && !hasMobile) {
+      setLocalError('Both Email and Mobile verification codes are required to proceed.')
+      return
+    }
+    if (!hasEmail) {
+      setLocalError('Please enter your 6-digit Email verification code.')
+      return
+    }
+    if (!hasMobile) {
+      setLocalError('Please enter your 6-digit Mobile verification code.')
       return
     }
 
-    // If mobile code was entered with active Firebase confirmation
-    if (mobileCode.length === 6 && confirmationResult) {
+    let fbVerified = false
+    if (!mobileVerified && confirmationResult && mobileCode.length === 6) {
       try {
         await phoneAuthService.verifyPhoneOtp(confirmationResult, mobileCode)
-        await submitVerifyOtp(mobileCode, true)
-        return
+        fbVerified = true
       } catch (fbErr: any) {
-        console.warn('Firebase phone verify fallback:', fbErr.message)
+        console.warn('Firebase phone verify fallback to backend:', fbErr.message)
       }
     }
 
-    // Verify via backend with email code or mobile code
-    const primaryCode = emailCode.length === 6 ? emailCode : mobileCode
     try {
-      await submitVerifyOtp(primaryCode, false)
-    } catch {
-      // Error message handled in context
+      const res = await submitVerifyOtp({
+        channel: 'ALL',
+        emailOtp: emailVerified ? undefined : emailCode,
+        mobileOtp: mobileVerified ? undefined : mobileCode,
+        firebaseVerified: fbVerified
+      })
+
+      if (res?.isEmailVerified) setEmailVerified(true)
+      if (res?.isMobileVerified) setMobileVerified(true)
+    } catch (err: any) {
+      setLocalError(err.message || 'Verification failed. Please ensure both codes match correctly.')
     }
   }
 
@@ -659,18 +698,10 @@ export const Step2BasicDetails: React.FC = () => {
                 </div>
 
                 {/* Helpful note */}
-                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>Enter code from SMS or your email verification code.</span>
-                  {emailOtpDigits.join('').length === 6 && mobileOtpDigits.join('').length < 6 && (
-                    <button
-                      type="button"
-                      className="cand-otp-quick-btn"
-                      onClick={() => setMobileOtpDigits([...emailOtpDigits])}
-                      style={{ padding: '3px 8px', fontSize: '11px' }}
-                    >
-                      <Sparkles size={11} color="#4f46e5" /> Apply Email OTP
-                    </button>
-                  )}
+                <div style={{ marginTop: '10px' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                    Enter code received via SMS, or find your dedicated Mobile Verification Code in the email sent to {formData.email}.
+                  </span>
                 </div>
               </div>
             </div>
@@ -682,7 +713,7 @@ export const Step2BasicDetails: React.FC = () => {
               <ShieldCheck size={18} />
             </div>
             <p className="cand-otp-trust-text">
-              For your account safety and candidate credibility, your mobile number and email must be verified. Dashboard access is unlocked immediately following verification.
+              For your account safety and candidate credibility, your mobile number and email must both be verified. Dashboard access is unlocked immediately following verification.
             </p>
           </div>
         </div>
@@ -702,12 +733,18 @@ export const Step2BasicDetails: React.FC = () => {
             type="button"
             className="cand-btn-primary"
             onClick={handleMasterVerify}
-            disabled={isSubmitting || (emailOtpDigits.join('').length < 6 && mobileOtpDigits.join('').length < 6 && !emailVerified && !mobileVerified)}
+            disabled={
+              isSubmitting ||
+              isVerifyingEmail ||
+              isVerifyingMobile ||
+              (!emailVerified && emailOtpDigits.join('').length < 6) ||
+              (!mobileVerified && mobileOtpDigits.join('').length < 6)
+            }
             style={{ minWidth: '190px', justifyContent: 'center' }}
           >
             {isSubmitting ? 'Verifying...' : (
               <>
-                Verify & Continue <ArrowRight size={16} />
+                Verify Both & Continue <ArrowRight size={16} />
               </>
             )}
           </button>

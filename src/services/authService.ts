@@ -19,6 +19,9 @@ export interface VerifyOtpPayload {
   email?: string;
   mobileNumber?: string;
   otpCode?: string;
+  channel?: 'EMAIL' | 'MOBILE' | 'ALL';
+  emailOtp?: string;
+  mobileOtp?: string;
   firebaseVerified?: boolean;
   purpose?: string;
 }
