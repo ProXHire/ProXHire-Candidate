@@ -311,6 +311,11 @@ export const Step2BasicDetails: React.FC = () => {
     setErrorMsg(null)
     setMobileTimer(60)
     setCanResendMobile(false)
+    try {
+      await resendVerificationOtp()
+    } catch {
+      // Handled in context
+    }
     handleSendFirebaseSms()
     setResendMobileSuccess(true)
     setTimeout(() => setResendMobileSuccess(false), 4000)
@@ -329,6 +334,7 @@ export const Step2BasicDetails: React.FC = () => {
     try {
       await submitVerifyOtp(code, false)
       setEmailVerified(true)
+      setMobileVerified(true)
     } catch (err: any) {
       setLocalError(err.message || 'Invalid email verification code. Please check your inbox.')
     } finally {
@@ -351,6 +357,7 @@ export const Step2BasicDetails: React.FC = () => {
       try {
         await phoneAuthService.verifyPhoneOtp(confirmationResult, code)
         await submitVerifyOtp(code, true)
+        setEmailVerified(true)
         setMobileVerified(true)
         return
       } catch (fbErr: any) {
@@ -360,6 +367,7 @@ export const Step2BasicDetails: React.FC = () => {
 
     try {
       await submitVerifyOtp(code, false)
+      setEmailVerified(true)
       setMobileVerified(true)
     } catch (err: any) {
       setLocalError(err.message || 'Invalid mobile verification code.')
@@ -503,13 +511,9 @@ export const Step2BasicDetails: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    {emailVerified ? (
+                    {emailVerified && (
                       <span className="cand-otp-status-pill verified">
                         <CheckCircle2 size={12} /> Verified
-                      </span>
-                    ) : (
-                      <span className="cand-otp-status-pill sent">
-                        <span className="cand-pulse-dot"></span> Sent to Inbox
                       </span>
                     )}
                   </div>
@@ -591,16 +595,10 @@ export const Step2BasicDetails: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    {mobileVerified ? (
+                    {mobileVerified && (
                       <span className="cand-otp-status-pill verified">
                         <CheckCircle2 size={12} /> Verified
                       </span>
-                    ) : confirmationResult ? (
-                      <span className="cand-otp-status-pill sent">
-                        <span className="cand-pulse-dot"></span> SMS Sent
-                      </span>
-                    ) : (
-                      <span className="cand-otp-status-pill ready">Ready</span>
                     )}
                   </div>
                 </div>
@@ -661,8 +659,18 @@ export const Step2BasicDetails: React.FC = () => {
                 </div>
 
                 {/* Helpful note */}
-                <div style={{ marginTop: '10px' }}>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>Enter the 6-digit code received via SMS.</span>
+                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>Enter code from SMS or your email verification code.</span>
+                  {emailOtpDigits.join('').length === 6 && mobileOtpDigits.join('').length < 6 && (
+                    <button
+                      type="button"
+                      className="cand-otp-quick-btn"
+                      onClick={() => setMobileOtpDigits([...emailOtpDigits])}
+                      style={{ padding: '3px 8px', fontSize: '11px' }}
+                    >
+                      <Sparkles size={11} color="#4f46e5" /> Apply Email OTP
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

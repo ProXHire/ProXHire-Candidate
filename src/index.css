@@ -96,6 +96,67 @@ input, select, textarea {
   flex-shrink: 0;
 }
 
+/* Ambient Floating Light Orbs for Rich Depth */
+.cand-hero-col::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  right: -15%;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 75%);
+  filter: blur(60px);
+  z-index: 1;
+  pointer-events: none;
+  animation: candHeroOrbFloat1 18s ease-in-out infinite alternate;
+}
+
+.cand-hero-col::after {
+  content: '';
+  position: absolute;
+  bottom: 8%;
+  left: -15%;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.16) 0%, rgba(99, 102, 241, 0.08) 50%, transparent 75%);
+  filter: blur(70px);
+  z-index: 1;
+  pointer-events: none;
+  animation: candHeroOrbFloat2 22s ease-in-out infinite alternate;
+}
+
+@keyframes candHeroOrbFloat1 {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-30px, 35px) scale(1.15);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(25px, -20px) scale(0.95);
+    opacity: 0.7;
+  }
+}
+
+@keyframes candHeroOrbFloat2 {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(35px, -25px) scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-20px, 20px) scale(1);
+    opacity: 0.55;
+  }
+}
+
 .cand-hero-bg {
   position: absolute;
   top: 0;
@@ -108,6 +169,17 @@ input, select, textarea {
   background-repeat: no-repeat;
   opacity: 0.95;
   z-index: 1;
+  will-change: transform;
+  animation: candHeroBgFloat 26s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+@keyframes candHeroBgFloat {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.06) translate(-8px, -6px);
+  }
 }
 
 .cand-hero-overlay {
@@ -133,11 +205,28 @@ input, select, textarea {
   display: flex;
   align-items: center;
   gap: 12px;
+  animation: candHeroBrandFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes candHeroBrandFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .cand-brand-logo {
   height: 48px;
   object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.cand-brand-logo:hover {
+  transform: scale(1.04);
 }
 
 .cand-brand-text {
@@ -178,12 +267,37 @@ input, select, textarea {
   letter-spacing: -1px;
   color: #ffffff;
   margin-bottom: clamp(10px, 1.4vh, 16px);
+  animation: candHeroTitleFade 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+
+@keyframes candHeroTitleFade {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .cand-hero-title .muted-text {
-  color: #94a3b8;
-  font-weight: 700;
   display: block;
+  font-weight: 800;
+  background: linear-gradient(135deg, #cbd5e1 0%, #ffffff 25%, #a5b4fc 50%, #818cf8 75%, #ffffff 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: candTextShimmer 6.5s ease-in-out infinite alternate;
+}
+
+@keyframes candTextShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
 }
 
 .cand-hero-desc {
@@ -192,19 +306,80 @@ input, select, textarea {
   line-height: 1.55;
   margin-bottom: clamp(20px, 2.6vh, 32px);
   max-width: 400px;
+  animation: candHeroDescFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+@keyframes candHeroDescFade {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Feature List */
 .cand-feature-list {
   display: flex;
   flex-direction: column;
-  gap: clamp(16px, 2vh, 24px);
+  gap: clamp(14px, 1.8vh, 22px);
 }
 
 .cand-feature-item {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 16px;
+  padding: 10px 14px;
+  margin: -10px -14px;
+  border-radius: 14px;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: default;
+  animation: candFeatureEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cand-feature-item:nth-child(1) { animation-delay: 0.28s; }
+.cand-feature-item:nth-child(2) { animation-delay: 0.40s; }
+.cand-feature-item:nth-child(3) { animation-delay: 0.52s; }
+.cand-feature-item:nth-child(4) { animation-delay: 0.64s; }
+
+@keyframes candFeatureEntrance {
+  0% {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Luminous left accent bar on hover */
+.cand-feature-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 3.5px;
+  height: 65%;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #6366f1, #38bdf8);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.85);
+}
+
+.cand-feature-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px);
+  transform: translateX(8px);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.35);
+}
+
+.cand-feature-item:hover::before {
+  transform: translateY(-50%) scaleY(1);
 }
 
 .cand-feature-icon-box {
@@ -219,13 +394,41 @@ input, select, textarea {
   justify-content: center;
   color: #ffffff;
   flex-shrink: 0;
-  transition: all 0.25s ease;
+  position: relative;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Staggered idle aura pulse across the icons */
+.cand-feature-item:nth-child(1) .cand-feature-icon-box {
+  animation: candIconIdlePulse 4.5s ease-in-out infinite 0s;
+}
+.cand-feature-item:nth-child(2) .cand-feature-icon-box {
+  animation: candIconIdlePulse 4.5s ease-in-out infinite 1.1s;
+}
+.cand-feature-item:nth-child(3) .cand-feature-icon-box {
+  animation: candIconIdlePulse 4.5s ease-in-out infinite 2.2s;
+}
+.cand-feature-item:nth-child(4) .cand-feature-icon-box {
+  animation: candIconIdlePulse 4.5s ease-in-out infinite 3.3s;
+}
+
+@keyframes candIconIdlePulse {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+  50% {
+    border-color: rgba(99, 102, 241, 0.55);
+    box-shadow: 0 0 16px 2px rgba(99, 102, 241, 0.25);
+  }
 }
 
 .cand-feature-item:hover .cand-feature-icon-box {
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.12);
-  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.9);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%);
+  color: #ffffff;
+  transform: scale(1.12) rotate(4deg);
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.55);
 }
 
 .cand-feature-text h4 {
@@ -233,12 +436,23 @@ input, select, textarea {
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 3px;
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.cand-feature-item:hover .cand-feature-text h4 {
+  color: #ffffff;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.4);
 }
 
 .cand-feature-text p {
   font-size: clamp(13px, 1.55vh, 14.5px);
   color: #94a3b8;
   line-height: 1.4;
+  transition: color 0.25s ease;
+}
+
+.cand-feature-item:hover .cand-feature-text p {
+  color: #cbd5e1;
 }
 
 /* Cursive signature at bottom for Step 1 */
@@ -254,6 +468,18 @@ input, select, textarea {
 .cand-hero-footer {
   padding-top: clamp(14px, 2vh, 24px);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
+  animation: candKickerFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.72s both;
+}
+
+@keyframes candKickerFade {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .cand-hero-kicker {
@@ -262,6 +488,26 @@ input, select, textarea {
   letter-spacing: 3.5px;
   color: #64748b;
   text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+.cand-hero-kicker:hover {
+  color: #94a3b8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cand-hero-col::before,
+  .cand-hero-col::after,
+  .cand-hero-bg,
+  .cand-hero-title,
+  .cand-hero-title .muted-text,
+  .cand-hero-desc,
+  .cand-feature-item,
+  .cand-feature-item .cand-feature-icon-box,
+  .cand-hero-footer {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* Right Content Area */

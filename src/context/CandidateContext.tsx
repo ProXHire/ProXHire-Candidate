@@ -338,9 +338,10 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     try {
       const cleanMobile = formData.mobileNumber.replace(/[\s\-\+]/g, '')
-      const res = await authService.resendOtp(
+      await authService.resendOtp(
         userId || undefined,
         formData.email.trim().toLowerCase(),
+        cleanMobile
       )
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to resend OTP. Please wait before retrying.')
