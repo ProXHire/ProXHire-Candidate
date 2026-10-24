@@ -300,13 +300,13 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setViewModeState('dashboard')
       localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
     } catch (err: any) {
-      // Offline / dev fallback: If dev OTP (123456), firebaseVerified, or network error
+      // Verification fallback: If verified via Firebase Phone Auth or network error
       const isNetworkError =
         err.message?.includes('Failed to fetch') ||
         err.message?.includes('NetworkError') ||
         err.name === 'TypeError'
 
-      if (otpCode === '123456' || firebaseVerified || isNetworkError) {
+      if (firebaseVerified || isNetworkError) {
         const token = 'proxhire_verified_' + Date.now()
         setAuthToken(token)
         localStorage.setItem('proxhire_candidate_token', token)

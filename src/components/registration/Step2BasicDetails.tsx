@@ -16,9 +16,7 @@ import {
   Clock,
   Sparkles,
   Check,
-  AlertCircle,
-  Zap,
-  Copy
+  AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import { phoneAuthService } from '../../services/phoneAuthService'
@@ -318,19 +316,6 @@ export const Step2BasicDetails: React.FC = () => {
     setTimeout(() => setResendMobileSuccess(false), 4000)
   }
 
-  // Helper autofills
-  const handleCopyEmailToMobile = () => {
-    if (emailOtpDigits.some(Boolean)) {
-      setMobileOtpDigits([...emailOtpDigits])
-    }
-  }
-
-  const handleAutofillDevCode = (target: 'email' | 'mobile') => {
-    const devCode = ['1', '2', '3', '4', '5', '6']
-    if (target === 'email') setEmailOtpDigits(devCode)
-    else setMobileOtpDigits(devCode)
-  }
-
   // Verify single card (Email)
   const handleVerifyEmail = async () => {
     const code = emailOtpDigits.join('').trim()
@@ -345,11 +330,7 @@ export const Step2BasicDetails: React.FC = () => {
       await submitVerifyOtp(code, false)
       setEmailVerified(true)
     } catch (err: any) {
-      if (code === '123456') {
-        setEmailVerified(true)
-      } else {
-        setLocalError(err.message || 'Invalid email verification code. Please check your inbox.')
-      }
+      setLocalError(err.message || 'Invalid email verification code. Please check your inbox.')
     } finally {
       setIsVerifyingEmail(false)
     }
@@ -381,11 +362,7 @@ export const Step2BasicDetails: React.FC = () => {
       await submitVerifyOtp(code, false)
       setMobileVerified(true)
     } catch (err: any) {
-      if (code === '123456') {
-        setMobileVerified(true)
-      } else {
-        setLocalError(err.message || 'Invalid mobile verification code.')
-      }
+      setLocalError(err.message || 'Invalid mobile verification code.')
     } finally {
       setIsVerifyingMobile(false)
     }
@@ -594,16 +571,8 @@ export const Step2BasicDetails: React.FC = () => {
                 </div>
 
                 {/* Helpful note */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
+                <div style={{ marginTop: '10px' }}>
                   <span style={{ fontSize: '11px', color: '#64748b' }}>Check your inbox or spam folder.</span>
-                  <button
-                    type="button"
-                    className="cand-otp-helper-chip"
-                    onClick={() => handleAutofillDevCode('email')}
-                    title="Fill test code"
-                  >
-                    <Zap size={11} color="#f59e0b" /> Fill 123456
-                  </button>
                 </div>
               </div>
             </div>
@@ -691,26 +660,9 @@ export const Step2BasicDetails: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Helper chips for fast sandbox / test validation */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', padding: '6px 10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>Sandbox helpers:</span>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button
-                      type="button"
-                      className="cand-otp-helper-chip"
-                      onClick={() => handleAutofillDevCode('mobile')}
-                    >
-                      <Zap size={11} color="#f59e0b" /> Fill 123456
-                    </button>
-                    <button
-                      type="button"
-                      className="cand-otp-helper-chip"
-                      onClick={handleCopyEmailToMobile}
-                      disabled={!emailOtpDigits.some(Boolean)}
-                    >
-                      <Copy size={11} /> Copy Email Code
-                    </button>
-                  </div>
+                {/* Helpful note */}
+                <div style={{ marginTop: '10px' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>Enter the 6-digit code received via SMS.</span>
                 </div>
               </div>
             </div>

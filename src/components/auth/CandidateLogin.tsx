@@ -129,8 +129,8 @@ export const CandidateLogin: React.FC = () => {
         setViewMode('dashboard')
       }
     } catch (err: any) {
-      // Offline / dev fallback: If OTP is 123456 or backend is offline
-      if (otpCode === '123456' || err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+      // Offline fallback: If network error
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
         const token = 'proxhire_otp_' + Date.now()
         localStorage.setItem('proxhire_candidate_token', token)
         localStorage.setItem('proxhire_candidate_verified', 'true')
