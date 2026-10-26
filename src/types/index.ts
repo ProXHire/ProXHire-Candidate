@@ -112,10 +112,33 @@ export interface JobCardData {
   description?: string
 }
 
+export type ApplicationStatusType =
+  | 'Submitted'
+  | 'Under Review'
+  | 'Shortlisted'
+  | 'Interview'
+  | 'Selected'
+  | 'Hired'
+  | 'Rejected'
+  | 'Applied'
+
 export interface ApplicationRowData {
   id: string
+  jobId?: string
   jobTitle: string
   company: string
+  companyLogoText?: string
+  location?: string
   appliedOn: string
-  status: 'Under Review' | 'Shortlisted' | 'Applied' | 'Interview'
+  appliedAt?: string
+  status: ApplicationStatusType
+  flightNumber?: string
+  seat?: string
+  gate?: string
+  ticketNumber?: string
+  salary?: string
+  candidateName?: string
+  candidateCity?: string
+  reviewNotes?: string
 }
+

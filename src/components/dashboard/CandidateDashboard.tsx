@@ -23,6 +23,7 @@ import { JobDetailsScreen } from './JobDetailsScreen'
 import { SavedJobsWorkspace } from './SavedJobsWorkspace'
 import { FindJobsWorkspace } from './FindJobsWorkspace'
 import { subscribeToCandidateJobs, DEFAULT_MOCK_JOBS } from '../../services/candidateJobService'
+import { FlightBoardingPassModal } from './FlightBoardingPassModal'
 
 export const CandidateDashboard: React.FC = () => {
   const { formData, setViewMode, setStep, isVerified, isCompleted, logout } = useCandidate()
@@ -172,29 +173,101 @@ export const CandidateDashboard: React.FC = () => {
     return matchesSearch && matchesWorkType && matchesExperience && matchesLocation
   })
 
-  const [applications, setApplications] = useState<ApplicationRowData[]>([
+  const INITIAL_APPLICATIONS: ApplicationRowData[] = [
     {
-      id: '1',
-      jobTitle: 'Software Engineer',
+      id: 'app_1',
+      jobTitle: 'Software Development Engineer',
       company: 'Infosys',
+      location: 'Bangalore, Karnataka',
       appliedOn: '12 Oct 2026',
-      status: 'Under Review'
+      status: 'Under Review',
+      flightNumber: 'PX-402',
+      gate: 'G-01',
+      seat: '01A',
+      ticketNumber: 'ETKT-9182390123',
+      candidateName: formData.fullName || 'Candidate',
+      candidateCity: formData.city || 'Bengaluru',
     },
     {
-      id: '2',
+      id: 'app_2',
       jobTitle: 'Backend Developer',
       company: 'TCS',
+      location: 'Hyderabad, Telangana',
       appliedOn: '10 Oct 2026',
-      status: 'Shortlisted'
+      status: 'Shortlisted',
+      flightNumber: 'PX-714',
+      gate: 'G-04',
+      seat: '02B',
+      ticketNumber: 'ETKT-8849201948',
+      candidateName: formData.fullName || 'Candidate',
+      candidateCity: formData.city || 'Bengaluru',
     },
     {
-      id: '3',
+      id: 'app_3',
       jobTitle: 'Full Stack Developer',
       company: 'Accenture',
+      location: 'Pune, Maharashtra',
       appliedOn: '05 Oct 2026',
-      status: 'Applied'
+      status: 'Submitted',
+      flightNumber: 'PX-209',
+      gate: 'G-02',
+      seat: '03A',
+      ticketNumber: 'ETKT-7482910394',
+      candidateName: formData.fullName || 'Candidate',
+      candidateCity: formData.city || 'Bengaluru',
     }
-  ])
+  ]
+
+  const [applications, setApplications] = useState<ApplicationRowData[]>(() => {
+    try {
+      const saved = localStorage.getItem('proxhire_candidate_applications')
+      if (saved) {
+        return JSON.parse(saved)
+      }
+    } catch {
+      // Ignore
+    }
+    return INITIAL_APPLICATIONS
+  })
+
+  // State to control the Flight Boarding Pass Alert Modal
+  const [activeBoardingPass, setActiveBoardingPass] = useState<ApplicationRowData | null>(null)
+
+  const handleApplyToJob = (appliedJob: JobCardData) => {
+    const flightNum = `PX-${Math.floor(100 + Math.random() * 899)}`
+    const ticketId = `ETKT-${Math.floor(1000000000 + Math.random() * 9000000000)}`
+    const newApp: ApplicationRowData = {
+      id: `app_${Date.now()}`,
+      jobId: appliedJob.id,
+      jobTitle: appliedJob.role,
+      company: appliedJob.company,
+      companyLogoText: appliedJob.companyLogoText,
+      location: appliedJob.location,
+      appliedOn: 'Today',
+      appliedAt: new Date().toISOString(),
+      status: 'Submitted',
+      flightNumber: flightNum,
+      seat: '01A',
+      gate: `G-0${Math.floor(1 + Math.random() * 8)}`,
+      ticketNumber: ticketId,
+      salary: appliedJob.salary,
+      candidateName: formData.fullName || 'Candidate',
+      candidateCity: formData.city || 'Bengaluru',
+    }
+
+    setApplications(prev => {
+      const updated = [newApp, ...prev.filter(a => !(a.jobTitle === appliedJob.role && a.company === appliedJob.company))]
+      try {
+        localStorage.setItem('proxhire_candidate_applications', JSON.stringify(updated))
+      } catch {
+        // Ignore
+      }
+      return updated
+    })
+
+    // Display the Flight Boarding Pass alert modal immediately!
+    setActiveBoardingPass(newApp)
+  }
 
   const toggleSaveJob = (id: string) => {
     setJobs(prev =>

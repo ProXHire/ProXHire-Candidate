@@ -5723,5 +5723,848 @@ select.cand-input option,
   }
 }
 
+/* ==========================================================================
+   FLIGHT BOARDING PASS MODAL & TICKET STYLES
+   ========================================================================== */
+
+.boarding-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(9, 9, 11, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeInBoarding 0.25s ease-out;
+}
+
+@keyframes fadeInBoarding {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.boarding-modal-container {
+  width: 100%;
+  max-width: 860px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideUpBoarding 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  margin: auto;
+}
+
+@keyframes slideUpBoarding {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.boarding-modal-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.boarding-modal-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.boarding-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #09090b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.boarding-plane-icon {
+  color: #2563eb;
+  transform: rotate(-35deg);
+}
+
+.boarding-e-ticket-tag {
+  color: #94a3b8;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.boarding-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 7px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.boarding-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.boarding-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.boarding-close-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+/* ================= THE ACTUAL TICKET ================= */
+
+.boarding-pass-ticket {
+  display: flex;
+  flex-direction: row;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Main Ticket (72% width) */
+.boarding-pass-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.boarding-pass-header {
+  background: linear-gradient(135deg, #09090b 0%, #1e1b4b 100%);
+  color: #ffffff;
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #312e81;
+}
+
+.boarding-airline-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boarding-airline-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boarding-airline-name {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+}
+
+.boarding-airline-sub {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+.boarding-class-badge {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fbbf24;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+/* Flight Route Row */
+.boarding-route-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px 18px;
+  background: #fafafc;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.boarding-route-point {
+  display: flex;
+  flex-direction: column;
+}
+
+.boarding-route-point.right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.boarding-airport-code {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1;
+  color: #09090b;
+  letter-spacing: -0.03em;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.boarding-airport-code.destination {
+  color: #2563eb;
+}
+
+.boarding-airport-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  margin-top: 4px;
+}
+
+.boarding-airport-role-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.boarding-flight-vector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 220px;
+  padding: 0 16px;
+}
+
+.boarding-flight-code-pill {
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  border: 1px solid #dbeafe;
+}
+
+.boarding-flight-line {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  background: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 6px 0;
+}
+
+.boarding-flight-line-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2563eb;
+}
+
+.boarding-flight-line-dot.start { left: 0; }
+.boarding-flight-line-dot.end { right: 0; }
+
+.boarding-flight-plane-bubble {
+  background: #ffffff;
+  border: 2px solid #2563eb;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+  transform: rotate(45deg);
+}
+
+.boarding-flight-duration {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* Details Grid */
+.boarding-details-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 18px;
+  padding: 20px 28px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.boarding-data-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.boarding-data-cell.span-2 {
+  grid-column: span 2;
+}
+
+.boarding-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.boarding-value {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.boarding-value.highlight {
+  font-size: 15px;
+  font-weight: 800;
+  color: #09090b;
+}
+
+.boarding-value.accent {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 17px;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.boarding-value.verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #059669;
+  font-weight: 800;
+}
+
+.boarding-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  width: fit-content;
+}
+
+.boarding-status-pill.status-submitted,
+.boarding-status-pill.status-applied {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.boarding-status-pill.status-under-review {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.boarding-status-pill.status-shortlisted,
+.boarding-status-pill.status-interview {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.boarding-status-pill.status-rejected {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Lifecycle Box */
+.boarding-lifecycle-box {
+  padding: 18px 28px;
+  background: #ffffff;
+}
+
+.boarding-lifecycle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+
+.boarding-lifecycle-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #0f172a;
+  text-transform: uppercase;
+}
+
+.boarding-lifecycle-sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.boarding-lifecycle-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.boarding-step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 2;
+  width: 110px;
+}
+
+.boarding-step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 2px solid #e2e8f0;
+  transition: all 0.2s;
+  margin-bottom: 6px;
+}
+
+.boarding-step-node.completed .boarding-step-circle {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #059669;
+}
+
+.boarding-step-node.current .boarding-step-circle {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+.boarding-step-node.rejected .boarding-step-circle {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+.boarding-step-label {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.boarding-step-desc {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.boarding-step-connector {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 -12px 24px -12px;
+  z-index: 1;
+}
+
+.boarding-step-connector.active {
+  background: #2563eb;
+}
+
+/* Status Memo */
+.boarding-status-memo {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.boarding-status-memo p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #475467;
+}
+
+.boarding-memo-icon {
+  flex-shrink: 0;
+  color: #2563eb;
+  margin-top: 2px;
+}
+
+.boarding-memo-icon.in-review { color: #d97706; }
+.boarding-memo-icon.rejected { color: #dc2626; }
+.boarding-memo-icon.shortlisted { color: #059669; }
+
+.status-memo-submitted,
+.status-memo-applied {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.status-memo-under-review {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.status-memo-rejected {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.status-memo-shortlisted,
+.status-memo-interview {
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #5b21b6;
+}
+
+/* Footer Notice */
+.boarding-pass-footer {
+  background: #f8fafc;
+  padding: 10px 28px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+/* Perforation Divider */
+.boarding-perforation {
+  position: relative;
+  width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.boarding-dashed-line {
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  width: 2px;
+  border-left: 2px dashed #cbd5e1;
+}
+
+.boarding-notch {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  background: rgba(9, 9, 11, 0.78);
+  border-radius: 50%;
+  left: -13px;
+  z-index: 12;
+}
+
+.boarding-notch.top { top: -13px; }
+.boarding-notch.bottom { bottom: -13px; }
+
+/* Right Stub (28% width) */
+.boarding-pass-stub {
+  width: 260px;
+  background: #f8fafc;
+  border-left: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.boarding-stub-header {
+  border-bottom: 2px solid #09090b;
+  padding-bottom: 10px;
+}
+
+.boarding-stub-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #09090b;
+  letter-spacing: 0.05em;
+}
+
+.boarding-stub-title {
+  font-size: 9px;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+}
+
+.boarding-stub-route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 20px;
+  font-weight: 900;
+  color: #0f172a;
+  padding: 14px 0;
+  border-bottom: 1px dashed #cbd5e1;
+}
+
+.boarding-stub-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px dashed #cbd5e1;
+}
+
+.boarding-stub-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.stub-lbl {
+  font-size: 9px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+}
+
+.stub-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #09090b;
+}
+
+.stub-val.bold {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.stub-val.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.boarding-stub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* Barcode */
+.boarding-barcode-wrap {
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.boarding-barcode {
+  width: 100%;
+  height: 48px;
+}
+
+.boarding-barcode-number {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #334155;
+  margin-top: 4px;
+}
+
+.boarding-stub-footer {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Modal Bottom Simulator Actions */
+.boarding-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 14px;
+  padding: 12px 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.boarding-sim-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.boarding-sim-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #475467;
+}
+
+.boarding-sim-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.boarding-sim-btn {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475467;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.boarding-sim-btn:hover {
+  background: #e2e8f0;
+  color: #09090b;
+}
+
+.boarding-sim-btn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.boarding-sim-btn.active.in-review {
+  background: #d97706;
+  border-color: #d97706;
+}
+
+.boarding-sim-btn.active.shortlisted {
+  background: #059669;
+  border-color: #059669;
+}
+
+.boarding-sim-btn.active.rejected {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Responsive Stacking */
+@media (max-width: 768px) {
+  .boarding-pass-ticket {
+    flex-direction: column;
+  }
+  .boarding-perforation {
+    width: 100%;
+    height: 0;
+    flex-direction: row;
+  }
+  .boarding-dashed-line {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    top: 0;
+    bottom: auto;
+    width: auto;
+    height: 2px;
+    border-left: none;
+    border-top: 2px dashed #cbd5e1;
+  }
+  .boarding-notch {
+    top: -13px;
+  }
+  .boarding-notch.top { left: -13px; top: -13px; }
+  .boarding-notch.bottom { right: -13px; left: auto; top: -13px; }
+  .boarding-pass-stub {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #f1f5f9;
+  }
+  .boarding-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .boarding-data-cell.span-2 {
+    grid-column: span 2;
+  }
+  .boarding-route-row {
+    padding: 16px;
+  }
+  .boarding-airport-code {
+    font-size: 28px;
+  }
+}
+
+
 
 
