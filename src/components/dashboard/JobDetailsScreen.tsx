@@ -361,12 +361,20 @@ export const JobDetailsScreen: React.FC<JobDetailsScreenProps> = ({
           {/* About the Role */}
           <div className="cand-job-section-card">
             <h3 className="cand-job-section-title">About the Role</h3>
-            <p className="cand-job-text">
-              We are seeking a talented and high-ownership <strong>{job.role}</strong> to join our product and engineering team at <strong>{job.company}</strong> in <strong>{job.location}</strong>. In this role, you will design scalable web applications, collaborate directly with product and design leads, and write reliable, clean code that powers critical systems.
-            </p>
-            <p className="cand-job-text">
-              You will work closely with a world-class team of engineers, designers, and product managers to solve challenging software problems and deliver frictionless digital experiences.
-            </p>
+            {job.description ? (
+              <p className="cand-job-text" style={{ whiteSpace: 'pre-line' }}>
+                {job.description}
+              </p>
+            ) : (
+              <>
+                <p className="cand-job-text">
+                  We are seeking a talented and high-ownership <strong>{job.role}</strong> to join our product and engineering team at <strong>{job.company}</strong> in <strong>{job.location}</strong>. In this role, you will design scalable web applications, collaborate directly with product and design leads, and write reliable, clean code that powers critical systems.
+                </p>
+                <p className="cand-job-text">
+                  You will work closely with a world-class team of engineers, designers, and product managers to solve challenging software problems and deliver frictionless digital experiences.
+                </p>
+              </>
+            )}
           </div>
 
           {/* Key Responsibilities */}
