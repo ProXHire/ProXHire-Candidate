@@ -26,6 +26,8 @@ interface JobDetailsScreenProps {
   onBack: () => void
   onApply?: (job: JobCardData) => void
   onToggleSave?: (jobId: string) => void
+  onViewBoardingPass?: () => void
+  isAlreadyApplied?: boolean
   candidateName?: string
 }
 
@@ -34,10 +36,12 @@ export const JobDetailsScreen: React.FC<JobDetailsScreenProps> = ({
   onBack,
   onApply,
   onToggleSave,
+  onViewBoardingPass,
+  isAlreadyApplied = false,
   candidateName = 'Candidate'
 }) => {
   const [isSaved, setIsSaved] = useState(Boolean(job.isSaved))
-  const [hasApplied, setHasApplied] = useState(false)
+  const [hasApplied, setHasApplied] = useState(Boolean(isAlreadyApplied))
   const [showApplySuccess, setShowApplySuccess] = useState(false)
   const [copyNotice, setCopyNotice] = useState(false)
 
@@ -293,9 +297,31 @@ export const JobDetailsScreen: React.FC<JobDetailsScreenProps> = ({
 
           <div className="cand-job-hero-cta">
             {hasApplied ? (
-              <button type="button" className="cand-job-btn-applied" disabled>
-                <CheckCircle2 size={16} /> Applied with ProXHire
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                <button type="button" className="cand-job-btn-applied" disabled>
+                  <CheckCircle2 size={16} /> Applied with ProXHire
+                </button>
+                <button
+                  type="button"
+                  className="cand-btn-primary"
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    width: '100%',
+                    justifyContent: 'center',
+                    background: '#09090b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  onClick={() => {
+                    if (onViewBoardingPass) onViewBoardingPass()
+                    else if (onApply) onApply(job)
+                  }}
+                >
+                  ✈ View Boarding Pass
+                </button>
+              </div>
             ) : (
               <button
                 type="button"
@@ -320,13 +346,35 @@ export const JobDetailsScreen: React.FC<JobDetailsScreenProps> = ({
               <p>Your verified ProXHire candidate profile has been delivered directly to {job.company}'s hiring team with priority screening.</p>
             </div>
           </div>
-          <button
-            type="button"
-            className="cand-job-banner-dismiss"
-            onClick={() => setShowApplySuccess(false)}
-          >
-            ✕
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              className="cand-btn-primary"
+              style={{
+                background: '#059669',
+                borderColor: '#059669',
+                padding: '8px 16px',
+                fontSize: '12.5px',
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onClick={() => {
+                if (onViewBoardingPass) onViewBoardingPass()
+                else if (onApply) onApply(job)
+              }}
+            >
+              View Boarding Pass ✈
+            </button>
+            <button
+              type="button"
+              className="cand-job-banner-dismiss"
+              onClick={() => setShowApplySuccess(false)}
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 
@@ -506,9 +554,32 @@ export const JobDetailsScreen: React.FC<JobDetailsScreenProps> = ({
 
             <div className="cand-job-sidebar-actions">
               {hasApplied ? (
-                <div className="cand-job-applied-badge">
-                  <CheckCircle2 size={16} /> Application Sent & Under Review
-                </div>
+                <>
+                  <div className="cand-job-applied-badge">
+                    <CheckCircle2 size={16} /> Application Sent & Under Review
+                  </div>
+                  <button
+                    type="button"
+                    className="cand-btn-primary"
+                    style={{
+                      width: '100%',
+                      justifyContent: 'center',
+                      height: '42px',
+                      fontSize: '13px',
+                      marginTop: '8px',
+                      background: '#09090b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                    onClick={() => {
+                      if (onViewBoardingPass) onViewBoardingPass()
+                      else if (onApply) onApply(job)
+                    }}
+                  >
+                    ✈ View Flight Boarding Pass
+                  </button>
+                </>
               ) : (
                 <button
                   type="button"

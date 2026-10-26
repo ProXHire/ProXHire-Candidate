@@ -454,20 +454,18 @@ export const CandidateDashboard: React.FC = () => {
           <JobDetailsScreen
             job={selectedJob}
             onBack={() => setSelectedJob(null)}
-            onApply={(appliedJob) => {
-              setApplications(prev => [
-                {
-                  id: String(Date.now()),
-                  jobTitle: appliedJob.role,
-                  company: appliedJob.company,
-                  appliedOn: 'Today',
-                  status: 'Under Review'
-                },
-                ...prev
-              ])
-            }}
+            onApply={handleApplyToJob}
             onToggleSave={(jobId) => toggleSaveJob(jobId)}
             candidateName={formData.fullName || 'Candidate'}
+            isAlreadyApplied={applications.some(a => a.jobId === selectedJob.id || (a.jobTitle === selectedJob.role && a.company === selectedJob.company))}
+            onViewBoardingPass={() => {
+              const existing = applications.find(a => a.jobId === selectedJob.id || (a.jobTitle === selectedJob.role && a.company === selectedJob.company))
+              if (existing) {
+                setActiveBoardingPass(existing)
+              } else {
+                handleApplyToJob(selectedJob)
+              }
+            }}
           />
         ) : activeNav === 'Complete Profile' ? (
           <CompleteProfileWorkspace
@@ -484,18 +482,7 @@ export const CandidateDashboard: React.FC = () => {
               setSelectedJob(null)
               setActiveNav('Find Jobs')
             }}
-            onApply={(appliedJob) => {
-              setApplications(prev => [
-                {
-                  id: String(Date.now()),
-                  jobTitle: appliedJob.role,
-                  company: appliedJob.company,
-                  appliedOn: 'Today',
-                  status: 'Under Review'
-                },
-                ...prev
-              ])
-            }}
+            onApply={handleApplyToJob}
           />
         ) : activeNav === 'Find Jobs' ? (
           <FindJobsWorkspace
@@ -511,18 +498,7 @@ export const CandidateDashboard: React.FC = () => {
               setSelectedJob(null)
               setActiveNav('Saved Jobs')
             }}
-            onApply={(appliedJob) => {
-              setApplications(prev => [
-                {
-                  id: String(Date.now()),
-                  jobTitle: appliedJob.role,
-                  company: appliedJob.company,
-                  appliedOn: 'Today',
-                  status: 'Under Review'
-                },
-                ...prev
-              ])
-            }}
+            onApply={handleApplyToJob}
           />
         ) : (
           <>
@@ -889,13 +865,62 @@ export const CandidateDashboard: React.FC = () => {
 
                       <div className="cand-job-foot">
                         <span>{job.postedTime}</span>
-                        <button
-                          type="button"
-                          className="cand-btn-view-job"
-                          onClick={() => setSelectedJob(job)}
-                        >
-                          View Details →
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {applications.some(a => a.jobId === job.id || (a.jobTitle === job.role && a.company === job.company)) ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const found = applications.find(a => a.jobId === job.id || (a.jobTitle === job.role && a.company === job.company))
+                                if (found) setActiveBoardingPass(found)
+                              }}
+                              style={{
+                                padding: '5px 11px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                borderRadius: '6px',
+                                background: '#ecfdf5',
+                                color: '#059669',
+                                border: '1px solid #a7f3d0',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              Pass ✈
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleApplyToJob(job)
+                              }}
+                              style={{
+                                padding: '5px 11px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                borderRadius: '6px',
+                                background: '#09090b',
+                                color: '#ffffff',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              Apply ✈
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="cand-btn-view-job"
+                            onClick={() => setSelectedJob(job)}
+                          >
+                            Details →
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -955,8 +980,20 @@ export const CandidateDashboard: React.FC = () => {
                 </thead>
                 <tbody>
                   {applications.map(app => (
-                    <tr key={app.id} style={{ borderBottom: '1px solid #f8fafc', fontSize: '13.5px' }}>
-                      <td style={{ padding: '14px 12px', fontWeight: 600, color: '#09090b' }}>{app.jobTitle}</td>
+                    <tr
+                      key={app.id}
+                      style={{ borderBottom: '1px solid #f8fafc', fontSize: '13.5px', cursor: 'pointer' }}
+                      onClick={() => setActiveBoardingPass(app)}
+                      title="Click to inspect Flight Boarding Pass"
+                    >
+                      <td style={{ padding: '14px 12px', fontWeight: 600, color: '#09090b' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{app.jobTitle}</span>
+                          <span style={{ fontSize: '11px', padding: '2px 6px', background: '#f4f4f5', borderRadius: '4px', color: '#71717a', fontWeight: 600, fontFamily: 'monospace' }}>
+                            {app.flightNumber || 'PX-402'}
+                          </span>
+                        </div>
+                      </td>
                       <td style={{ padding: '14px 12px', color: '#475467' }}>{app.company}</td>
                       <td style={{ padding: '14px 12px', color: '#64748b' }}>{app.appliedOn}</td>
                       <td style={{ padding: '14px 12px' }}>
@@ -966,27 +1003,53 @@ export const CandidateDashboard: React.FC = () => {
                             borderRadius: '9999px',
                             fontSize: '12px',
                             fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
                             backgroundColor:
-                              app.status === 'Shortlisted'
+                              app.status === 'Shortlisted' || app.status === 'Interview'
                                 ? '#ecfdf5'
-                                : app.status === 'Applied'
-                                ? '#eff6ff'
-                                : '#f4f4f5',
+                                : app.status === 'Under Review'
+                                ? '#fef3c7'
+                                : app.status === 'Rejected'
+                                ? '#fee2e2'
+                                : '#eff6ff',
                             color:
-                              app.status === 'Shortlisted'
+                              app.status === 'Shortlisted' || app.status === 'Interview'
                                 ? '#059669'
-                                : app.status === 'Applied'
-                                ? '#2563eb'
-                                : '#475467'
+                                : app.status === 'Under Review'
+                                ? '#d97706'
+                                : app.status === 'Rejected'
+                                ? '#dc2626'
+                                : '#2563eb'
                           }}
                         >
-                          {app.status}
+                          ● {app.status}
                         </span>
                       </td>
                       <td style={{ padding: '14px 12px' }}>
-                        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#09090b', cursor: 'pointer' }}>
-                          View →
-                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveBoardingPass(app)
+                          }}
+                          style={{
+                            border: '1px solid #e4e4e7',
+                            backgroundColor: '#ffffff',
+                            borderRadius: '6px',
+                            padding: '5px 10px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#09090b',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          Pass ✈
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -1202,6 +1265,26 @@ export const CandidateDashboard: React.FC = () => {
           </>
         )}
       </main>
+
+      {/* Flight Boarding Pass Modal Alert */}
+      {activeBoardingPass && (
+        <FlightBoardingPassModal
+          application={activeBoardingPass}
+          onClose={() => setActiveBoardingPass(null)}
+          onStatusChange={(newStatus) => {
+            setApplications(prev => {
+              const updated = prev.map(a => (a.id === activeBoardingPass.id ? { ...a, status: newStatus } : a))
+              try {
+                localStorage.setItem('proxhire_candidate_applications', JSON.stringify(updated))
+              } catch {
+                // Ignore
+              }
+              return updated
+            })
+            setActiveBoardingPass(prev => (prev ? { ...prev, status: newStatus } : null))
+          }}
+        />
+      )}
 
     </div>
   )
