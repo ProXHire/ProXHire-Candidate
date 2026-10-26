@@ -43,11 +43,12 @@ export const JobDetailsScreen: React.FC<JobDetailsScreenProps> = ({
 
   // Dynamic salary computation if not directly present
   const salaryRange =
-    job.experienceLevel === 'Senior Level'
+    job.salary ||
+    (job.experienceLevel === 'Senior Level'
       ? '₹24 - ₹32 LPA'
       : job.experienceLevel === 'Mid Level'
       ? '₹16 - ₹24 LPA'
-      : '₹8 - ₹14 LPA'
+      : '₹8 - ₹14 LPA')
 
   // Dynamic company description & data
   const getCompanyDetails = (company: string) => {

@@ -108,6 +108,8 @@ export interface JobCardData {
   extraTagsCount: number
   postedTime: string
   isSaved?: boolean
+  salary?: string
+  description?: string
 }
 
 export interface ApplicationRowData {

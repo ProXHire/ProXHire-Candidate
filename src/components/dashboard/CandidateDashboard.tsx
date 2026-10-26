@@ -22,6 +22,7 @@ import { CompleteProfileWorkspace } from './CompleteProfileWorkspace'
 import { JobDetailsScreen } from './JobDetailsScreen'
 import { SavedJobsWorkspace } from './SavedJobsWorkspace'
 import { FindJobsWorkspace } from './FindJobsWorkspace'
+import { subscribeToCandidateJobs, DEFAULT_MOCK_JOBS } from '../../services/candidateJobService'
 
 export const CandidateDashboard: React.FC = () => {
   const { formData, setViewMode, setStep, isVerified, isCompleted, logout } = useCandidate()
@@ -134,128 +135,15 @@ export const CandidateDashboard: React.FC = () => {
     ? formData.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'C'
 
-  const [jobs, setJobs] = useState<JobCardData[]>([
-    {
-      id: '1',
-      company: 'Infosys',
-      companyLogoText: 'infosys',
-      role: 'Software Development Engineer',
-      location: 'Bangalore, Karnataka',
-      workType: 'On-site',
-      jobType: 'Full Time',
-      experienceLevel: 'Mid Level',
-      experienceYears: '3-6 Yrs',
-      tags: ['Java', 'Spring Boot', 'Microservices'],
-      extraTagsCount: 3,
-      postedTime: 'Posted 2 days ago',
-      isSaved: false
-    },
-    {
-      id: '2',
-      company: 'TCS',
-      companyLogoText: 'TATA',
-      role: 'Backend Developer',
-      location: 'Hyderabad, Telangana',
-      workType: 'Hybrid',
-      jobType: 'Full Time',
-      experienceLevel: 'Mid Level',
-      experienceYears: '2-5 Yrs',
-      tags: ['Node.js', 'Express.js', 'MongoDB'],
-      extraTagsCount: 2,
-      postedTime: 'Posted 1 day ago',
-      isSaved: true
-    },
-    {
-      id: '3',
-      company: 'Accenture',
-      companyLogoText: '>',
-      role: 'Full Stack Developer',
-      location: 'Pune, Maharashtra',
-      workType: 'Hybrid',
-      jobType: 'Full Time',
-      experienceLevel: 'Mid Level',
-      experienceYears: '3-7 Yrs',
-      tags: ['React', 'Node.js', 'AWS'],
-      extraTagsCount: 3,
-      postedTime: 'Posted 3 days ago',
-      isSaved: false
-    },
-    {
-      id: '4',
-      company: 'Razorpay',
-      companyLogoText: 'RZP',
-      role: 'Senior Frontend Engineer',
-      location: 'Bengaluru / Remote',
-      workType: 'Remote',
-      jobType: 'Full Time',
-      experienceLevel: 'Senior Level',
-      experienceYears: '5-8 Yrs',
-      tags: ['React', 'TypeScript', 'Next.js'],
-      extraTagsCount: 3,
-      postedTime: 'Posted 4 hours ago',
-      isSaved: true
-    },
-    {
-      id: '5',
-      company: 'Swiggy',
-      companyLogoText: 'SWG',
-      role: 'Frontend Developer',
-      location: 'Bengaluru, Karnataka',
-      workType: 'Remote',
-      jobType: 'Full Time',
-      experienceLevel: 'Entry Level',
-      experienceYears: '1-3 Yrs',
-      tags: ['JavaScript', 'React', 'Tailwind'],
-      extraTagsCount: 2,
-      postedTime: 'Posted today',
-      isSaved: true
-    },
-    {
-      id: '6',
-      company: 'Microsoft',
-      companyLogoText: 'MSFT',
-      role: 'Cloud Solutions Architect',
-      location: 'Hyderabad, Telangana',
-      workType: 'Hybrid',
-      jobType: 'Full Time',
-      experienceLevel: 'Senior Level',
-      experienceYears: '5-9 Yrs',
-      tags: ['Azure', 'Kubernetes', 'Microservices'],
-      extraTagsCount: 2,
-      postedTime: 'Posted 3 days ago',
-      isSaved: true
-    },
-    {
-      id: '7',
-      company: 'Zomato',
-      companyLogoText: 'ZOM',
-      role: 'Product Designer',
-      location: 'Gurugram, Delhi NCR',
-      workType: 'On-site',
-      jobType: 'Full Time',
-      experienceLevel: 'Mid Level',
-      experienceYears: '2-5 Yrs',
-      tags: ['Figma', 'Design Systems', 'UI/UX'],
-      extraTagsCount: 2,
-      postedTime: 'Posted 1 day ago',
-      isSaved: false
-    },
-    {
-      id: '8',
-      company: 'Jio',
-      companyLogoText: 'JIO',
-      role: 'DevOps Engineer',
-      location: 'Mumbai, Maharashtra',
-      workType: 'Hybrid',
-      jobType: 'Full Time',
-      experienceLevel: 'Senior Level',
-      experienceYears: '4-8 Yrs',
-      tags: ['Docker', 'AWS', 'CI/CD', 'Terraform'],
-      extraTagsCount: 3,
-      postedTime: 'Posted 2 days ago',
-      isSaved: false
-    }
-  ])
+  const [jobs, setJobs] = useState<JobCardData[]>(DEFAULT_MOCK_JOBS)
+
+  // Real-time synchronization of Firebase posted jobs
+  useEffect(() => {
+    const unsubscribe = subscribeToCandidateJobs((liveJobs) => {
+      setJobs(liveJobs)
+    })
+    return () => unsubscribe()
+  }, [])
 
   const filteredJobs = jobs.filter(job => {
     const q = searchQuery.trim().toLowerCase()
