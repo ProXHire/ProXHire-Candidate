@@ -379,10 +379,9 @@ export const AppliedJobsWorkspace: React.FC<AppliedJobsWorkspaceProps> = ({
                     <div className="cand-applied-role-row">
                       <h3 className="cand-applied-role">{app.jobTitle}</h3>
 
-                      <span className="cand-applied-flight-pill" title="Flight Boarding Pass ID">
-                        <Plane size={12} />
-                        <span>{app.flightNumber || 'PX-402'}</span>
-                        {app.seat && <span className="cand-applied-seat-badge">Seat {app.seat}</span>}
+                      <span className="cand-applied-flight-pill" title="Verified Application">
+                        <CheckCircle2 size={12} color="#059669" />
+                        <span>Verified Application</span>
                       </span>
                     </div>
 

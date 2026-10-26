@@ -192,39 +192,30 @@ export const FlightBoardingPassModal: React.FC<FlightBoardingPassModalProps> = (
             </div>
 
             {/* Passenger & Flight Details Grid */}
+            {/* Candidate & Application Details Grid */}
             <div className="boarding-details-grid">
               <div className="boarding-data-cell span-2">
-                <span className="boarding-label">PASSENGER NAME</span>
+                <span className="boarding-label">CANDIDATE NAME</span>
                 <span className="boarding-value highlight">{passengerName}</span>
               </div>
 
               <div className="boarding-data-cell span-2">
-                <span className="boarding-label">DESTINATION POSITION / ROLE</span>
+                <span className="boarding-label">APPLIED POSITION / ROLE</span>
                 <span className="boarding-value highlight">{application.jobTitle.toUpperCase()}</span>
               </div>
 
-              <div className="boarding-data-cell">
-                <span className="boarding-label">FLIGHT NO</span>
-                <span className="boarding-value">{flightCode}</span>
+              <div className="boarding-data-cell span-2">
+                <span className="boarding-label">EMPLOYER / COMPANY</span>
+                <span className="boarding-value">{application.company.toUpperCase()}</span>
+              </div>
+
+              <div className="boarding-data-cell span-2">
+                <span className="boarding-label">LOCATION</span>
+                <span className="boarding-value">{(application.location || 'Bengaluru, Karnataka').toUpperCase()}</span>
               </div>
 
               <div className="boarding-data-cell">
-                <span className="boarding-label">GATE</span>
-                <span className="boarding-value accent">{gateCode}</span>
-              </div>
-
-              <div className="boarding-data-cell">
-                <span className="boarding-label">SEAT</span>
-                <span className="boarding-value accent">{seatCode}</span>
-              </div>
-
-              <div className="boarding-data-cell">
-                <span className="boarding-label">BOARDING TIME</span>
-                <span className="boarding-value">IMMEDIATE</span>
-              </div>
-
-              <div className="boarding-data-cell">
-                <span className="boarding-label">DEPARTURE DATE</span>
+                <span className="boarding-label">APPLICATION DATE</span>
                 <span className="boarding-value">{appliedDate.toUpperCase()}</span>
               </div>
 
@@ -365,7 +356,7 @@ export const FlightBoardingPassModal: React.FC<FlightBoardingPassModalProps> = (
 
             <div className="boarding-stub-details">
               <div className="boarding-stub-row">
-                <span className="stub-lbl">PASSENGER</span>
+                <span className="stub-lbl">CANDIDATE</span>
                 <span className="stub-val">{passengerName.split(' ')[0]} {passengerName.split(' ')[1] || ''}</span>
               </div>
 
@@ -379,19 +370,14 @@ export const FlightBoardingPassModal: React.FC<FlightBoardingPassModalProps> = (
                 <span className="stub-val truncate">{application.company}</span>
               </div>
 
-              <div className="boarding-stub-grid">
-                <div>
-                  <span className="stub-lbl">GATE</span>
-                  <span className="stub-val bold">{gateCode}</span>
-                </div>
-                <div>
-                  <span className="stub-lbl">SEAT</span>
-                  <span className="stub-val bold">{seatCode}</span>
-                </div>
-                <div>
-                  <span className="stub-lbl">FLIGHT</span>
-                  <span className="stub-val bold">{flightCode}</span>
-                </div>
+              <div className="boarding-stub-row">
+                <span className="stub-lbl">STATUS</span>
+                <span className="stub-val bold" style={{ color: '#059669' }}>{currentStatus}</span>
+              </div>
+
+              <div className="boarding-stub-row">
+                <span className="stub-lbl">DATE</span>
+                <span className="stub-val">{appliedDate}</span>
               </div>
             </div>
 
