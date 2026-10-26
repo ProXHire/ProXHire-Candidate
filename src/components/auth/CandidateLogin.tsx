@@ -227,48 +227,6 @@ export const CandidateLogin: React.FC = () => {
 
       {/* Right Column - Login Form */}
       <div className="cand-form-col cand-login-col cand-single-page-col">
-        {/* Top Header Bar */}
-        <div className="cand-form-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 'clamp(14px, 2.4vh, 28px)' }}>
-          <div>
-            <span style={{ fontSize: '13.5px', color: '#64748b' }}>
-              Don't have an account?{' '}
-              <a
-                href="#register"
-                onClick={e => {
-                  e.preventDefault()
-                  setStep(1)
-                  setViewMode('registration')
-                }}
-                style={{ color: '#09090b', fontWeight: 700, textDecoration: 'underline' }}
-              >
-                Register as Candidate
-              </a>
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className="cand-role-switch-btn"
-            onClick={() => window.open('http://localhost:5178', '_blank')}
-            style={{
-              padding: '6px 14px',
-              fontSize: '12.5px',
-              fontWeight: 600,
-              borderRadius: '8px',
-              border: '1.5px solid #e2e8f0',
-              background: '#ffffff',
-              color: '#09090b',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            Employer Portal →
-          </button>
-        </div>
 
         {/* Centered Form Body */}
         <div className="cand-login-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
