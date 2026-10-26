@@ -1282,12 +1282,7 @@ export const CandidateDashboard: React.FC = () => {
                       title="Click to inspect Flight Boarding Pass"
                     >
                       <td style={{ padding: '14px 12px', fontWeight: 600, color: '#09090b' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span>{app.jobTitle}</span>
-                          <span style={{ fontSize: '11px', padding: '2px 6px', background: '#f4f4f5', borderRadius: '4px', color: '#71717a', fontWeight: 600, fontFamily: 'monospace' }}>
-                            {app.flightNumber || 'PX-402'}
-                          </span>
-                        </div>
+                        <span>{app.jobTitle}</span>
                       </td>
                       <td style={{ padding: '14px 12px', color: '#475467' }}>{app.company}</td>
                       <td style={{ padding: '14px 12px', color: '#64748b' }}>{app.appliedOn}</td>
