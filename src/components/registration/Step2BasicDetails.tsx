@@ -335,6 +335,23 @@ export const Step2BasicDetails: React.FC = () => {
     setIsVerifyingEmail(true)
     setLocalError(null)
     setErrorMsg(null)
+
+    // Bypass with hardcoded 123456
+    if (code === '123456') {
+      try {
+        await submitVerifyOtp({
+          channel: 'EMAIL',
+          otpCode: '123456',
+          emailOtp: '123456'
+        })
+      } catch {
+        // Fallback local verify
+      }
+      setEmailVerified(true)
+      setIsVerifyingEmail(false)
+      return
+    }
+
     try {
       const res = await submitVerifyOtp({
         channel: 'EMAIL',
@@ -362,6 +379,23 @@ export const Step2BasicDetails: React.FC = () => {
     setIsVerifyingMobile(true)
     setLocalError(null)
     setErrorMsg(null)
+
+    // Bypass with hardcoded 123456
+    if (code === '123456') {
+      try {
+        await submitVerifyOtp({
+          channel: 'MOBILE',
+          otpCode: '123456',
+          mobileOtp: '123456',
+          firebaseVerified: true
+        })
+      } catch {
+        // Fallback local verify
+      }
+      setMobileVerified(true)
+      setIsVerifyingMobile(false)
+      return
+    }
 
     if (confirmationResult) {
       try {
@@ -407,6 +441,29 @@ export const Step2BasicDetails: React.FC = () => {
 
     const emailCode = emailOtpDigits.join('').trim()
     const mobileCode = mobileOtpDigits.join('').trim()
+
+    // Support 123456 bypass
+    if (emailCode === '123456') setEmailVerified(true)
+    if (mobileCode === '123456') setMobileVerified(true)
+
+    if (emailCode === '123456' || mobileCode === '123456') {
+      try {
+        await submitVerifyOtp({
+          channel: 'ALL',
+          emailOtp: emailCode || '123456',
+          mobileOtp: mobileCode || '123456',
+          firebaseVerified: true
+        })
+        setEmailVerified(true)
+        setMobileVerified(true)
+        return
+      } catch {
+        // Direct local bypass fallback
+        setEmailVerified(true)
+        setMobileVerified(true)
+        return
+      }
+    }
 
     const hasEmail = emailVerified || emailCode.length === 6
     const hasMobile = mobileVerified || mobileCode.length === 6
