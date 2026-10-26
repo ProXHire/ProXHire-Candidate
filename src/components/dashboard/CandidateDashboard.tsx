@@ -14,14 +14,21 @@ import {
   Menu,
   X,
   LogOut,
-  SlidersHorizontal
+  SlidersHorizontal,
+  User,
+  Briefcase,
+  ChevronRight,
+  Check,
+  Sparkles
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
-import type { JobCardData, ApplicationRowData } from '../../types'
+import type { JobCardData, ApplicationRowData, ApplicationStatusType } from '../../types'
 import { CompleteProfileWorkspace } from './CompleteProfileWorkspace'
 import { JobDetailsScreen } from './JobDetailsScreen'
 import { SavedJobsWorkspace } from './SavedJobsWorkspace'
 import { FindJobsWorkspace } from './FindJobsWorkspace'
+import { AppliedJobsWorkspace } from './AppliedJobsWorkspace'
+import { RecommendedJobsWorkspace } from './RecommendedJobsWorkspace'
 import { subscribeToCandidateJobs, DEFAULT_MOCK_JOBS } from '../../services/candidateJobService'
 import { FlightBoardingPassModal } from './FlightBoardingPassModal'
 
@@ -36,6 +43,8 @@ export const CandidateDashboard: React.FC = () => {
   const filterRef = useRef<HTMLDivElement>(null)
   const [selectedJob, setSelectedJob] = useState<JobCardData | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
+  const profileDropdownRef = useRef<HTMLDivElement>(null)
   const [profileInitialTab, setProfileInitialTab] = useState<'profile' | 'career' | 'personal' | 'review'>('profile')
 
   // Close filter popover on outside click
@@ -49,6 +58,28 @@ export const CandidateDashboard: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Close profile dropdown on outside click or Escape key
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false)
+      }
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsProfileDropdownOpen(false)
+      }
+    }
+    if (isProfileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isProfileDropdownOpen])
+
   const activeFilterCount =
     (filterWorkType !== 'all' ? 1 : 0) +
     (filterExperience !== 'all' ? 1 : 0) +
@@ -61,7 +92,7 @@ export const CandidateDashboard: React.FC = () => {
     setSearchQuery('')
   }
 
-  // Support deep-linking to Complete Profile, Saved Jobs, or Find Jobs via URL
+  // Support deep-linking to Complete Profile, Saved Jobs, Applied Jobs, Recommended Jobs, or Find Jobs via URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const nav = params.get('nav')
@@ -71,6 +102,10 @@ export const CandidateDashboard: React.FC = () => {
       if (tab) setProfileInitialTab(tab)
     } else if (nav === 'saved' || nav === 'saved-jobs' || nav === 'Saved Jobs') {
       setActiveNav('Saved Jobs')
+    } else if (nav === 'applied' || nav === 'applied-jobs' || nav === 'Applied Jobs' || nav === 'applications') {
+      setActiveNav('Applied Jobs')
+    } else if (nav === 'recommended' || nav === 'recommended-jobs' || nav === 'Recommended Jobs') {
+      setActiveNav('Recommended Jobs')
     } else if (nav === 'find' || nav === 'find-jobs' || nav === 'jobs' || nav === 'Find Jobs') {
       setActiveNav('Find Jobs')
     }
@@ -269,6 +304,30 @@ export const CandidateDashboard: React.FC = () => {
     setActiveBoardingPass(newApp)
   }
 
+  const handleWithdrawApplication = (appId: string) => {
+    setApplications(prev => {
+      const updated = prev.filter(a => a.id !== appId)
+      try {
+        localStorage.setItem('proxhire_candidate_applications', JSON.stringify(updated))
+      } catch {
+        // Ignore
+      }
+      return updated
+    })
+  }
+
+  const handleUpdateApplicationStatus = (appId: string, newStatus: ApplicationStatusType) => {
+    setApplications(prev => {
+      const updated = prev.map(a => (a.id === appId ? { ...a, status: newStatus } : a))
+      try {
+        localStorage.setItem('proxhire_candidate_applications', JSON.stringify(updated))
+      } catch {
+        // Ignore
+      }
+      return updated
+    })
+  }
+
   const toggleSaveJob = (id: string) => {
     setJobs(prev =>
       prev.map(j => (j.id === id ? { ...j, isSaved: !j.isSaved } : j))
@@ -297,7 +356,7 @@ export const CandidateDashboard: React.FC = () => {
 
           {/* Desktop Navigation Links */}
           <nav className="cand-dash-nav">
-            {['Dashboard', 'Find Jobs', 'Saved Jobs'].map(nav => (
+            {['Dashboard', 'Find Jobs', 'Recommended Jobs', 'Saved Jobs', 'Applied Jobs'].map(nav => (
               <span
                 key={nav}
                 className={`cand-dash-link ${activeNav === nav ? 'active' : ''}`}
@@ -323,23 +382,191 @@ export const CandidateDashboard: React.FC = () => {
             <span className="cand-unread-badge" />
           </button>
 
-          {/* Profile pill */}
-          <div
-            className="cand-dash-profile-pill"
-            style={{ cursor: 'pointer' }}
-            title="Manage and complete your profile"
-            onClick={() => {
-              setProfileInitialTab('profile')
-              setActiveNav('Complete Profile')
-            }}
-          >
-            <div className="cand-dash-avatar">
-              {candidateInitials}
+          {/* Candidate Profile Pill & Dropdown Menu */}
+          <div className="cand-profile-dropdown-wrapper" ref={profileDropdownRef}>
+            <div
+              className={`cand-dash-profile-pill ${isProfileDropdownOpen ? 'active' : ''}`}
+              style={{ cursor: 'pointer' }}
+              title="Candidate Profile Menu"
+              onClick={() => setIsProfileDropdownOpen(prev => !prev)}
+              role="button"
+              aria-haspopup="true"
+              aria-expanded={isProfileDropdownOpen}
+            >
+              <div className="cand-dash-avatar">
+                {candidateInitials}
+              </div>
+              <span className="cand-dash-profile-name">
+                {formData.fullName || 'Candidate'}
+              </span>
+              <ChevronDown
+                size={14}
+                color="#71717a"
+                className={`cand-dash-chevron ${isProfileDropdownOpen ? 'rotate' : ''}`}
+              />
             </div>
-            <span className="cand-dash-profile-name">
-              {formData.fullName || 'Candidate'}
-            </span>
-            <ChevronDown size={14} color="#71717a" className="cand-dash-chevron" />
+
+            {/* Candidate Profile Dropdown List */}
+            {isProfileDropdownOpen && (
+              <div className="cand-profile-menu-dropdown">
+                {/* Profile Header & Completion Bar */}
+                <div className="cand-profile-menu-header">
+                  <div className="cand-profile-menu-user">
+                    <div className="cand-dash-avatar" style={{ width: '40px', height: '40px', fontSize: '15px' }}>
+                      {candidateInitials}
+                    </div>
+                    <div className="cand-profile-menu-user-info">
+                      <div className="cand-profile-menu-name">
+                        {formData.fullName || 'Candidate'}
+                      </div>
+                      <div className="cand-profile-menu-email">
+                        {formData.email || 'candidate@gmail.com'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="cand-profile-menu-completion">
+                    <div className="cand-profile-menu-completion-head">
+                      <span className="cand-profile-menu-completion-label">Profile Strength</span>
+                      <span className="cand-profile-menu-completion-pct">{profileCompletionPct}%</span>
+                    </div>
+                    <div className="cand-profile-menu-progress-track">
+                      <div
+                        className="cand-profile-menu-progress-bar"
+                        style={{ width: `${profileCompletionPct}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="cand-profile-menu-divider" />
+
+                {/* Dropdown Options List: My Profile, Saved Jobs, Applied Jobs, Find Jobs */}
+                <div className="cand-profile-menu-items">
+                  <button
+                    type="button"
+                    className={`cand-profile-menu-item ${activeNav === 'Complete Profile' ? 'active' : ''}`}
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false)
+                      setSelectedJob(null)
+                      setProfileInitialTab('profile')
+                      setActiveNav('Complete Profile')
+                    }}
+                  >
+                    <div className="cand-profile-menu-item-icon">
+                      <User size={16} />
+                    </div>
+                    <div className="cand-profile-menu-item-content">
+                      <span className="cand-profile-menu-item-title">My Profile</span>
+                      <span className="cand-profile-menu-item-sub">View & complete details</span>
+                    </div>
+                    <ChevronRight size={14} className="cand-profile-menu-item-arrow" />
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`cand-profile-menu-item ${activeNav === 'Recommended Jobs' ? 'active' : ''}`}
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false)
+                      setSelectedJob(null)
+                      setActiveNav('Recommended Jobs')
+                    }}
+                  >
+                    <div className="cand-profile-menu-item-icon" style={{ color: '#4f46e5', backgroundColor: '#eef2ff' }}>
+                      <Sparkles size={16} />
+                    </div>
+                    <div className="cand-profile-menu-item-content">
+                      <span className="cand-profile-menu-item-title">Recommended Jobs</span>
+                      <span className="cand-profile-menu-item-sub">Matched to your verified profile</span>
+                    </div>
+                    <span className="cand-profile-menu-badge highlight" style={{ backgroundColor: '#eef2ff', color: '#4f46e5', borderColor: '#c7d2fe' }}>
+                      Match
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`cand-profile-menu-item ${activeNav === 'Saved Jobs' ? 'active' : ''}`}
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false)
+                      setSelectedJob(null)
+                      setActiveNav('Saved Jobs')
+                    }}
+                  >
+                    <div className="cand-profile-menu-item-icon">
+                      <Bookmark size={16} />
+                    </div>
+                    <div className="cand-profile-menu-item-content">
+                      <span className="cand-profile-menu-item-title">Saved Jobs</span>
+                      <span className="cand-profile-menu-item-sub">Bookmarked vacancies</span>
+                    </div>
+                    <span className="cand-profile-menu-badge">
+                      {jobs.filter(j => j.isSaved).length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`cand-profile-menu-item ${activeNav === 'Applied Jobs' ? 'active' : ''}`}
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false)
+                      setSelectedJob(null)
+                      setActiveNav('Applied Jobs')
+                    }}
+                  >
+                    <div className="cand-profile-menu-item-icon">
+                      <Briefcase size={16} />
+                    </div>
+                    <div className="cand-profile-menu-item-content">
+                      <span className="cand-profile-menu-item-title">Applied Jobs</span>
+                      <span className="cand-profile-menu-item-sub">Status & boarding passes</span>
+                    </div>
+                    <span className="cand-profile-menu-badge highlight">
+                      {applications.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`cand-profile-menu-item ${activeNav === 'Find Jobs' ? 'active' : ''}`}
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false)
+                      setSelectedJob(null)
+                      setActiveNav('Find Jobs')
+                    }}
+                  >
+                    <div className="cand-profile-menu-item-icon">
+                      <Search size={16} />
+                    </div>
+                    <div className="cand-profile-menu-item-content">
+                      <span className="cand-profile-menu-item-title">Find Jobs</span>
+                      <span className="cand-profile-menu-item-sub">Explore verified openings</span>
+                    </div>
+                  </button>
+                </div>
+
+                <div className="cand-profile-menu-divider" />
+
+                {/* Sign Out Action */}
+                <div className="cand-profile-menu-footer">
+                  <button
+                    type="button"
+                    className="cand-profile-menu-item cand-profile-menu-logout"
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false)
+                      logout()
+                    }}
+                  >
+                    <div className="cand-profile-menu-item-icon logout">
+                      <LogOut size={16} />
+                    </div>
+                    <div className="cand-profile-menu-item-content">
+                      <span className="cand-profile-menu-item-title">Sign Out</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <button
@@ -367,7 +594,7 @@ export const CandidateDashboard: React.FC = () => {
       {/* Mobile Nav Tabs Bar (Visible on mobile/tablet) */}
       <div className="cand-mobile-tabs-container">
         <nav className="cand-mobile-tabs-scroll">
-          {['Dashboard', 'Find Jobs', 'Saved Jobs'].map(nav => (
+          {['Dashboard', 'Find Jobs', 'Recommended Jobs', 'Saved Jobs', 'Applied Jobs'].map(nav => (
             <button
               key={nav}
               type="button"
@@ -409,7 +636,9 @@ export const CandidateDashboard: React.FC = () => {
               {[
                 { name: 'Dashboard', icon: TrendingUp },
                 { name: 'Find Jobs', icon: Search },
-                { name: 'Saved Jobs', icon: Bookmark }
+                { name: 'Recommended Jobs', icon: Sparkles, badge: 'Match' },
+                { name: 'Saved Jobs', icon: Bookmark, badge: jobs.filter(j => j.isSaved).length },
+                { name: 'Applied Jobs', icon: Briefcase, badge: applications.length }
               ].map(item => {
                 const Icon = item.icon
                 return (
@@ -424,7 +653,19 @@ export const CandidateDashboard: React.FC = () => {
                     }}
                   >
                     <Icon size={18} />
-                    <span>{item.name}</span>
+                    <span style={{ flex: 1, textAlign: 'left' }}>{item.name}</span>
+                    {typeof item.badge === 'number' && (
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        backgroundColor: item.name === 'Applied Jobs' ? '#ecfdf5' : '#f4f4f5',
+                        color: item.name === 'Applied Jobs' ? '#059669' : '#52525b',
+                        padding: '2px 8px',
+                        borderRadius: '9999px'
+                      }}>
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -471,6 +712,44 @@ export const CandidateDashboard: React.FC = () => {
           <CompleteProfileWorkspace
             onBack={() => setActiveNav('Dashboard')}
             initialTab={profileInitialTab}
+          />
+        ) : activeNav === 'Recommended Jobs' ? (
+          <RecommendedJobsWorkspace
+            jobs={jobs}
+            applications={applications}
+            candidateProfile={formData}
+            onToggleSave={(jobId) => toggleSaveJob(jobId)}
+            onViewJob={(job) => setSelectedJob(job)}
+            onBackToDashboard={() => {
+              setSelectedJob(null)
+              setActiveNav('Dashboard')
+            }}
+            onApply={handleApplyToJob}
+            onGoToSavedJobs={() => {
+              setSelectedJob(null)
+              setActiveNav('Saved Jobs')
+            }}
+            onGoToAppliedJobs={() => {
+              setSelectedJob(null)
+              setActiveNav('Applied Jobs')
+            }}
+          />
+        ) : activeNav === 'Applied Jobs' ? (
+          <AppliedJobsWorkspace
+            applications={applications}
+            jobs={jobs}
+            onViewBoardingPass={(app) => setActiveBoardingPass(app)}
+            onViewJob={(job) => setSelectedJob(job)}
+            onBrowseJobs={() => {
+              setSelectedJob(null)
+              setActiveNav('Find Jobs')
+            }}
+            onBackToDashboard={() => {
+              setSelectedJob(null)
+              setActiveNav('Dashboard')
+            }}
+            onWithdrawApplication={handleWithdrawApplication}
+            onUpdateStatus={handleUpdateApplicationStatus}
           />
         ) : activeNav === 'Saved Jobs' ? (
           <SavedJobsWorkspace
@@ -733,27 +1012,35 @@ export const CandidateDashboard: React.FC = () => {
                 className="cand-stat-card"
                 onClick={() => {
                   setSelectedJob(null)
-                  setActiveNav('Find Jobs')
+                  setActiveNav('Recommended Jobs')
                 }}
                 style={{ cursor: 'pointer' }}
-                title="Browse and find jobs"
+                title="Browse recommended jobs matched to your profile"
               >
-                <div className="cand-stat-icon-wrap">
-                  <FileText size={20} />
+                <div className="cand-stat-icon-wrap" style={{ color: '#4f46e5', backgroundColor: '#eef2ff' }}>
+                  <Sparkles size={20} />
                 </div>
                 <div>
                   <div className="cand-stat-number">{jobs.length}</div>
-                  <div className="cand-stat-title">Matching Jobs</div>
-                  <span className="cand-stat-link">View Jobs →</span>
+                  <div className="cand-stat-title">Recommended Jobs</div>
+                  <span className="cand-stat-link">View Matches →</span>
                 </div>
               </div>
 
-              <div className="cand-stat-card">
+              <div
+                className="cand-stat-card"
+                onClick={() => {
+                  setSelectedJob(null)
+                  setActiveNav('Applied Jobs')
+                }}
+                style={{ cursor: 'pointer' }}
+                title="View your applied jobs"
+              >
                 <div className="cand-stat-icon-wrap">
                   <Send size={20} />
                 </div>
                 <div>
-                  <div className="cand-stat-number">8</div>
+                  <div className="cand-stat-number">{applications.length}</div>
                   <div className="cand-stat-title">Applications</div>
                   <span className="cand-stat-link">Track Status →</span>
                 </div>
@@ -802,8 +1089,9 @@ export const CandidateDashboard: React.FC = () => {
                     style={{ fontSize: '13px', fontWeight: 700, color: '#09090b', cursor: 'pointer' }}
                     onClick={() => {
                       setSelectedJob(null)
-                      setActiveNav('Find Jobs')
+                      setActiveNav('Recommended Jobs')
                     }}
+                    title="View all recommended jobs"
                   >
                     View All →
                   </span>
@@ -962,7 +1250,14 @@ export const CandidateDashboard: React.FC = () => {
                     Swipe horizontally to view full details
                   </span>
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#09090b', cursor: 'pointer' }}>
+                <span
+                  style={{ fontSize: '13px', fontWeight: 700, color: '#09090b', cursor: 'pointer' }}
+                  onClick={() => {
+                    setSelectedJob(null)
+                    setActiveNav('Applied Jobs')
+                  }}
+                  title="View all applied jobs"
+                >
                   View All →
                 </span>
               </div>
