@@ -386,16 +386,25 @@ export const SavedJobsWorkspace: React.FC<SavedJobsWorkspaceProps> = ({
                       </button>
 
                       {applied ? (
-                        <span className="cand-saved-applied-tag">
-                          <Check size={13} /> Applied
-                        </span>
+                        <button
+                          type="button"
+                          className="cand-saved-applied-tag"
+                          style={{ cursor: 'pointer', border: '1px solid #a7f3d0' }}
+                          onClick={e => {
+                            e.stopPropagation()
+                            onApply(job)
+                          }}
+                          title="View Flight Boarding Pass"
+                        >
+                          <Check size={13} /> Pass ✈
+                        </button>
                       ) : (
                         <button
                           type="button"
                           className="cand-btn-primary-sm"
                           onClick={e => handleApplyClick(job, e)}
                         >
-                          Apply Now
+                          Apply ✈
                         </button>
                       )}
                     </div>
