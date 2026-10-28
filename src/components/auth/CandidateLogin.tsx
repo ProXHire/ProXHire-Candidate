@@ -17,6 +17,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
+import { resetPasswordForEmail } from '../../supabase'
 
 // Google "G" official multi-color SVG icon
 const GoogleIcon = () => (
@@ -31,18 +32,47 @@ const GoogleIcon = () => (
 export const CandidateLogin: React.FC = () => {
   const { formData, setViewMode, setStep, loginCandidate } = useCandidate()
 
-  // State - Real Clean Defaults (no dummy prefill)
-  const [emailOrPhone, setEmailOrPhone] = useState(formData.email || '')
+  // State - decoupled from registration formData, only uses explicit remembered credentials
+  const [emailOrPhone, setEmailOrPhone] = useState(() => {
+    return localStorage.getItem('proxhire_remembered_candidate_email') || ''
+  })
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(true)
+  const [rememberMe, setRememberMe] = useState(() => {
+    return !!localStorage.getItem('proxhire_remembered_candidate_email')
+  })
 
   // Loading & Error State
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [showForgotModal, setShowForgotModal] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotError, setForgotError] = useState<string | null>(null)
   const [forgotSubmitted, setForgotSubmitted] = useState(false)
+
+  // Handle Supabase Email Password Reset Submit
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotError(null)
+
+    const clean = forgotEmail.trim().toLowerCase()
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!clean || !emailRegex.test(clean)) {
+      setForgotError('Password reset links are delivered via email. Please enter your registered email address (not a mobile number).')
+      return
+    }
+
+    setForgotLoading(true)
+    try {
+      await resetPasswordForEmail(clean)
+      setForgotSubmitted(true)
+    } catch (err: any) {
+      setForgotError(err.message || 'Failed to dispatch password reset email. Please try again.')
+    } finally {
+      setForgotLoading(false)
+    }
+  }
 
   // Handle Password Login Submit
   const handleLogin = async (e: React.FormEvent) => {
@@ -52,6 +82,12 @@ export const CandidateLogin: React.FC = () => {
     if (!emailOrPhone.trim() || !password) {
       setErrorMsg('Please enter your email and password.')
       return
+    }
+
+    if (rememberMe) {
+      localStorage.setItem('proxhire_remembered_candidate_email', emailOrPhone.trim())
+    } else {
+      localStorage.removeItem('proxhire_remembered_candidate_email')
     }
 
     setIsLoading(true)
@@ -223,7 +259,14 @@ export const CandidateLogin: React.FC = () => {
                       cursor: 'pointer',
                       padding: 0
                     }}
-                    onClick={() => setShowForgotModal(true)}
+                    onClick={() => {
+                      if (emailOrPhone.includes('@')) {
+                        setForgotEmail(emailOrPhone.trim())
+                      }
+                      setForgotError(null)
+                      setForgotSubmitted(false)
+                      setShowForgotModal(true)
+                    }}
                   >
                     Forgot?
                   </button>
@@ -342,7 +385,7 @@ export const CandidateLogin: React.FC = () => {
               Reset Password
             </h4>
             <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px', lineHeight: 1.5 }}>
-              Enter your registered email address or mobile number. We'll send you an OTP to reset your password.
+              Enter your registered email address. We'll send you instructions to securely reset your password.
             </p>
 
             {forgotSubmitted ? (
@@ -351,42 +394,66 @@ export const CandidateLogin: React.FC = () => {
                 <h5 style={{ fontSize: '15px', fontWeight: 700, color: '#09090b', margin: '0 0 6px' }}>
                   Reset Link Dispatched
                 </h5>
-                <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-                  If an account exists for {forgotEmail}, instructions have been sent.
+                <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 8px', lineHeight: 1.5 }}>
+                  If an account exists for <strong style={{ color: '#09090b' }}>{forgotEmail}</strong>, instructions have been sent to your email inbox.
+                </p>
+                <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>
+                  Please check your spam or junk folder if you do not receive it shortly.
                 </p>
                 <button
                   type="button"
                   className="cand-btn-primary"
-                  style={{ marginTop: '16px', width: '100%', justifyContent: 'center' }}
+                  style={{ marginTop: '20px', width: '100%', justifyContent: 'center' }}
                   onClick={() => {
                     setShowForgotModal(false)
                     setForgotSubmitted(false)
                     setForgotEmail('')
+                    setForgotError(null)
                   }}
                 >
                   Back to Login
                 </button>
               </div>
             ) : (
-              <form
-                onSubmit={e => {
-                  e.preventDefault()
-                  if (forgotEmail) setForgotSubmitted(true)
-                }}
-              >
+              <form onSubmit={handleForgotPassword}>
+                {forgotError && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '8px',
+                      padding: '10px 12px',
+                      backgroundColor: '#fef2f2',
+                      border: '1px solid #fecaca',
+                      borderRadius: '8px',
+                      color: '#b91c1c',
+                      fontSize: '12.5px',
+                      lineHeight: 1.4,
+                      marginBottom: '14px'
+                    }}
+                  >
+                    <AlertCircle size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span>{forgotError}</span>
+                  </div>
+                )}
+
                 <div className="cand-field-group" style={{ marginBottom: '16px' }}>
-                  <label className="cand-field-label">Registered Email / Phone</label>
+                  <label className="cand-field-label">Registered Email Address</label>
                   <div className="cand-input-wrapper">
                     <span className="cand-input-icon">
                       <Mail size={16} />
                     </span>
                     <input
-                      type="text"
+                      type="email"
                       className="cand-input"
                       placeholder="e.g. candidate@gmail.com"
                       value={forgotEmail}
-                      onChange={e => setForgotEmail(e.target.value)}
+                      onChange={e => {
+                        setForgotEmail(e.target.value)
+                        if (forgotError) setForgotError(null)
+                      }}
                       required
+                      autoFocus
                     />
                   </div>
                 </div>
@@ -396,7 +463,11 @@ export const CandidateLogin: React.FC = () => {
                     type="button"
                     className="cand-btn-secondary"
                     style={{ flex: 1, justifyContent: 'center' }}
-                    onClick={() => setShowForgotModal(false)}
+                    onClick={() => {
+                      setShowForgotModal(false)
+                      setForgotError(null)
+                    }}
+                    disabled={forgotLoading}
                   >
                     Cancel
                   </button>
@@ -404,8 +475,9 @@ export const CandidateLogin: React.FC = () => {
                     type="submit"
                     className="cand-btn-primary"
                     style={{ flex: 1, justifyContent: 'center' }}
+                    disabled={forgotLoading}
                   >
-                    Send OTP
+                    {forgotLoading ? 'Sending Link...' : 'Send Reset Link'}
                   </button>
                 </div>
               </form>

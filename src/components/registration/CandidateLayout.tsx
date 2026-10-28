@@ -18,7 +18,11 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
 
   const stepsList: { num: CandidateStep; label: string }[] = [
     { num: 1, label: 'Experience' },
-    { num: 2, label: 'Basic Details' }
+    { num: 2, label: 'Account' },
+    { num: 3, label: 'Profile' },
+    { num: 4, label: 'Career' },
+    { num: 5, label: 'Personal' },
+    { num: 6, label: 'Overview' }
   ]
 
   // Stepper progress line width
@@ -112,7 +116,7 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
         {/* Top Header bar */}
         <div className="cand-form-header-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {step <= 2 && (
+            {step <= 2 ? (
               <span style={{ fontSize: '13px', color: '#64748b' }}>
                 Already have an account?{' '}
                 <a
@@ -125,6 +129,10 @@ export const CandidateLayout: React.FC<CandidateLayoutProps> = ({ children }) =>
                 >
                   Login
                 </a>
+              </span>
+            ) : (
+              <span style={{ fontSize: '12.5px', color: '#475467', fontWeight: 600 }}>
+                Mandatory Profile Setup &bull; Step {step} of 6
               </span>
             )}
           </div>

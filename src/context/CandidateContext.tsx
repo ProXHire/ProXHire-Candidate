@@ -5,6 +5,7 @@ import { syncCandidateToFirebase } from '../services/firebaseCandidateSync'
 import { db } from '../firebase'
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import confetti from 'canvas-confetti'
+import { resetPasswordForEmail } from '../supabase'
 
 interface CandidateContextType {
   step: CandidateStep
@@ -45,6 +46,7 @@ interface CandidateContextType {
   resendVerificationOtp: () => Promise<void>
   completeRegistration: () => Promise<void>
   loginCandidate: (emailOrPhone: string, pass: string) => Promise<void>
+  resetPassword: (email: string) => Promise<{ success: boolean; message: string }>
   logout: () => void
 }
 
@@ -122,19 +124,23 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const savedMode = localStorage.getItem('proxhire_candidate_view_mode')
     const hasToken = !!localStorage.getItem('proxhire_candidate_token')
     const isVer = localStorage.getItem('proxhire_candidate_verified') === 'true'
+    const isComp = localStorage.getItem('proxhire_candidate_registered') === 'true'
 
-    if (savedMode === 'dashboard' && hasToken && isVer) {
+    if (savedMode === 'dashboard' && hasToken && isVer && isComp) {
       return 'dashboard'
     }
     if (typeof window !== 'undefined') {
       const p = new URLSearchParams(window.location.search)
       const hash = window.location.hash.toLowerCase()
-      if ((p.get('view') === 'dashboard' || hash === '#dashboard') && hasToken && isVer) {
+      if ((p.get('view') === 'dashboard' || hash === '#dashboard') && hasToken && isVer && isComp) {
         return 'dashboard'
       }
       if (p.get('view') === 'login' || hash === '#login') {
         return 'login'
       }
+    }
+    if (hasToken && isVer && !isComp) {
+      return 'registration'
     }
     return 'login'
   })
@@ -334,7 +340,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         response.isVerified = true
       }
 
-      // Email verification unlocks the candidate account and dashboard
+      // Email verification unlocks the candidate account and proceeds to profile creation
       if (response.isVerified || response.isEmailVerified) {
         response.isVerified = true
         if (response.token) {
@@ -344,14 +350,18 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
         setIsVerified(true)
         localStorage.setItem('proxhire_candidate_verified', 'true')
-        setIsCompleted(true)
-        localStorage.setItem('proxhire_candidate_registered', 'true')
+
+        // Profile is NOT completed yet - candidate must complete steps 3, 4, 5, 6 first!
+        setIsCompleted(false)
+        localStorage.setItem('proxhire_candidate_registered', 'false')
         setOtpPending(false)
 
         syncCandidateToFirebase(formData, userId || undefined).catch(() => null)
 
-        setViewModeState('dashboard')
-        localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
+        // Proceed directly to Step 3: Profile Details (Resume, Education & Skills)
+        setStepState(3)
+        setViewModeState('registration')
+        localStorage.setItem('proxhire_candidate_view_mode', 'registration')
       }
 
       return response
@@ -530,13 +540,30 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           setAuthToken(sessionToken)
           setUserId(candidateUid)
           setIsVerified(true)
-          setIsCompleted(true)
 
           localStorage.setItem('proxhire_candidate_token', sessionToken)
           localStorage.setItem('proxhire_candidate_uid', candidateUid)
           localStorage.setItem('proxhire_candidate_verified', 'true')
-          localStorage.setItem('proxhire_candidate_registered', 'true')
-          localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
+
+          // Check if candidate has completed their mandatory profile
+          const hasCompletedProfile = !!(
+            candidateDoc?.isCompleted === true ||
+            (candidateDoc?.skills && candidateDoc.skills.length >= 3 && candidateDoc?.educations && candidateDoc.educations.length >= 1 && candidateDoc?.preferredRole)
+          )
+
+          if (hasCompletedProfile) {
+            setIsCompleted(true)
+            localStorage.setItem('proxhire_candidate_registered', 'true')
+            localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
+            setViewModeState('dashboard')
+          } else {
+            // New account or incomplete profile -> Candidate must create their profile first!
+            setIsCompleted(false)
+            localStorage.setItem('proxhire_candidate_registered', 'false')
+            localStorage.setItem('proxhire_candidate_view_mode', 'registration')
+            setStepState(3)
+            setViewModeState('registration')
+          }
 
           if (candidateDoc) {
             setFormData(prev => ({
@@ -553,7 +580,6 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             }))
           }
 
-          setViewModeState('dashboard')
           return
         }
       } catch (fbErr: any) {
@@ -581,23 +607,32 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setUserId(null)
     setIsVerified(false)
     setIsCompleted(false)
+    setFormData(INITIAL_STATE)
     localStorage.removeItem('proxhire_candidate_token')
     localStorage.removeItem('proxhire_candidate_uid')
     localStorage.removeItem('proxhire_candidate_verified')
     localStorage.removeItem('proxhire_candidate_registered')
     localStorage.removeItem('proxhire_candidate_view_mode')
+    localStorage.removeItem('proxhire_candidate_registration')
     setViewModeState('login')
   }
 
   /**
-   * Guarded navigation to prevent unauthenticated candidates from accessing dashboard
+   * Guarded navigation to prevent unauthenticated or incomplete profile candidates from accessing dashboard
    */
   const setViewMode = (mode: 'registration' | 'dashboard' | 'login') => {
     if (mode === 'dashboard') {
       const hasToken = !!localStorage.getItem('proxhire_candidate_token')
       const isVer = localStorage.getItem('proxhire_candidate_verified') === 'true'
+      const isComp = localStorage.getItem('proxhire_candidate_registered') === 'true'
       if (!hasToken || !isVer) {
         setViewModeState('login')
+        return
+      }
+      if (!isComp) {
+        // Candidate has a new account / incomplete profile -> Must create profile first!
+        setViewModeState('registration')
+        setStepState(3)
         return
       }
     }
@@ -629,6 +664,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         resendVerificationOtp,
         completeRegistration,
         loginCandidate,
+        resetPassword: resetPasswordForEmail,
         logout
       }}
     >

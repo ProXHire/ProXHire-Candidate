@@ -61,6 +61,14 @@ export const CandidateDashboard: React.FC = () => {
   const notificationDropdownRef = useRef<HTMLDivElement>(null)
   const unreadNotifCount = notifications.filter(n => !n.isRead).length
 
+  // Safety guard: Candidates with uncompleted profile must create their profile first
+  useEffect(() => {
+    if (!isCompleted) {
+      setViewMode('registration')
+      setStep(3)
+    }
+  }, [isCompleted, setViewMode, setStep])
+
   // Close notifications dropdown on outside click or Escape key
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

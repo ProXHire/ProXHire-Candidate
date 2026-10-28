@@ -389,7 +389,7 @@ export const Step2BasicDetails: React.FC = () => {
               <ShieldCheck size={18} />
             </div>
             <p className="cand-otp-trust-text">
-              For your account safety and candidate credibility, your email address must be verified. Dashboard access is unlocked immediately following verification.
+              For your account safety and candidate credibility, your email address must be verified. Once verified, you will proceed to create your mandatory candidate profile.
             </p>
           </div>
         </div>
@@ -414,11 +414,11 @@ export const Step2BasicDetails: React.FC = () => {
               isVerifyingEmail ||
               (!emailVerified && emailOtpDigits.join('').length < 6)
             }
-            style={{ minWidth: '190px', justifyContent: 'center' }}
+            style={{ minWidth: '220px', justifyContent: 'center' }}
           >
             {isSubmitting || isVerifyingEmail ? 'Verifying...' : (
               <>
-                Verify Email & Continue <ArrowRight size={16} />
+                Verify Email & Create Profile <ArrowRight size={16} />
               </>
             )}
           </button>
@@ -433,7 +433,7 @@ export const Step2BasicDetails: React.FC = () => {
   return (
     <form onSubmit={handleSubmitDetails} className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <div className="cand-step-intro">
-        <div className="cand-step-indicator">STEP 2 OF 2</div>
+        <div className="cand-step-indicator">STEP 2 OF 6: ACCOUNT SETUP</div>
         <h2 className="cand-step-title">Basic Account Details</h2>
         <p className="cand-step-subtitle">
           Create your account with a few quick details. A verification code will be sent to your registered email.

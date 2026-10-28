@@ -8,7 +8,8 @@ import {
   CheckCircle2,
   X,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import { uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
@@ -21,6 +22,7 @@ export const Step3ResumeSkills: React.FC = () => {
   const [showSkillModal, setShowSkillModal] = useState(false)
   const [newSkill, setNewSkill] = useState('')
   const [isUploadingResume, setIsUploadingResume] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   // Education form state
   const [inst, setInst] = useState('')
@@ -114,13 +116,65 @@ export const Step3ResumeSkills: React.FC = () => {
     updateField('skills', formData.skills.filter(s => s !== skill))
   }
 
+  const handleContinue = () => {
+    setValidationError(null)
+
+    if (!formData.resumeFileName && !formData.resumeDataUrl && !formData.resumeUrl) {
+      setValidationError('Resume upload is mandatory. Please upload your latest resume document (PDF, DOC, DOCX, or RTF).')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.profileSummary || formData.profileSummary.trim().length < 20) {
+      setValidationError('Professional Profile Summary is mandatory. Please write at least 20 characters describing your skills and career background.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.educations || formData.educations.length === 0) {
+      setValidationError('Education details are mandatory. Please click "Add Education" to add at least one qualification (Degree and Institution).')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.skills || formData.skills.length < 3) {
+      setValidationError('Key skills are mandatory. Please add at least 3 skills to highlight your strengths (select from suggestions or add custom).')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    nextStep()
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <div className="cand-step-indicator">STEP 3 OF 6</div>
+      <div className="cand-step-indicator">STEP 3 OF 6: PROFILE DETAILS</div>
       <h2 className="cand-step-title">Resume, Education & Skills</h2>
       <p className="cand-step-subtitle">
-        Add your resume, educational details and key skills to showcase your strengths.
+        All sections below are mandatory. Add your resume, summary, educational details and key skills to complete your profile.
       </p>
+
+      {/* Validation Error Banner */}
+      {validationError && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#b91c1c',
+            borderRadius: '10px',
+            fontSize: '13px',
+            fontWeight: 600,
+            marginBottom: '18px'
+          }}
+        >
+          <AlertCircle size={18} style={{ flexShrink: 0 }} />
+          <span>{validationError}</span>
+        </div>
+      )}
 
       {/* Resume Card */}
       <div className="cand-verify-card">
@@ -143,10 +197,10 @@ export const Step3ResumeSkills: React.FC = () => {
             </div>
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#09090b', margin: 0 }}>
-                Resume
+                Resume <span style={{ color: '#ef4444' }}>*</span>
               </h3>
               <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-                Upload your latest resume or create one.
+                Upload your latest resume document (Mandatory)
               </p>
             </div>
           </div>
@@ -240,7 +294,7 @@ export const Step3ResumeSkills: React.FC = () => {
         <div className="cand-review-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 700, color: '#09090b' }}>
-              <GraduationCap size={18} /> Education Details
+              <GraduationCap size={18} /> Education Details <span style={{ color: '#ef4444' }}>*</span>
             </div>
             <button
               type="button"
@@ -278,7 +332,7 @@ export const Step3ResumeSkills: React.FC = () => {
         <div className="cand-review-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 700, color: '#09090b' }}>
-              <Star size={18} /> Key Skills
+              <Star size={18} /> Key Skills (Min. 3) <span style={{ color: '#ef4444' }}>*</span>
             </div>
             <button
               type="button"
@@ -369,7 +423,7 @@ export const Step3ResumeSkills: React.FC = () => {
           <ArrowLeft size={16} /> Back
         </button>
 
-        <button type="button" className="cand-btn-primary" onClick={nextStep}>
+        <button type="button" className="cand-btn-primary" onClick={handleContinue}>
           Continue <ArrowRight size={16} />
         </button>
       </div>

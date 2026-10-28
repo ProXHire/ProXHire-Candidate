@@ -10,33 +10,118 @@ import {
   ChevronUp,
   ShieldCheck,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 
 export const Step6ProfileReview: React.FC = () => {
   const { formData, updateField, setStep, prevStep, completeRegistration, isSubmitting } = useCandidate()
   const [openCard, setOpenCard] = useState<number | null>(null)
+  const [reviewError, setReviewError] = useState<string | null>(null)
 
   const toggleCard = (id: number) => {
     setOpenCard(openCard === id ? null : id)
   }
 
+  // Profile completeness audit
+  const isProfileDetailsComplete = !!(
+    (formData.resumeFileName || formData.resumeDataUrl || formData.resumeUrl) &&
+    formData.profileSummary &&
+    formData.profileSummary.trim().length >= 20 &&
+    formData.educations &&
+    formData.educations.length >= 1 &&
+    formData.skills &&
+    formData.skills.length >= 3
+  )
+
+  const isCareerDetailsComplete = !!(
+    formData.preferredRole &&
+    formData.industry &&
+    formData.department &&
+    formData.employmentType &&
+    formData.workType &&
+    formData.expectedCtc &&
+    (formData.experienceCategory === 'experienced'
+      ? formData.experiences && formData.experiences.length >= 1
+      : (formData.projects && formData.projects.length >= 1) || (formData.experiences && formData.experiences.length >= 1))
+  )
+
+  const isPersonalDetailsComplete = !!(
+    formData.dateOfBirth &&
+    formData.gender &&
+    formData.nationality &&
+    formData.category &&
+    formData.maritalStatus &&
+    formData.addressLine1 &&
+    formData.addressLine1.trim().length >= 5 &&
+    formData.state &&
+    formData.city &&
+    formData.pinCode &&
+    /^\d{6}$/.test(formData.pinCode.trim()) &&
+    formData.linkedInUrl &&
+    formData.linkedInUrl.trim().length >= 5
+  )
+
   const handleComplete = async () => {
-    if (!formData.finalConfirmed) {
-      alert('Please confirm that the information provided is accurate.')
+    setReviewError(null)
+
+    if (!isProfileDetailsComplete) {
+      setReviewError('Profile Details section is incomplete. Please complete Step 3 (Resume, Profile Summary, Education, and Skills).')
+      setStep(3)
       return
     }
+
+    if (!isCareerDetailsComplete) {
+      setReviewError('Career Details section is incomplete. Please complete Step 4 (Career preferences and experience/projects).')
+      setStep(4)
+      return
+    }
+
+    if (!isPersonalDetailsComplete) {
+      setReviewError('Personal & Contact Details section is incomplete. Please complete Step 5 (Address, PIN code, and LinkedIn profile).')
+      setStep(5)
+      return
+    }
+
+    if (!formData.finalConfirmed) {
+      setReviewError('Please check the confirmation box below to verify that all information provided is accurate.')
+      return
+    }
+
     await completeRegistration()
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <div className="cand-step-indicator">STEP 6 OF 6</div>
+      <div className="cand-step-indicator">STEP 6 OF 6: PROFILE OVERVIEW</div>
       <h2 className="cand-step-title">Review Your Profile</h2>
       <p className="cand-step-subtitle">
-        Please review your information before completing your registration.
+        Review all mandatory profile sections before final confirmation and launching your dashboard.
       </p>
+
+      {/* Review Error Banner */}
+      {reviewError && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#b91c1c',
+            borderRadius: '10px',
+            fontSize: '13px',
+            fontWeight: 600,
+            marginBottom: '18px'
+          }}
+        >
+          <AlertCircle size={18} style={{ flexShrink: 0 }} />
+          <span>{reviewError}</span>
+        </div>
+      )}
 
       {/* Accordion Cards List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>

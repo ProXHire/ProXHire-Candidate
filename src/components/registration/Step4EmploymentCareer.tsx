@@ -6,7 +6,8 @@ import {
   MapPin,
   Plus,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 
@@ -14,6 +15,7 @@ export const Step4EmploymentCareer: React.FC = () => {
   const { formData, updateField, nextStep, prevStep } = useCandidate()
   const [showExpModal, setShowExpModal] = useState(false)
   const [showProjModal, setShowProjModal] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   // Experience form
   const [expTitle, setExpTitle] = useState('')
@@ -64,13 +66,89 @@ export const Step4EmploymentCareer: React.FC = () => {
     }
   }
 
+  const handleContinue = () => {
+    setValidationError(null)
+
+    if (formData.experienceCategory === 'experienced' && (!formData.experiences || formData.experiences.length === 0)) {
+      setValidationError('Work experience is mandatory for experienced candidates. Please click "Add Experience" to add at least one past or current role.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (formData.experienceCategory === 'fresher' && (!formData.projects || formData.projects.length === 0) && (!formData.experiences || formData.experiences.length === 0)) {
+      setValidationError('Academic / Portfolio project is mandatory for fresher candidates. Please click "Add Project" to add at least one project.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.preferredRole || !formData.preferredRole.trim()) {
+      setValidationError('Please select or specify your Preferred Role.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.industry || !formData.industry.trim()) {
+      setValidationError('Please select your Preferred Industry.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.department || !formData.department.trim()) {
+      setValidationError('Please select your Target Department.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.employmentType || !formData.employmentType.trim()) {
+      setValidationError('Please select your Employment Type (e.g. Full Time).')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.workType || !formData.workType.trim()) {
+      setValidationError('Please select your Work Type (e.g. Hybrid, Remote, On-site).')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.expectedCtc || !formData.expectedCtc.trim()) {
+      setValidationError('Please select your Expected Annual CTC.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    nextStep()
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <div className="cand-step-indicator">STEP 4 OF 6</div>
+      <div className="cand-step-indicator">STEP 4 OF 6: CAREER DETAILS</div>
       <h2 className="cand-step-title">Employment, Projects & Career Profile</h2>
       <p className="cand-step-subtitle">
-        Add your work experience (or academic projects), and share your career preferences.
+        All career preferences and experience / project sections are mandatory to align you with top matching employers.
       </p>
+
+      {/* Validation Error Banner */}
+      {validationError && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#b91c1c',
+            borderRadius: '10px',
+            fontSize: '13px',
+            fontWeight: 600,
+            marginBottom: '18px'
+          }}
+        >
+          <AlertCircle size={18} style={{ flexShrink: 0 }} />
+          <span>{validationError}</span>
+        </div>
+      )}
 
       {/* Employment Details Card */}
       <div className="cand-verify-card" style={{ marginBottom: '20px' }}>
@@ -93,10 +171,10 @@ export const Step4EmploymentCareer: React.FC = () => {
             </div>
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#09090b', margin: 0 }}>
-                Employment Details
+                Employment Details {formData.experienceCategory === 'experienced' && <span style={{ color: '#ef4444' }}>*</span>}
               </h3>
               <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-                Add your past and current work experience.
+                {formData.experienceCategory === 'experienced' ? 'Mandatory: Add your past and current work experience.' : 'Add your past and current work experience.'}
               </p>
             </div>
           </div>
@@ -154,10 +232,10 @@ export const Step4EmploymentCareer: React.FC = () => {
             </div>
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#09090b', margin: 0 }}>
-                Projects
+                Projects {formData.experienceCategory === 'fresher' && <span style={{ color: '#ef4444' }}>*</span>}
               </h3>
               <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-                Add your key projects, internships or academic projects.
+                {formData.experienceCategory === 'fresher' ? 'Mandatory for freshers: Add your academic, portfolio or freelance projects.' : 'Add your key projects, internships or academic work.'}
               </p>
             </div>
           </div>
@@ -207,10 +285,10 @@ export const Step4EmploymentCareer: React.FC = () => {
 
           <div className="cand-form-grid single-col" style={{ gap: '12px', marginBottom: 0 }}>
             <div className="cand-field-group">
-              <label className="cand-field-label">Preferred Role <span className="req">*</span></label>
+              <label className="cand-field-label">Preferred Role <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                value={formData.preferredRole}
+                value={formData.preferredRole || 'Full Stack Developer'}
                 onChange={e => updateField('preferredRole', e.target.value)}
               >
                 <option value="Frontend Developer">Frontend Developer</option>
@@ -218,42 +296,47 @@ export const Step4EmploymentCareer: React.FC = () => {
                 <option value="Full Stack Developer">Full Stack Developer</option>
                 <option value="Data Analyst">Data Analyst</option>
                 <option value="Product Designer">Product Designer</option>
+                <option value="DevOps Engineer">DevOps Engineer</option>
+                <option value="QA / Test Automation">QA / Test Automation</option>
               </select>
             </div>
 
             <div className="cand-field-group">
-              <label className="cand-field-label">Industry <span className="req">*</span></label>
+              <label className="cand-field-label">Industry <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                value={formData.industry}
+                value={formData.industry || 'Information Technology'}
                 onChange={e => updateField('industry', e.target.value)}
               >
                 <option value="Information Technology">Information Technology</option>
                 <option value="FinTech">FinTech</option>
                 <option value="Healthcare">Healthcare</option>
                 <option value="E-Commerce">E-Commerce</option>
+                <option value="EdTech">EdTech</option>
+                <option value="Telecommunications">Telecommunications</option>
               </select>
             </div>
 
             <div className="cand-field-group">
-              <label className="cand-field-label">Department</label>
+              <label className="cand-field-label">Department <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                value={formData.department}
+                value={formData.department || 'Engineering'}
                 onChange={e => updateField('department', e.target.value)}
               >
                 <option value="Engineering">Engineering</option>
                 <option value="Product">Product</option>
                 <option value="Design">Design</option>
                 <option value="Analytics">Analytics</option>
+                <option value="Operations">Operations</option>
               </select>
             </div>
 
             <div className="cand-field-group">
-              <label className="cand-field-label">Employment Type</label>
+              <label className="cand-field-label">Employment Type <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                value={formData.employmentType}
+                value={formData.employmentType || 'Full Time'}
                 onChange={e => updateField('employmentType', e.target.value)}
               >
                 <option value="Full Time">Full Time</option>
@@ -276,23 +359,25 @@ export const Step4EmploymentCareer: React.FC = () => {
 
           <div className="cand-form-grid single-col" style={{ gap: '12px', marginBottom: 0 }}>
             <div className="cand-field-group">
-              <label className="cand-field-label">Preferred Locations</label>
+              <label className="cand-field-label">Preferred Locations <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                defaultValue="Bangalore, Hyderabad, Remote"
+                value={formData.preferredLocations && formData.preferredLocations.length > 0 ? formData.preferredLocations[0] : 'Bangalore, Hyderabad, Remote'}
+                onChange={e => updateField('preferredLocations', [e.target.value])}
               >
                 <option value="Bangalore, Hyderabad, Remote">Bangalore, Hyderabad, Remote</option>
                 <option value="Pune, Mumbai">Pune, Mumbai</option>
                 <option value="Delhi-NCR">Delhi-NCR</option>
+                <option value="Chennai, Coimbatore">Chennai, Coimbatore</option>
                 <option value="All India Remote">All India (Remote)</option>
               </select>
             </div>
 
             <div className="cand-field-group">
-              <label className="cand-field-label">Work Type</label>
+              <label className="cand-field-label">Work Type <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                value={formData.workType}
+                value={formData.workType || 'Hybrid'}
                 onChange={e => updateField('workType', e.target.value)}
               >
                 <option value="Hybrid">Hybrid</option>
@@ -302,10 +387,10 @@ export const Step4EmploymentCareer: React.FC = () => {
             </div>
 
             <div className="cand-field-group">
-              <label className="cand-field-label">Preferred Shifts</label>
+              <label className="cand-field-label">Preferred Shifts <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                value={formData.preferredShifts}
+                value={formData.preferredShifts || 'Day'}
                 onChange={e => updateField('preferredShifts', e.target.value)}
               >
                 <option value="Day">Day</option>
@@ -316,10 +401,10 @@ export const Step4EmploymentCareer: React.FC = () => {
             </div>
 
             <div className="cand-field-group">
-              <label className="cand-field-label">Expected CTC (Annual)</label>
+              <label className="cand-field-label">Expected CTC (Annual) <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                value={formData.expectedCtc}
+                value={formData.expectedCtc || '₹6 - ₹10 LPA'}
                 onChange={e => updateField('expectedCtc', e.target.value)}
               >
                 <option value="₹3 - ₹6 LPA">₹3 - ₹6 LPA</option>
@@ -338,7 +423,7 @@ export const Step4EmploymentCareer: React.FC = () => {
           <ArrowLeft size={16} /> Back
         </button>
 
-        <button type="button" className="cand-btn-primary" onClick={nextStep}>
+        <button type="button" className="cand-btn-primary" onClick={handleContinue}>
           Continue <ArrowRight size={16} />
         </button>
       </div>

@@ -10,7 +10,8 @@ import {
   ArrowLeft,
   X,
   Globe,
-  Share2
+  Share2,
+  AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 
@@ -82,6 +83,7 @@ export const Step5PersonalDetails: React.FC = () => {
   const [showAchieveModal, setShowAchieveModal] = useState(false)
   const [achieveCategory, setAchieveCategory] = useState('Industry Certification')
   const [newAchieve, setNewAchieve] = useState('')
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   // Parse DD/MM/YYYY for synchronized 3-dropdown date picker
   const dobParts = (formData.dateOfBirth || '').split('/')
@@ -115,13 +117,101 @@ export const Step5PersonalDetails: React.FC = () => {
     )
   }
 
+  const handleContinue = () => {
+    setValidationError(null)
+
+    if (!dobDay || !dobMonth || !dobYear || !formData.dateOfBirth) {
+      setValidationError('Date of Birth is mandatory. Please select Day, Month, and Year.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.gender || !formData.gender.trim()) {
+      setValidationError('Please select your Gender.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.nationality || !formData.nationality.trim()) {
+      setValidationError('Please select your Nationality.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.category || !formData.category.trim()) {
+      setValidationError('Please select your Social Category.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.maritalStatus || !formData.maritalStatus.trim()) {
+      setValidationError('Please select your Marital Status.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.addressLine1 || formData.addressLine1.trim().length < 5) {
+      setValidationError('Address Line 1 is mandatory (minimum 5 characters). Please provide your residential address.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.state || !formData.state.trim()) {
+      setValidationError('Please select your State / Union Territory.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.city || !formData.city.trim()) {
+      setValidationError('Please enter your City.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.pinCode || !/^\d{6}$/.test(formData.pinCode.trim())) {
+      setValidationError('Please enter a valid 6-digit postal PIN code.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (!formData.linkedInUrl || !formData.linkedInUrl.trim()) {
+      setValidationError('LinkedIn Profile URL is mandatory. Please provide your LinkedIn profile link (e.g. https://linkedin.com/in/yourname).')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    nextStep()
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <div className="cand-step-indicator">STEP 5 OF 6</div>
+      <div className="cand-step-indicator">STEP 5 OF 6: PERSONAL & CONTACT DETAILS</div>
       <h2 className="cand-step-title">Personal Details & Additional Information</h2>
       <p className="cand-step-subtitle">
-        Help us know you better. This information helps in providing the most relevant and verified career opportunities.
+        All demographic, residential contact, and professional link fields below are mandatory to complete verification.
       </p>
+
+      {/* Validation Error Banner */}
+      {validationError && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#b91c1c',
+            borderRadius: '10px',
+            fontSize: '13px',
+            fontWeight: 600,
+            marginBottom: '18px'
+          }}
+        >
+          <AlertCircle size={18} style={{ flexShrink: 0 }} />
+          <span>{validationError}</span>
+        </div>
+      )}
 
       {/* 4-Quadrant Cards Grid */}
       <div className="cand-review-grid" style={{ margin: '0 0 24px' }}>
@@ -228,10 +318,10 @@ export const Step5PersonalDetails: React.FC = () => {
 
             {/* Category / Reservation Dropdown */}
             <div className="cand-field-group">
-              <label className="cand-field-label">Social Category</label>
+              <label className="cand-field-label">Social Category <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                value={formData.category}
+                value={formData.category || 'General'}
                 onChange={e => updateField('category', e.target.value)}
               >
                 <option value="General">General / Unreserved (UR)</option>
@@ -245,16 +335,17 @@ export const Step5PersonalDetails: React.FC = () => {
 
             {/* Marital Status Dropdown */}
             <div className="cand-field-group">
-              <label className="cand-field-label">Marital Status</label>
+              <label className="cand-field-label">Marital Status <span style={{ color: '#ef4444' }}>*</span></label>
               <select
                 className="cand-input"
-                value={formData.maritalStatus}
+                value={formData.maritalStatus || 'Single'}
                 onChange={e => updateField('maritalStatus', e.target.value)}
               >
                 <option value="Single">Single / Unmarried</option>
                 <option value="Married">Married</option>
                 <option value="Divorced">Divorced</option>
                 <option value="Widowed">Widowed</option>
+                <option value="Prefer not to say">Prefer not to say</option>
               </select>
             </div>
 
@@ -480,7 +571,7 @@ export const Step5PersonalDetails: React.FC = () => {
           <div className="cand-form-grid single-col" style={{ gap: '14px', marginBottom: 0 }}>
             {/* LinkedIn */}
             <div className="cand-field-group">
-              <label className="cand-field-label">LinkedIn Profile URL</label>
+              <label className="cand-field-label">LinkedIn Profile URL <span style={{ color: '#ef4444' }}>*</span></label>
               <div className="cand-input-wrapper">
                 <span className="cand-input-icon">
                   <Share2 size={16} />
@@ -491,6 +582,7 @@ export const Step5PersonalDetails: React.FC = () => {
                   placeholder="https://www.linkedin.com/in/yourprofile"
                   value={formData.linkedInUrl}
                   onChange={e => updateField('linkedInUrl', e.target.value)}
+                  required
                 />
               </div>
             </div>
@@ -595,7 +687,7 @@ export const Step5PersonalDetails: React.FC = () => {
           <ArrowLeft size={16} /> Back
         </button>
 
-        <button type="button" className="cand-btn-primary" onClick={nextStep}>
+        <button type="button" className="cand-btn-primary" onClick={handleContinue}>
           Continue <ArrowRight size={16} />
         </button>
       </div>
