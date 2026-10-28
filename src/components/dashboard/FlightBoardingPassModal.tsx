@@ -196,7 +196,8 @@ export const FlightBoardingPassModal: React.FC<FlightBoardingPassModalProps> = (
             applicationDate,
             statusText: statusTag,
             bgvTier,
-            ticketNumber: application.ticketNumber || 'ETKT-9182390123'
+            ticketNumber: application.ticketNumber || 'ETKT-9182390123',
+            qrUrl: 'https://proxhire.in'
           }}
         />
 
