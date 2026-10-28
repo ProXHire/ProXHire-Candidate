@@ -6,7 +6,7 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || (
   typeof window !== 'undefined' && window.location.hostname === 'localhost'
     ? 'http://localhost:5000/api'
-    : 'http://201.18.198.158/api'
+    : 'https://api.proxhire.in/api'
 );
 
 export interface RegisterCandidatePayload {
