@@ -256,25 +256,7 @@ export const BoardingPassTheme: React.FC<BoardingPassThemeProps> = ({
             </a>
           </div>
 
-          <div style={{ marginBottom: '10px' }}>
-            <a
-              href={qrTargetUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontSize: '9px',
-                fontWeight: 800,
-                color: '#38bdf8',
-                letterSpacing: '0.6px',
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px'
-              }}
-            >
-              SCAN TO VISIT PROXHIRE.IN ↗
-            </a>
-          </div>
+
 
           {/* Electronic Ticket Number */}
           <div className="bp-stub-ticket-no">
