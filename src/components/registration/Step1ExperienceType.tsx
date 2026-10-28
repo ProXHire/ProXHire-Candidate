@@ -91,7 +91,6 @@ export const Step1ExperienceType: React.FC = () => {
               <Briefcase size={22} strokeWidth={2.2} />
             </div>
             <div className="cand-exp-header-right">
-              <span className={`cand-exp-badge ${isExperienced ? 'active' : ''}`}>1+ Yrs Exp</span>
               <div className={`cand-exp-radio-indicator ${isExperienced ? 'active' : ''}`}>
                 {isExperienced && <Check size={13} strokeWidth={3} />}
               </div>

@@ -2495,7 +2495,7 @@ select.cand-input option,
 /* Metrics Grid */
 .cand-stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
   margin-bottom: 28px;
 }
@@ -8555,3 +8555,623 @@ select.cand-input option,
     max-height: calc(100vh - 80px);
   }
 }
+
+/* ==========================================================================
+   OFFICIAL PROXHIRE FLIGHT BOARDING PASS THEME (MATCHING bording-pass-theme.jpeg)
+   ========================================================================== */
+
+.bp-theme-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0;
+  box-sizing: border-box;
+}
+
+/* Outer Ticket Container */
+.bp-card {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 960px;
+  min-height: 380px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Outer Semi-Circle Edge Cutouts */
+.bp-outer-notch {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #0f172a;
+  z-index: 20;
+  pointer-events: none;
+}
+.bp-outer-notch-left {
+  left: -14px;
+}
+.bp-outer-notch-right {
+  right: -14px;
+}
+
+/* -------------------------------------------------------------
+   MAIN TICKET BODY (LEFT ~68%)
+   ------------------------------------------------------------- */
+.bp-main {
+  flex: 1;
+  background: #ffffff;
+  padding: 26px 36px 20px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Top Angled Dark Ribbon ("BOARDING TICKET") */
+.bp-top-ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #1e2433;
+  color: #ffffff;
+  padding: 9px 32px 9px 42px;
+  clip-path: polygon(24px 0%, 100% 0%, 100% 100%, 0% 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.bp-ribbon-text {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #f8fafc;
+  text-transform: uppercase;
+}
+
+/* Header & Logo */
+.bp-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.bp-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bp-crest-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bp-brand-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.bp-brand-title {
+  font-size: 23px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.bp-brand-x {
+  color: #10b981;
+}
+
+.bp-brand-subtitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.8px;
+  margin-top: 2px;
+}
+
+/* Passenger Identity Row */
+.bp-passenger-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 18px;
+  gap: 16px;
+}
+
+.bp-passenger-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.bp-candidate-name {
+  font-size: 32px;
+  font-weight: 900;
+  color: #09090b;
+  letter-spacing: -0.5px;
+  margin: 0 0 5px 0;
+  line-height: 1.15;
+  text-transform: uppercase;
+  word-break: break-word;
+}
+
+.bp-candidate-position {
+  font-size: 15px;
+  font-weight: 800;
+  color: #09090b;
+  letter-spacing: 0.3px;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.bp-candidate-company {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+/* Metallic Pill Badge: TIER-1 PRE-VERIFIED BGV */
+.bp-metallic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 45%, #cbd5e1 100%);
+  border: 1.5px solid #94a3b8;
+  border-radius: 9999px;
+  padding: 6px 16px 6px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  flex-shrink: 0;
+}
+
+.bp-metallic-shield {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bp-metallic-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.bp-metallic-tier {
+  font-size: 13px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+}
+
+.bp-metallic-sub {
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* Transit Route Row: BLR ➔ HYD */
+.bp-route-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px 0 18px 0;
+  gap: 16px;
+}
+
+.bp-city-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.bp-city-block.bp-destination {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.bp-airport-code {
+  font-size: 42px;
+  font-weight: 900;
+  color: #09090b;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.bp-city-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #09090b;
+  margin-top: 4px;
+}
+
+/* Flight Path Arc */
+.bp-flight-arc-container {
+  flex: 1;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.bp-flight-svg {
+  width: 100%;
+  height: 44px;
+  overflow: visible;
+}
+
+.bp-transit-tag {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  color: #334155;
+  margin-top: 2px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Bottom Row */
+.bp-bottom-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-top: 8px;
+  gap: 16px;
+}
+
+.bp-date-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.bp-date-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.bp-date-value {
+  font-size: 15px;
+  font-weight: 900;
+  color: #09090b;
+  letter-spacing: 0.5px;
+}
+
+/* Neon Glowing Pill Status Badge */
+.bp-neon-status-pill {
+  background: #0f172a;
+  border-radius: 9999px;
+  border: 2px solid #10b981;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.45), inset 0 0 8px rgba(16, 185, 129, 0.25);
+  padding: 8px 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bp-neon-status-text {
+  color: #34d399;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+/* Dark Bottom Edge Bar */
+.bp-bottom-slate-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: #1e2433;
+}
+
+/* -------------------------------------------------------------
+   PERFORATED TEAR LINE & NOTCHES
+   ------------------------------------------------------------- */
+.bp-perforation-divider {
+  width: 32px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+.bp-tear-notch {
+  width: 30px;
+  height: 15px;
+  background: #0f172a;
+  z-index: 15;
+}
+
+.bp-tear-notch-top {
+  border-radius: 0 0 15px 15px;
+  margin-top: -1px;
+}
+
+.bp-tear-notch-bottom {
+  border-radius: 15px 15px 0 0;
+  margin-bottom: -1px;
+}
+
+.bp-dashed-line {
+  flex: 1;
+  border-left: 2px dashed #94a3b8;
+  margin: 4px 0;
+}
+
+/* -------------------------------------------------------------
+   PASSENGER SECTION (RIGHT STUB ~32%)
+   ------------------------------------------------------------- */
+.bp-stub {
+  width: 290px;
+  background: #1a2233;
+  color: #ffffff;
+  padding: 24px 22px 18px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.bp-stub-header {
+  margin-bottom: 8px;
+}
+
+.bp-stub-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #cbd5e1;
+  text-transform: uppercase;
+}
+
+.bp-stub-passenger {
+  margin-bottom: 12px;
+}
+
+.bp-stub-candidate-name {
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+  margin: 8px 0 4px 0;
+  line-height: 1.15;
+  text-transform: uppercase;
+  word-break: break-word;
+}
+
+.bp-stub-position {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.bp-stub-company {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+/* Barcode & QR Code Cards Side-by-Side */
+.bp-codes-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.bp-code-card {
+  background: #ffffff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.bp-barcode-card {
+  width: 52px;
+  height: 90px;
+  padding: 6px 4px;
+}
+
+.bp-barcode-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.bp-qrcode-card {
+  width: 90px;
+  height: 90px;
+  padding: 6px;
+}
+
+.bp-qrcode-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.bp-stub-ticket-no {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: auto;
+}
+
+/* -------------------------------------------------------------
+   RESPONSIVE DESIGN FOR BOARDING PASS
+   ------------------------------------------------------------- */
+@media (max-width: 820px) {
+  .bp-card {
+    flex-direction: column;
+    max-width: 520px;
+  }
+  .bp-perforation-divider {
+    width: 100%;
+    height: 32px;
+    flex-direction: row;
+  }
+  .bp-tear-notch-top {
+    border-radius: 0 15px 15px 0;
+    width: 15px;
+    height: 30px;
+    margin: 0;
+  }
+  .bp-tear-notch-bottom {
+    border-radius: 15px 0 0 15px;
+    width: 15px;
+    height: 30px;
+    margin: 0;
+  }
+  .bp-dashed-line {
+    border-left: none;
+    border-top: 2px dashed #94a3b8;
+    height: 0;
+    width: 100%;
+    margin: 0 4px;
+  }
+  .bp-stub {
+    width: 100%;
+  }
+  .bp-outer-notch-left,
+  .bp-outer-notch-right {
+    display: none;
+  }
+}
+
+/* Interactive Simulator Toolbar inside Modal */
+.bp-customizer-panel {
+  background: #1e293b;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+
+.bp-customizer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bp-customizer-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #38bdf8;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bp-customizer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.bp-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bp-input-group label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bp-input-group input,
+.bp-input-group select {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #ffffff;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.bp-input-group input:focus,
+.bp-input-group select:focus {
+  border-color: #38bdf8;
+}
+
+.bp-status-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bp-status-chip {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bp-status-chip:hover {
+  background: #1e293b;
+  border-color: #64748b;
+  color: #ffffff;
+}
+
+.bp-status-chip.active {
+  background: #047857;
+  border-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+

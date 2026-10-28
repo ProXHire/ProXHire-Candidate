@@ -19,7 +19,8 @@ import {
   Briefcase,
   ChevronRight,
   Check,
-  Sparkles
+  Sparkles,
+  Plane
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import type { JobCardData, ApplicationRowData, ApplicationStatusType } from '../../types'
@@ -1181,6 +1182,38 @@ export const CandidateDashboard: React.FC = () => {
                   <div className="cand-stat-number">{jobs.filter(j => j.isSaved).length}</div>
                   <div className="cand-stat-title">Saved Jobs</div>
                   <span className="cand-stat-link">View Saved →</span>
+                </div>
+              </div>
+
+              <div
+                className="cand-stat-card"
+                onClick={() => {
+                  if (applications.length > 0) {
+                    setActiveBoardingPass(applications[0])
+                  } else {
+                    setActiveBoardingPass({
+                      id: 'bp-preview',
+                      jobTitle: formData.preferredRole || 'Senior Full Stack Engineer',
+                      company: 'Infosys Technologies',
+                      candidateName: formData.fullName || 'Sree Nandini',
+                      candidateCity: formData.city || 'Bengaluru',
+                      location: (formData.preferredLocations && formData.preferredLocations[0]) || 'Hyderabad',
+                      appliedOn: '26 OCT 2026',
+                      status: 'Shortlisted',
+                      ticketNumber: 'ETKT-9182390123'
+                    })
+                  }
+                }}
+                style={{ cursor: 'pointer', border: '1px solid #10b981', background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)' }}
+                title="View your official ProXHire flight boarding pass"
+              >
+                <div className="cand-stat-icon-wrap" style={{ color: '#10b981', backgroundColor: '#ecfdf5' }}>
+                  <Plane size={20} />
+                </div>
+                <div>
+                  <div className="cand-stat-number" style={{ color: '#047857' }}>Active</div>
+                  <div className="cand-stat-title">Boarding Pass</div>
+                  <span className="cand-stat-link" style={{ color: '#059669' }}>View Pass ✈</span>
                 </div>
               </div>
             </div>
