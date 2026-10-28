@@ -8021,3 +8021,531 @@ select.cand-input option,
     margin-top: 6px;
   }
 }
+
+/* ========================================================
+   CANDIDATE DASHBOARD: NOTIFICATIONS DROPDOWN UX
+   ======================================================== */
+.cand-notification-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.cand-dash-icon-btn.active {
+  background-color: #f4f4f5;
+  border-color: #09090b;
+  box-shadow: 0 0 0 2px rgba(9, 9, 11, 0.08);
+}
+
+.cand-notification-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 420px;
+  max-width: calc(100vw - 24px);
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 16px;
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.14), 0 10px 20px -5px rgba(0, 0, 0, 0.06);
+  z-index: 1000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: candProfileDropFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.cand-notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.cand-notif-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cand-notif-header-bell-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #09090b;
+}
+
+.cand-notif-header-ping {
+  position: absolute;
+  top: -1px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  background-color: #10b981;
+  border-radius: 50%;
+}
+
+.cand-notif-title-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: #09090b;
+}
+
+.cand-notif-unread-pill {
+  font-size: 11px;
+  font-weight: 700;
+  background-color: #ecfdf5;
+  color: #059669;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid #a7f3d0;
+}
+
+.cand-notif-all-read-pill {
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #f4f4f5;
+  color: #71717a;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.cand-notif-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cand-notif-mark-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cand-notif-mark-all-btn:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.cand-notif-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #71717a;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cand-notif-close-btn:hover {
+  background: #f4f4f5;
+  color: #09090b;
+}
+
+.cand-notif-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.cand-notif-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.cand-notif-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cand-notif-tab:hover {
+  color: #09090b;
+  background: #f1f5f9;
+}
+
+.cand-notif-tab.active {
+  background: #09090b;
+  color: #ffffff;
+}
+
+.cand-notif-tab-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.cand-notif-tab-badge.active {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.cand-notif-list-container {
+  max-height: 420px;
+  overflow-y: auto;
+  background: #ffffff;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.cand-notif-list-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.cand-notif-list-container::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.cand-notif-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.cand-notif-item {
+  display: flex;
+  gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+
+.cand-notif-item:hover {
+  background-color: #f8fafc;
+}
+
+.cand-notif-item.unread {
+  background-color: #fbfdfc;
+  border-left: 3px solid #10b981;
+}
+
+.cand-notif-item-left {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cand-notif-icon-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cand-notif-icon-circle.interview {
+  background-color: #f3e8ff;
+  color: #7e22ce;
+}
+
+.cand-notif-icon-circle.application {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.cand-notif-icon-circle.job {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.cand-notif-icon-circle.profile {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.cand-notif-icon-circle.default {
+  background-color: #f4f4f5;
+  color: #09090b;
+}
+
+.cand-notif-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.cand-notif-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  gap: 8px;
+}
+
+.cand-notif-badges-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cand-notif-category-chip {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+
+.cand-notif-company-chip {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #475569;
+  background-color: #f1f5f9;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cand-notif-time-wrap {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.cand-notif-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.cand-notif-item-title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #09090b;
+  line-height: 1.35;
+}
+
+.cand-notif-unread-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  flex-shrink: 0;
+}
+
+.cand-notif-item-message {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #52525b;
+  line-height: 1.45;
+}
+
+.cand-notif-item-detail-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 6px 9px;
+  font-size: 11.5px;
+  color: #475569;
+  margin: 6px 0 8px;
+  line-height: 1.4;
+}
+
+.cand-notif-item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.cand-notif-action-btn {
+  background: #09090b;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 11px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.cand-notif-action-btn:hover {
+  background: #27272a;
+  transform: translateX(1px);
+}
+
+.cand-notif-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cand-notif-dismiss-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cand-notif-dismiss-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.cand-notif-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 44px 24px;
+  text-align: center;
+}
+
+.cand-notif-empty-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f4f4f5;
+  color: #a1a1aa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.cand-notif-empty-title {
+  margin: 0 0 6px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #18181b;
+}
+
+.cand-notif-empty-desc {
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: #71717a;
+  max-width: 280px;
+  line-height: 1.45;
+}
+
+.cand-notif-restore-demo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #09090b;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.cand-notif-restore-demo-btn:hover {
+  opacity: 0.9;
+}
+
+.cand-notif-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cand-notif-footer-summary {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.cand-notif-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cand-notif-footer-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 11.5px;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cand-notif-footer-link:hover {
+  color: #09090b;
+  text-decoration: underline;
+}
+
+.cand-notif-footer-link.demo {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.cand-notif-footer-link.demo:hover {
+  color: #1d4ed8;
+}
+
+@media (max-width: 480px) {
+  .cand-notification-dropdown {
+    position: fixed;
+    top: 66px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - 80px);
+  }
+}

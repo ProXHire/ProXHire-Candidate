@@ -31,6 +31,13 @@ import { AppliedJobsWorkspace } from './AppliedJobsWorkspace'
 import { RecommendedJobsWorkspace } from './RecommendedJobsWorkspace'
 import { subscribeToCandidateJobs, DEFAULT_MOCK_JOBS } from '../../services/candidateJobService'
 import { FlightBoardingPassModal } from './FlightBoardingPassModal'
+import { CandidateNotificationsDropdown } from './CandidateNotificationsDropdown'
+import {
+  loadStoredNotifications,
+  saveNotifications,
+  resetStoredNotifications
+} from '../../services/candidateNotificationService'
+import type { CandidateNotificationItem } from '../../types'
 
 export const CandidateDashboard: React.FC = () => {
   const { formData, setViewMode, setStep, isVerified, isCompleted, logout } = useCandidate()
@@ -46,6 +53,82 @@ export const CandidateDashboard: React.FC = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
   const profileDropdownRef = useRef<HTMLDivElement>(null)
   const [profileInitialTab, setProfileInitialTab] = useState<'profile' | 'career' | 'personal' | 'review'>('profile')
+
+  // Notification state & refs
+  const [notifications, setNotifications] = useState<CandidateNotificationItem[]>(loadStoredNotifications)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const notificationDropdownRef = useRef<HTMLDivElement>(null)
+  const unreadNotifCount = notifications.filter(n => !n.isRead).length
+
+  // Close notifications dropdown on outside click or Escape key
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        notificationDropdownRef.current &&
+        !notificationDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsNotificationsOpen(false)
+      }
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsNotificationsOpen(false)
+      }
+    }
+    if (isNotificationsOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isNotificationsOpen])
+
+  const handleMarkNotifAsRead = (id: string) => {
+    setNotifications(prev => {
+      const updated = prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
+      saveNotifications(updated)
+      return updated
+    })
+  }
+
+  const handleMarkAllNotifsAsRead = () => {
+    setNotifications(prev => {
+      const updated = prev.map(n => ({ ...n, isRead: true }))
+      saveNotifications(updated)
+      return updated
+    })
+  }
+
+  const handleDismissNotif = (id: string) => {
+    setNotifications(prev => {
+      const updated = prev.filter(n => n.id !== id)
+      saveNotifications(updated)
+      return updated
+    })
+  }
+
+  const handleClearAllNotifs = () => {
+    setNotifications([])
+    saveNotifications([])
+  }
+
+  const handleResetDemoNotifs = () => {
+    const reset = resetStoredNotifications()
+    setNotifications(reset)
+  }
+
+  const handleNotifActionClick = (target: NonNullable<CandidateNotificationItem['actionTarget']>) => {
+    setIsNotificationsOpen(false)
+    setSelectedJob(null)
+    if (target.nav) {
+      setActiveNav(target.nav)
+    }
+    if (target.nav === 'Complete Profile' && target.tab) {
+      setProfileInitialTab(target.tab)
+    }
+  }
 
   // Close filter popover on outside click
   useEffect(() => {
@@ -373,14 +456,36 @@ export const CandidateDashboard: React.FC = () => {
 
         {/* Right Header Actions */}
         <div className="cand-dash-right-actions">
-          <button
-            type="button"
-            className="cand-dash-icon-btn"
-            aria-label="Notifications"
-          >
-            <Bell size={18} />
-            <span className="cand-unread-badge" />
-          </button>
+          {/* Notifications Trigger & Dropdown */}
+          <div className="cand-notification-dropdown-wrapper" ref={notificationDropdownRef}>
+            <button
+              type="button"
+              className={`cand-dash-icon-btn ${isNotificationsOpen ? 'active' : ''}`}
+              aria-label="Notifications"
+              aria-expanded={isNotificationsOpen}
+              title={unreadNotifCount > 0 ? `${unreadNotifCount} unread notifications` : 'Notifications'}
+              onClick={() => {
+                setIsNotificationsOpen(prev => !prev)
+                setIsProfileDropdownOpen(false)
+              }}
+            >
+              <Bell size={18} />
+              {unreadNotifCount > 0 && <span className="cand-unread-badge" />}
+            </button>
+
+            {isNotificationsOpen && (
+              <CandidateNotificationsDropdown
+                notifications={notifications}
+                onMarkAsRead={handleMarkNotifAsRead}
+                onMarkAllAsRead={handleMarkAllNotifsAsRead}
+                onDismiss={handleDismissNotif}
+                onClearAll={handleClearAllNotifs}
+                onResetDemo={handleResetDemoNotifs}
+                onActionClick={handleNotifActionClick}
+                onClose={() => setIsNotificationsOpen(false)}
+              />
+            )}
+          </div>
 
           {/* Candidate Profile Pill & Dropdown Menu */}
           <div className="cand-profile-dropdown-wrapper" ref={profileDropdownRef}>
@@ -388,7 +493,10 @@ export const CandidateDashboard: React.FC = () => {
               className={`cand-dash-profile-pill ${isProfileDropdownOpen ? 'active' : ''}`}
               style={{ cursor: 'pointer' }}
               title="Candidate Profile Menu"
-              onClick={() => setIsProfileDropdownOpen(prev => !prev)}
+              onClick={() => {
+                setIsProfileDropdownOpen(prev => !prev)
+                setIsNotificationsOpen(false)
+              }}
               role="button"
               aria-haspopup="true"
               aria-expanded={isProfileDropdownOpen}
@@ -638,7 +746,13 @@ export const CandidateDashboard: React.FC = () => {
                 { name: 'Find Jobs', icon: Search },
                 { name: 'Recommended Jobs', icon: Sparkles, badge: 'Match' },
                 { name: 'Saved Jobs', icon: Bookmark, badge: jobs.filter(j => j.isSaved).length },
-                { name: 'Applied Jobs', icon: Briefcase, badge: applications.length }
+                { name: 'Applied Jobs', icon: Briefcase, badge: applications.length },
+                {
+                  name: 'Notifications',
+                  icon: Bell,
+                  badge: unreadNotifCount > 0 ? `${unreadNotifCount} new` : undefined,
+                  isNotification: true
+                }
               ].map(item => {
                 const Icon = item.icon
                 return (
@@ -647,19 +761,24 @@ export const CandidateDashboard: React.FC = () => {
                     type="button"
                     className={`cand-drawer-link ${activeNav === item.name ? 'active' : ''}`}
                     onClick={() => {
-                      setSelectedJob(null)
-                      setActiveNav(item.name)
-                      setIsMobileMenuOpen(false)
+                      if (item.isNotification) {
+                        setIsMobileMenuOpen(false)
+                        setIsNotificationsOpen(true)
+                      } else {
+                        setSelectedJob(null)
+                        setActiveNav(item.name)
+                        setIsMobileMenuOpen(false)
+                      }
                     }}
                   >
                     <Icon size={18} />
                     <span style={{ flex: 1, textAlign: 'left' }}>{item.name}</span>
-                    {typeof item.badge === 'number' && (
+                    {item.badge && (
                       <span style={{
                         fontSize: '11px',
                         fontWeight: 700,
-                        backgroundColor: item.name === 'Applied Jobs' ? '#ecfdf5' : '#f4f4f5',
-                        color: item.name === 'Applied Jobs' ? '#059669' : '#52525b',
+                        backgroundColor: item.isNotification ? '#ecfdf5' : item.name === 'Applied Jobs' ? '#ecfdf5' : '#f4f4f5',
+                        color: item.isNotification ? '#059669' : item.name === 'Applied Jobs' ? '#059669' : '#52525b',
                         padding: '2px 8px',
                         borderRadius: '9999px'
                       }}>
