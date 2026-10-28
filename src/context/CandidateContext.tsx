@@ -571,7 +571,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         err.name === 'TypeError'
 
       if (isNetworkError) {
-        const friendlyMsg = 'Backend server (localhost:5000) is unreachable. Please verify the server is running or login using Mobile OTP.'
+        const friendlyMsg = 'Backend server is unreachable. Please verify your internet connection or login using Mobile OTP.'
         setErrorMsg(friendlyMsg)
         throw new Error(friendlyMsg)
       }
