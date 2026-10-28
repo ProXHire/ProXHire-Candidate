@@ -15,7 +15,7 @@ import { CandidateLogin } from './components/auth/CandidateLogin'
 import type { CandidateStep } from './types'
 
 function CandidateContent() {
-  const { step, setStep, viewMode, setViewMode } = useCandidate()
+  const { step, setStep, viewMode, setViewMode, authToken, isVerified } = useCandidate()
 
   useEffect(() => {
     const handleUrlState = () => {
@@ -25,7 +25,13 @@ function CandidateContent() {
       const queryStep = params.get('step')
 
       if (queryView === 'dashboard' || hash === '#dashboard') {
-        setViewMode('dashboard')
+        const hasToken = !!localStorage.getItem('proxhire_candidate_token')
+        const isVer = localStorage.getItem('proxhire_candidate_verified') === 'true'
+        if (hasToken && isVer) {
+          setViewMode('dashboard')
+        } else {
+          setViewMode('login')
+        }
       } else if (queryView === 'login' || hash === '#login') {
         setViewMode('login')
       } else if (queryStep) {
@@ -69,9 +75,9 @@ function CandidateContent() {
           minHeight: 0
         }}
       >
-        {viewMode === 'dashboard' ? (
+        {viewMode === 'dashboard' && (authToken && isVerified) ? (
           <CandidateDashboard />
-        ) : viewMode === 'login' ? (
+        ) : viewMode === 'login' || (viewMode === 'dashboard' && (!authToken || !isVerified)) ? (
           <CandidateLogin />
         ) : (
           <CandidateLayout>

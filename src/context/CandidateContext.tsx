@@ -120,16 +120,23 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   })
   const [viewModeState, setViewModeState] = useState<'registration' | 'dashboard' | 'login'>(() => {
     const savedMode = localStorage.getItem('proxhire_candidate_view_mode')
-    if (savedMode === 'dashboard' && localStorage.getItem('proxhire_candidate_verified') === 'true') {
+    const hasToken = !!localStorage.getItem('proxhire_candidate_token')
+    const isVer = localStorage.getItem('proxhire_candidate_verified') === 'true'
+
+    if (savedMode === 'dashboard' && hasToken && isVer) {
       return 'dashboard'
     }
     if (typeof window !== 'undefined') {
       const p = new URLSearchParams(window.location.search)
-      if (p.get('view') === 'dashboard' || p.get('preview') === 'true') {
+      const hash = window.location.hash.toLowerCase()
+      if ((p.get('view') === 'dashboard' || hash === '#dashboard') && hasToken && isVer) {
         return 'dashboard'
       }
+      if (p.get('view') === 'login' || hash === '#login') {
+        return 'login'
+      }
     }
-    return 'registration'
+    return 'login'
   })
 
   // Form State with clean storage hydration
@@ -480,31 +487,45 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setViewModeState('dashboard')
       return
     } catch (err: any) {
-      console.warn('Backend login attempt:', err.message)
+      console.warn('Backend login attempt failed:', err.message)
 
-      // 2. Firebase Firestore Candidate Fallback
-      // Check if candidate profile is already registered in Firestore
+      // If backend explicitly rejected credentials or blocked user, DO NOT fallback
+      const isNetworkError =
+        err.message?.includes('Failed to fetch') ||
+        err.message?.includes('NetworkError') ||
+        err.message?.includes('fetch') ||
+        err.name === 'TypeError'
+
+      if (!isNetworkError) {
+        setErrorMsg(err.message || 'Invalid credentials. Please verify your email/mobile and password.')
+        throw new Error(err.message || 'Invalid credentials. Please verify your email/mobile and password.')
+      }
+
+      // 2. Only if backend server is unreachable (Network Error), attempt Firebase Auth credential validation
       try {
-        let candidateDoc: any = null
-        if (cleanEmail.includes('@')) {
-          const snap = await getDoc(doc(db, 'candidates', cleanEmail))
+        const { signInWithEmailAndPassword } = await import('firebase/auth')
+        const { auth } = await import('../firebase')
+
+        let targetEmail = cleanEmail
+        if (!cleanEmail.includes('@') && cleanMobile.length >= 10) {
+          const q = query(collection(db, 'candidates'), where('normalizedMobile', '==', cleanMobile))
+          const snap = await getDocs(q)
+          if (!snap.empty && snap.docs[0].data()?.email) {
+            targetEmail = snap.docs[0].data().email
+          }
+        }
+
+        // MUST authenticate password against Firebase
+        const cred = await signInWithEmailAndPassword(auth, targetEmail, pass)
+        if (cred.user) {
+          let candidateDoc: any = null
+          const snap = await getDoc(doc(db, 'candidates', targetEmail))
           if (snap.exists()) {
             candidateDoc = snap.data()
           }
-        }
 
-        if (!candidateDoc && cleanMobile.length >= 10) {
-          const q = query(collection(db, 'candidates'), where('normalizedMobile', '==', cleanMobile))
-          const snap = await getDocs(q)
-          if (!snap.empty) {
-            candidateDoc = snap.docs[0].data()
-          }
-        }
-
-        if (candidateDoc) {
-          console.log('✅ Candidate authenticated via Firebase Firestore:', candidateDoc.email)
           const sessionToken = 'fb_session_' + Date.now()
-          const candidateUid = candidateDoc.userId || 'cand_' + Date.now()
+          const candidateUid = cred.user.uid || candidateDoc?.userId || 'cand_' + Date.now()
 
           setAuthToken(sessionToken)
           setUserId(candidateUid)
@@ -517,67 +538,36 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           localStorage.setItem('proxhire_candidate_registered', 'true')
           localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
 
-          setFormData(prev => ({
-            ...prev,
-            fullName: candidateDoc.fullName || prev.fullName,
-            email: candidateDoc.email || cleanEmail,
-            mobileNumber: candidateDoc.mobileNumber || prev.mobileNumber,
-            city: candidateDoc.currentLocation || prev.city,
-            preferredRole: candidateDoc.preferredRole || prev.preferredRole,
-            skills: candidateDoc.skills && candidateDoc.skills.length > 0 ? candidateDoc.skills : prev.skills,
-            educations: candidateDoc.educations && candidateDoc.educations.length > 0 ? candidateDoc.educations : prev.educations,
-            experiences: candidateDoc.experiences && candidateDoc.experiences.length > 0 ? candidateDoc.experiences : prev.experiences,
-            projects: candidateDoc.projects && candidateDoc.projects.length > 0 ? candidateDoc.projects : prev.projects,
-          }))
+          if (candidateDoc) {
+            setFormData(prev => ({
+              ...prev,
+              fullName: candidateDoc.fullName || prev.fullName,
+              email: candidateDoc.email || cleanEmail,
+              mobileNumber: candidateDoc.mobileNumber || prev.mobileNumber,
+              city: candidateDoc.currentLocation || prev.city,
+              preferredRole: candidateDoc.preferredRole || prev.preferredRole,
+              skills: candidateDoc.skills && candidateDoc.skills.length > 0 ? candidateDoc.skills : prev.skills,
+              educations: candidateDoc.educations && candidateDoc.educations.length > 0 ? candidateDoc.educations : prev.educations,
+              experiences: candidateDoc.experiences && candidateDoc.experiences.length > 0 ? candidateDoc.experiences : prev.experiences,
+              projects: candidateDoc.projects && candidateDoc.projects.length > 0 ? candidateDoc.projects : prev.projects,
+            }))
+          }
 
           setViewModeState('dashboard')
           return
         }
       } catch (fbErr: any) {
-        console.warn('Firebase login fallback notice:', fbErr?.message)
+        console.warn('Firebase login verification failed:', fbErr?.message)
+        const msg = (fbErr.code === 'auth/wrong-password' || fbErr.code === 'auth/invalid-credential')
+          ? 'Invalid credentials. Please verify your email/mobile and password.'
+          : (fbErr.message || 'Login failed. Please verify credentials.')
+        setErrorMsg(msg)
+        throw new Error(msg)
       }
 
-      // 3. Local Storage Candidate Cache Check
-      try {
-        const localCandidatesStr = localStorage.getItem('proxy_registered_candidates')
-        if (localCandidatesStr) {
-          const localCandidates = JSON.parse(localCandidatesStr)
-          const matched = Array.isArray(localCandidates) && localCandidates.find(
-            (c: any) => c.email?.toLowerCase() === cleanEmail || c.normalizedMobile === cleanMobile
-          )
-          if (matched) {
-            const sessionToken = 'local_session_' + Date.now()
-            setAuthToken(sessionToken)
-            setUserId('cand_local_' + Date.now())
-            setIsVerified(true)
-            setIsCompleted(true)
-            localStorage.setItem('proxhire_candidate_token', sessionToken)
-            localStorage.setItem('proxhire_candidate_verified', 'true')
-            localStorage.setItem('proxhire_candidate_registered', 'true')
-            localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
-            setViewModeState('dashboard')
-            return
-          }
-        }
-      } catch (lsErr) {
-        // ignore
-      }
-
-      // 4. If backend was unreachable and no cached user found
-      const isNetworkError =
-        err.message?.includes('Failed to fetch') ||
-        err.message?.includes('NetworkError') ||
-        err.message?.includes('fetch') ||
-        err.name === 'TypeError'
-
-      if (isNetworkError) {
-        const friendlyMsg = 'Backend server is unreachable. Please verify your internet connection or login using Mobile OTP.'
-        setErrorMsg(friendlyMsg)
-        throw new Error(friendlyMsg)
-      }
-
-      setErrorMsg(err.message || 'Invalid credentials. Please verify your email/mobile and password.')
-      throw err
+      const friendlyMsg = 'Invalid credentials. Please verify your email/mobile and password.'
+      setErrorMsg(friendlyMsg)
+      throw new Error(friendlyMsg)
     } finally {
       setIsSubmitting(false)
     }
@@ -595,22 +585,19 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.removeItem('proxhire_candidate_uid')
     localStorage.removeItem('proxhire_candidate_verified')
     localStorage.removeItem('proxhire_candidate_registered')
+    localStorage.removeItem('proxhire_candidate_view_mode')
     setViewModeState('login')
   }
 
   /**
-   * Guarded navigation to prevent unverified or incomplete candidates from accessing dashboard
+   * Guarded navigation to prevent unauthenticated candidates from accessing dashboard
    */
   const setViewMode = (mode: 'registration' | 'dashboard' | 'login') => {
     if (mode === 'dashboard') {
-      if (!isVerified || !isCompleted) {
-        alert(
-          'Access restricted: Please complete your registration and verify your mobile and email OTP to access the candidate dashboard.'
-        )
-        setViewModeState('registration')
-        if (!isVerified) {
-          setStep(2)
-        }
+      const hasToken = !!localStorage.getItem('proxhire_candidate_token')
+      const isVer = localStorage.getItem('proxhire_candidate_verified') === 'true'
+      if (!hasToken || !isVer) {
+        setViewModeState('login')
         return
       }
     }
