@@ -144,26 +144,12 @@ export const BoardingPassTheme: React.FC<BoardingPassThemeProps> = ({
             </div>
           </div>
 
-          {/* Passenger Identity Row + Metallic BGV Badge */}
+          {/* Passenger Identity Row */}
           <div className="bp-passenger-row">
             <div className="bp-passenger-meta">
               <h1 className="bp-candidate-name">{candidateName}</h1>
               <div className="bp-candidate-position">{position}</div>
               <div className="bp-candidate-company">{company}</div>
-            </div>
-
-            {/* Metallic BGV Pill Badge */}
-            <div className="bp-metallic-badge">
-              <div className="bp-metallic-shield">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L4 5V11C4 16.5 7.5 21.5 12 23C16.5 21.5 20 16.5 20 11V5L12 2Z" fill="#10b981" />
-                  <path d="M9 11.5L11 13.5L15.5 9" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <div className="bp-metallic-content">
-                <div className="bp-metallic-tier">{bgvTier}</div>
-                <div className="bp-metallic-sub">PRE-VERIFIED BGV</div>
-              </div>
             </div>
           </div>
 
