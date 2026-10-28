@@ -108,7 +108,18 @@ export const BoardingPassTheme: React.FC<BoardingPassThemeProps> = ({
         <div className="bp-main">
           {/* Top Angled Dark Ribbon ("BOARDING TICKET") */}
           <div className="bp-top-ribbon">
-            <span className="bp-ribbon-text">BOARDING TICKET</span>
+            <svg
+              className="bp-ribbon-cap"
+              viewBox="0 0 72 64"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path d="M 0 0 L 46 50 C 52 57, 60 64, 72 64 L 73 64 L 73 0 Z" fill="#232d3b" />
+            </svg>
+            <div className="bp-ribbon-content">
+              <span className="bp-ribbon-text">BOARDING TICKET</span>
+            </div>
           </div>
 
           {/* Header Row: Official Website Logo */}

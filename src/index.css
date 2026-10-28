@@ -8623,22 +8623,37 @@ select.cand-input option,
   position: absolute;
   top: 0;
   right: 0;
-  background: #1e2433;
-  color: #ffffff;
-  padding: 9px 32px 9px 42px;
-  clip-path: polygon(24px 0%, 100% 0%, 100% 100%, 0% 100%);
+  height: 64px;
+  display: flex;
+  align-items: stretch;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.bp-ribbon-cap {
+  width: 72px;
+  height: 64px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.bp-ribbon-content {
+  background: #232d3b;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5;
+  padding: 0 44px 0 16px;
+  min-width: 240px;
+  margin-left: -1px;
 }
 
 .bp-ribbon-text {
   font-family: inherit;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   letter-spacing: 2px;
-  color: #f8fafc;
+  color: #ffffff;
   text-transform: uppercase;
 }
 
@@ -8863,21 +8878,25 @@ select.cand-input option,
   left: 0;
   right: 0;
   height: 5px;
-  background: #1e2433;
+  background: #232d3b;
 }
 
 /* -------------------------------------------------------------
    PERFORATED TEAR LINE & NOTCHES
    ------------------------------------------------------------- */
 .bp-perforation-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 290px;
   width: 32px;
-  position: relative;
+  transform: translateX(50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  background: transparent;
-  z-index: 10;
+  z-index: 15;
+  pointer-events: none;
   box-sizing: border-box;
 }
 
@@ -8885,7 +8904,7 @@ select.cand-input option,
   width: 30px;
   height: 15px;
   background: #0f172a;
-  z-index: 15;
+  z-index: 20;
 }
 
 .bp-tear-notch-top {
@@ -8909,7 +8928,7 @@ select.cand-input option,
    ------------------------------------------------------------- */
 .bp-stub {
   width: 290px;
-  background: #1a2233;
+  background: #232d3b;
   color: #ffffff;
   padding: 24px 22px 18px 22px;
   display: flex;
@@ -9021,7 +9040,23 @@ select.cand-input option,
     flex-direction: column;
     max-width: 520px;
   }
+  .bp-top-ribbon {
+    position: relative;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  .bp-ribbon-cap {
+    display: none;
+  }
+  .bp-ribbon-content {
+    width: 100%;
+    min-width: 0;
+    padding: 0 16px;
+  }
   .bp-perforation-divider {
+    position: relative;
+    right: auto;
+    transform: none;
     width: 100%;
     height: 32px;
     flex-direction: row;
