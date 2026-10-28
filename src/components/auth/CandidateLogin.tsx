@@ -50,7 +50,7 @@ export const CandidateLogin: React.FC = () => {
     setErrorMsg(null)
 
     if (!emailOrPhone.trim() || !password) {
-      setErrorMsg('Please enter your email/phone and password.')
+      setErrorMsg('Please enter your email and password.')
       return
     }
 
@@ -185,19 +185,19 @@ export const CandidateLogin: React.FC = () => {
 
             {/* PASSWORD LOGIN FORM */}
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* Email / Mobile Field */}
+              {/* Email Field */}
               <div className="cand-field-group">
                 <label className="cand-field-label">
-                  Email or Mobile Number <span className="req">*</span>
+                  Email Address <span className="req">*</span>
                 </label>
                 <div className="cand-input-wrapper">
                   <span className="cand-input-icon">
                     <Mail size={16} />
                   </span>
                   <input
-                    type="text"
+                    type="email"
                     className="cand-input"
-                    placeholder="Enter registered email or phone"
+                    placeholder="Enter registered email"
                     value={emailOrPhone}
                     onChange={e => setEmailOrPhone(e.target.value)}
                     required
