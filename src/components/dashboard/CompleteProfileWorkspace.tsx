@@ -28,6 +28,7 @@ import {
 import { useCandidate } from '../../context/CandidateContext'
 import { authService } from '../../services/authService'
 import { syncCandidateToFirebase, uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
+import { usePopularSkills } from '../../hooks/usePopularSkills'
 import type { EducationItem, ExperienceItem, ProjectItem } from '../../types'
 
 const INDIAN_STATES_AND_UTS = [
@@ -115,11 +116,8 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
   const [projTech, setProjTech] = useState('')
   const [projUrl, setProjUrl] = useState('')
 
-  // Popular skills quick-add list
-  const popularSkills = [
-    'React', 'Node.js', 'TypeScript', 'JavaScript', 'Python', 'Java', 'SQL',
-    'AWS', 'Docker', 'Git', 'Next.js', 'MongoDB', 'Tailwind CSS', 'GraphQL', 'Express'
-  ]
+  // Popular skills quick-add list (dynamically loaded & synchronized from Admin Panel)
+  const { popularSkills } = usePopularSkills()
 
   // Indian metro locations
   const availableLocations = [

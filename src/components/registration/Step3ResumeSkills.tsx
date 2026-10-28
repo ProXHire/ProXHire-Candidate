@@ -12,9 +12,11 @@ import {
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import { uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
+import { usePopularSkills } from '../../hooks/usePopularSkills'
 
 export const Step3ResumeSkills: React.FC = () => {
   const { formData, updateField, nextStep, prevStep } = useCandidate()
+  const { popularSkills } = usePopularSkills()
   const [showEduModal, setShowEduModal] = useState(false)
   const [showSkillModal, setShowSkillModal] = useState(false)
   const [newSkill, setNewSkill] = useState('')
@@ -323,8 +325,39 @@ export const Step3ResumeSkills: React.FC = () => {
                 No skills added yet.
               </h5>
               <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0' }}>
-                Click 'Add Skill' to add your key skills.
+                Click 'Add Skill' or choose from suggested skills below.
               </p>
+            </div>
+          )}
+
+          {/* Admin Managed Suggested Popular Skills */}
+          {popularSkills && popularSkills.length > 0 && (
+            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #f1f5f9' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '8px' }}>
+                Suggested Popular Skills:
+              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {popularSkills
+                  .filter(s => !formData.skills.includes(s))
+                  .map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => updateField('skills', [...formData.skills, s])}
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '9999px',
+                        padding: '4px 10px',
+                        fontSize: '12px',
+                        color: '#334155',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      + {s}
+                    </button>
+                  ))}
+              </div>
             </div>
           )}
         </div>

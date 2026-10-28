@@ -72,9 +72,36 @@ export const FindJobsWorkspace: React.FC<FindJobsWorkspaceProps> = ({
           selectedWorkType === 'all' ||
           job.workType.toLowerCase() === selectedWorkType.toLowerCase()
 
-        const matchesExperience =
-          selectedExperience === 'all' ||
-          job.experienceLevel.toLowerCase() === selectedExperience.toLowerCase()
+        const checkExpMatch = (jobExpYears?: string, jobExpLevel?: string, filterVal: string = 'all') => {
+          if (!filterVal || filterVal === 'all') return true
+          const filter = filterVal.toLowerCase()
+          const expYears = (jobExpYears || '').toLowerCase()
+          const expLevel = (jobExpLevel || '').toLowerCase()
+
+          if (expYears.includes(filter) || expLevel.includes(filter)) return true
+
+          const nums = expYears.match(/\d+/g)?.map(Number) || []
+          const min = nums.length > 0 ? nums[0] : null
+          const max = nums.length > 1 ? nums[1] : (expYears.includes('+') ? 99 : min)
+
+          if (filter === 'fresher') {
+            return expLevel.includes('entry') || expYears.includes('0') || (min !== null && min <= 1)
+          }
+
+          const targetNum = parseInt(filter, 10)
+          if (!isNaN(targetNum)) {
+            if (min !== null && max !== null) {
+              if (filter.includes('10+') || targetNum >= 10) {
+                return max >= 10 || expYears.includes('10+')
+              }
+              return targetNum >= min && targetNum <= max
+            }
+          }
+
+          return false
+        }
+
+        const matchesExperience = checkExpMatch(job.experienceYears, job.experienceLevel, selectedExperience)
 
         return matchesSearch && matchesLocation && matchesWorkType && matchesExperience
       })
@@ -286,12 +313,20 @@ export const FindJobsWorkspace: React.FC<FindJobsWorkspaceProps> = ({
           {/* Experience Filter */}
           <div className="cand-find-filter-group">
             <span className="cand-find-filter-label">Experience:</span>
-            <div className="cand-saved-type-tabs">
+            <div className="cand-saved-type-tabs" style={{ flexWrap: 'wrap', gap: '6px' }}>
               {[
                 { id: 'all', label: 'All' },
-                { id: 'Entry Level', label: 'Entry' },
-                { id: 'Mid Level', label: 'Mid' },
-                { id: 'Senior Level', label: 'Senior' }
+                { id: 'Fresher', label: 'Fresher' },
+                { id: '1 Year', label: '1 year' },
+                { id: '2 Year', label: '2 year' },
+                { id: '3 Year', label: '3 Year' },
+                { id: '4 Year', label: '4 Year' },
+                { id: '5 Year', label: '5 Year' },
+                { id: '6 Year', label: '6 Year' },
+                { id: '7 Year', label: '7 Year' },
+                { id: '8 Year', label: '8 Year' },
+                { id: '9 Year', label: '9 Year' },
+                { id: '10+ Years', label: '10+ years' }
               ].map(exp => (
                 <button
                   key={exp.id}
