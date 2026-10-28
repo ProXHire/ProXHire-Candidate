@@ -355,6 +355,9 @@ export const CandidateDashboard: React.FC = () => {
   const handleApplyToJob = (appliedJob: JobCardData) => {
     const flightNum = `PX-${Math.floor(100 + Math.random() * 899)}`
     const ticketId = `ETKT-${Math.floor(1000000000 + Math.random() * 9000000000)}`
+    const d = new Date()
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const todayStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
     const newApp: ApplicationRowData = {
       id: `app_${Date.now()}`,
       jobId: appliedJob.id,
@@ -362,7 +365,7 @@ export const CandidateDashboard: React.FC = () => {
       company: appliedJob.company,
       companyLogoText: appliedJob.companyLogoText,
       location: appliedJob.location,
-      appliedOn: 'Today',
+      appliedOn: todayStr,
       appliedAt: new Date().toISOString(),
       status: 'Submitted',
       flightNumber: flightNum,

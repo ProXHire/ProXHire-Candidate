@@ -60,7 +60,14 @@ export const BoardingPassTheme: React.FC<BoardingPassThemeProps> = ({
   const originCity = (data.originCity ? getCityName(data.originCity) : 'BENGALURU').toUpperCase()
   const destCode = (data.destCode || getCityCode(data.destCity, 'HYD')).toUpperCase()
   const destCity = (data.destCity ? getCityName(data.destCity) : 'HYDERABAD').toUpperCase()
-  const applicationDate = (data.applicationDate || '26 OCT 2026').toUpperCase()
+  const getTodayFormatted = () => {
+    const d = new Date()
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+  }
+  const rawDate = data.applicationDate ? data.applicationDate.trim() : ''
+  const isRelative = !rawDate || ['today', 'recently', 'just now', 'yesterday'].includes(rawDate.toLowerCase())
+  const applicationDate = (isRelative ? getTodayFormatted() : rawDate).toUpperCase()
   const statusText = (data.statusText || 'SHORTLISTED · INTERVIEW ROUND').toUpperCase()
   const bgvTier = (data.bgvTier || 'TIER-1').toUpperCase()
   const ticketNumber = data.ticketNumber || 'ETKT-9182390123'

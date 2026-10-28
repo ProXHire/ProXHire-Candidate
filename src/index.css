@@ -8582,25 +8582,21 @@ select.cand-input option,
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  -webkit-mask-image: radial-gradient(circle 14px at 0 50%, transparent 14px, #000 14.5px),
+                      radial-gradient(circle 14px at 100% 50%, transparent 14px, #000 14.5px),
+                      radial-gradient(circle 15px at calc(100% - 290px) 0, transparent 15px, #000 15.5px),
+                      radial-gradient(circle 15px at calc(100% - 290px) 100%, transparent 15px, #000 15.5px);
+  -webkit-mask-composite: destination-in;
+  mask-image: radial-gradient(circle 14px at 0 50%, transparent 14px, #000 14.5px),
+              radial-gradient(circle 14px at 100% 50%, transparent 14px, #000 14.5px),
+              radial-gradient(circle 15px at calc(100% - 290px) 0, transparent 15px, #000 15.5px),
+              radial-gradient(circle 15px at calc(100% - 290px) 100%, transparent 15px, #000 15.5px);
+  mask-composite: intersect;
 }
 
 /* Outer Semi-Circle Edge Cutouts */
 .bp-outer-notch {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #0f172a;
-  z-index: 20;
-  pointer-events: none;
-}
-.bp-outer-notch-left {
-  left: -14px;
-}
-.bp-outer-notch-right {
-  right: -14px;
+  display: none;
 }
 
 /* -------------------------------------------------------------
@@ -8903,7 +8899,7 @@ select.cand-input option,
 .bp-tear-notch {
   width: 30px;
   height: 15px;
-  background: #0f172a;
+  background: transparent;
   z-index: 20;
 }
 
