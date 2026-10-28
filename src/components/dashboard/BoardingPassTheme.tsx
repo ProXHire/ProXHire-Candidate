@@ -217,27 +217,8 @@ export const BoardingPassTheme: React.FC<BoardingPassThemeProps> = ({
             <div className="bp-stub-company">{company}</div>
           </div>
 
-          {/* Barcode & QR Code Cards Side-by-Side */}
+          {/* QR Code Card */}
           <div className="bp-codes-row">
-            {/* Vertical Barcode Card */}
-            <div className="bp-code-card bp-barcode-card">
-              <svg className="bp-barcode-svg" viewBox="0 0 60 110" preserveAspectRatio="none">
-                <rect x="0" y="0" width="3" height="110" fill="#09090b" />
-                <rect x="5" y="0" width="1.5" height="110" fill="#09090b" />
-                <rect x="8" y="0" width="4" height="110" fill="#09090b" />
-                <rect x="14" y="0" width="2" height="110" fill="#09090b" />
-                <rect x="18" y="0" width="3.5" height="110" fill="#09090b" />
-                <rect x="23" y="0" width="1" height="110" fill="#09090b" />
-                <rect x="26" y="0" width="5" height="110" fill="#09090b" />
-                <rect x="33" y="0" width="2" height="110" fill="#09090b" />
-                <rect x="37" y="0" width="3" height="110" fill="#09090b" />
-                <rect x="42" y="0" width="1.5" height="110" fill="#09090b" />
-                <rect x="45" y="0" width="4" height="110" fill="#09090b" />
-                <rect x="51" y="0" width="2" height="110" fill="#09090b" />
-                <rect x="55" y="0" width="3.5" height="110" fill="#09090b" />
-              </svg>
-            </div>
-
             {/* 2D QR Code Card */}
             <div className="bp-code-card bp-qrcode-card">
               <svg className="bp-qrcode-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">

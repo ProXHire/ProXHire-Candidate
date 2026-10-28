@@ -9016,9 +9016,9 @@ select.cand-input option,
 }
 
 .bp-qrcode-card {
-  width: 90px;
-  height: 90px;
-  padding: 6px;
+  width: 96px;
+  height: 96px;
+  padding: 8px;
 }
 
 .bp-qrcode-svg {
