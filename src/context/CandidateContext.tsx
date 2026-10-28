@@ -327,8 +327,9 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         response.isVerified = true
       }
 
-      // ONLY when BOTH Email and Mobile are verified (response.isVerified === true)
-      if (response.isVerified) {
+      // Email verification unlocks the candidate account and dashboard
+      if (response.isVerified || response.isEmailVerified) {
+        response.isVerified = true
         if (response.token) {
           setAuthToken(response.token)
           localStorage.setItem('proxhire_candidate_token', response.token)
@@ -342,7 +343,6 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
         syncCandidateToFirebase(formData, userId || undefined).catch(() => null)
 
-        // Strict redirection to dashboard only on dual verification
         setViewModeState('dashboard')
         localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
       }

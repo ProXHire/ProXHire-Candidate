@@ -4,7 +4,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Phone,
   ShieldCheck,
   TrendingUp,
   Search,
@@ -15,11 +14,9 @@ import {
   LockKeyhole,
   Check,
   Sparkles,
-  AlertCircle,
-  Smartphone
+  AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
-import { authService } from '../../services/authService'
 
 // Google "G" official multi-color SVG icon
 const GoogleIcon = () => (
@@ -35,18 +32,10 @@ export const CandidateLogin: React.FC = () => {
   const { formData, setViewMode, setStep, loginCandidate } = useCandidate()
 
   // State - Real Clean Defaults (no dummy prefill)
-  const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password')
   const [emailOrPhone, setEmailOrPhone] = useState(formData.email || '')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
-
-  // OTP State
-  const [countryCode, setCountryCode] = useState('+91')
-  const [mobileNumber, setMobileNumber] = useState(formData.mobileNumber || '')
-  const [otpSent, setOtpSent] = useState(false)
-  const [otpCode, setOtpCode] = useState('')
-  const [otpTimer, setOtpTimer] = useState(30)
 
   // Loading & Error State
   const [isLoading, setIsLoading] = useState(false)
@@ -70,86 +59,9 @@ export const CandidateLogin: React.FC = () => {
       await loginCandidate(emailOrPhone, password)
     } catch (err: any) {
       const msg = err.message?.includes('Failed to fetch')
-        ? 'Backend service is starting up or offline. Please retry or sign in with Mobile OTP.'
+        ? 'Backend service is starting up or offline. Please retry in a few moments.'
         : (err.message || 'Login failed. Please verify credentials or register.')
       setErrorMsg(msg)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Handle OTP Dispatch for Candidate Mobile Login
-  const handleSendOtp = async () => {
-    const cleanMobile = mobileNumber.replace(/[\s\-\+]/g, '')
-    if (!cleanMobile || cleanMobile.length < 10) {
-      setErrorMsg('Please enter a valid 10-digit mobile number.')
-      return
-    }
-
-    setErrorMsg(null)
-    setIsLoading(true)
-    try {
-      await authService.resendOtp(undefined, undefined, cleanMobile)
-      setOtpSent(true)
-      setOtpTimer(30)
-    } catch (err: any) {
-      console.warn('OTP dispatch notice:', err.message)
-      // Allow entering OTP even if SMS gateway is offline in dev
-      setOtpSent(true)
-      setOtpTimer(30)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Handle OTP Verification for Candidate Mobile Login
-  const handleVerifyOtpLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrorMsg(null)
-
-    const cleanMobile = mobileNumber.replace(/[\s\-\+]/g, '')
-    if (otpCode.length < 6) {
-      setErrorMsg('Please enter the full 6-digit OTP.')
-      return
-    }
-
-    if (otpCode.trim() === '123456') {
-      const token = 'proxhire_otp_' + Date.now()
-      localStorage.setItem('proxhire_candidate_token', token)
-      localStorage.setItem('proxhire_candidate_verified', 'true')
-      localStorage.setItem('proxhire_candidate_registered', 'true')
-      localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
-      setViewMode('dashboard')
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const res = await authService.verifyOtp({
-        mobileNumber: cleanMobile,
-        otpCode: otpCode.trim(),
-        purpose: 'CANDIDATE_LOGIN'
-      })
-
-      if (res.token) {
-        localStorage.setItem('proxhire_candidate_token', res.token)
-        localStorage.setItem('proxhire_candidate_verified', 'true')
-        localStorage.setItem('proxhire_candidate_registered', 'true')
-        localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
-        setViewMode('dashboard')
-      }
-    } catch (err: any) {
-      // Offline fallback: If network error
-      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
-        const token = 'proxhire_otp_' + Date.now()
-        localStorage.setItem('proxhire_candidate_token', token)
-        localStorage.setItem('proxhire_candidate_verified', 'true')
-        localStorage.setItem('proxhire_candidate_registered', 'true')
-        localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
-        setViewMode('dashboard')
-        return
-      }
-      setErrorMsg(err.message || 'Invalid or expired OTP.')
     } finally {
       setIsLoading(false)
     }
@@ -271,249 +183,106 @@ export const CandidateLogin: React.FC = () => {
               </div>
             )}
 
-            {/* Login Method Toggle (Segmented Control) */}
-            <div className="cand-login-tabs-segmented" style={{ marginBottom: '18px' }}>
-              <button
-                type="button"
-                className={`cand-login-tab-pill ${loginMethod === 'password' ? 'active' : ''}`}
-                onClick={() => {
-                  setLoginMethod('password')
-                  setErrorMsg(null)
-                }}
-              >
-                <Lock size={14} /> Password Login
-              </button>
-              <button
-                type="button"
-                className={`cand-login-tab-pill ${loginMethod === 'otp' ? 'active' : ''}`}
-                onClick={() => {
-                  setLoginMethod('otp')
-                  setErrorMsg(null)
-                }}
-              >
-                <Smartphone size={14} /> Mobile OTP Login
-              </button>
-            </div>
-
             {/* PASSWORD LOGIN FORM */}
-            {loginMethod === 'password' && (
-              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {/* Email / Mobile Field */}
-                <div className="cand-field-group">
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Email / Mobile Field */}
+              <div className="cand-field-group">
+                <label className="cand-field-label">
+                  Email or Mobile Number <span className="req">*</span>
+                </label>
+                <div className="cand-input-wrapper">
+                  <span className="cand-input-icon">
+                    <Mail size={16} />
+                  </span>
+                  <input
+                    type="text"
+                    className="cand-input"
+                    placeholder="Enter registered email or phone"
+                    value={emailOrPhone}
+                    onChange={e => setEmailOrPhone(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div className="cand-field-group">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label className="cand-field-label">
-                    Email or Mobile Number <span className="req">*</span>
+                    Password <span className="req">*</span>
                   </label>
-                  <div className="cand-input-wrapper">
-                    <span className="cand-input-icon">
-                      <Mail size={16} />
-                    </span>
-                    <input
-                      type="text"
-                      className="cand-input"
-                      placeholder="Enter registered email or phone"
-                      value={emailOrPhone}
-                      onChange={e => setEmailOrPhone(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Password Field */}
-                <div className="cand-field-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <label className="cand-field-label">
-                      Password <span className="req">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#09090b',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                        padding: 0
-                      }}
-                      onClick={() => setShowForgotModal(true)}
-                    >
-                      Forgot?
-                    </button>
-                  </div>
-                  <div className="cand-input-wrapper">
-                    <span className="cand-input-icon">
-                      <Lock size={16} />
-                    </span>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      className="cand-input"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="cand-toggle-pwd"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label="Toggle password visibility"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Remember Me */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475467', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={e => setRememberMe(e.target.checked)}
-                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#09090b' }}
-                    />
-                    Remember my credentials
-                  </label>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="cand-btn-primary"
-                  style={{
-                    height: '46px',
-                    marginTop: '6px',
-                    justifyContent: 'center',
-                    width: '100%',
-                    fontSize: '14px',
-                    fontWeight: 700,
-                    borderRadius: '10px',
-                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)'
-                  }}
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Authenticating...' : 'Sign In to Dashboard'} <ArrowRight size={16} />
-                </button>
-              </form>
-            )}
-
-            {/* OTP LOGIN FORM */}
-            {loginMethod === 'otp' && (
-              <form onSubmit={otpSent ? handleVerifyOtpLogin : e => { e.preventDefault(); handleSendOtp(); }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="cand-field-group">
-                  <label className="cand-field-label">
-                    Registered Mobile Number <span className="req">*</span>
-                  </label>
-                  <div className="cand-phone-wrap">
-                    <select
-                      className="cand-country-code-select"
-                      value={countryCode}
-                      onChange={e => setCountryCode(e.target.value)}
-                    >
-                      <option value="+91">+91 (IN)</option>
-                    </select>
-                    <div className="cand-input-wrapper" style={{ flex: 1 }}>
-                      <span className="cand-input-icon">
-                        <Phone size={16} />
-                      </span>
-                      <input
-                        type="tel"
-                        className="cand-input"
-                        placeholder="Enter 10-digit mobile number"
-                        value={mobileNumber}
-                        maxLength={10}
-                        onChange={e => setMobileNumber(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {!otpSent ? (
                   <button
                     type="button"
-                    className="cand-btn-primary"
                     style={{
-                      height: '46px',
-                      marginTop: '6px',
-                      justifyContent: 'center',
-                      width: '100%',
-                      fontSize: '14px',
+                      background: 'none',
+                      border: 'none',
+                      color: '#09090b',
+                      fontSize: '12px',
                       fontWeight: 700,
-                      borderRadius: '10px',
-                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)'
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      padding: 0
                     }}
-                    onClick={handleSendOtp}
-                    disabled={isLoading}
+                    onClick={() => setShowForgotModal(true)}
                   >
-                    {isLoading ? 'Dispatching OTP...' : 'Send OTP to Mobile'} <ArrowRight size={16} />
+                    Forgot?
                   </button>
-                ) : (
-                  <div className="cand-field-group" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <label className="cand-field-label">
-                        Enter 6-Digit OTP <span className="req">*</span>
-                      </label>
-                      <span style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
-                        OTP sent to {countryCode} {mobileNumber}
-                      </span>
-                    </div>
-                    <div className="cand-input-wrapper">
-                      <span className="cand-input-icon">
-                        <LockKeyhole size={16} />
-                      </span>
-                      <input
-                        type="text"
-                        className="cand-input"
-                        placeholder="Enter 6-digit OTP code"
-                        value={otpCode}
-                        maxLength={6}
-                        onChange={e => setOtpCode(e.target.value)}
-                        required
-                        autoFocus
-                      />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <button
-                        type="button"
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          fontSize: '12px',
-                          color: '#09090b',
-                          cursor: 'pointer',
-                          fontWeight: 600,
-                          textDecoration: 'underline'
-                        }}
-                        onClick={handleSendOtp}
-                        disabled={isLoading}
-                      >
-                        Resend OTP
-                      </button>
-                    </div>
+                </div>
+                <div className="cand-input-wrapper">
+                  <span className="cand-input-icon">
+                    <Lock size={16} />
+                  </span>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    className="cand-input"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="cand-toggle-pwd"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
 
-                    <button
-                      type="submit"
-                      className="cand-btn-primary"
-                      style={{
-                        height: '46px',
-                        marginTop: '6px',
-                        justifyContent: 'center',
-                        width: '100%',
-                        fontSize: '14px',
-                        fontWeight: 700,
-                        borderRadius: '10px',
-                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)'
-                      }}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Verifying OTP...' : 'Verify OTP & Enter'} <ArrowRight size={16} />
-                    </button>
-                  </div>
-                )}
-              </form>
-            )}
+              {/* Remember Me */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475467', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={e => setRememberMe(e.target.checked)}
+                    style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#09090b' }}
+                  />
+                  Remember my credentials
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="cand-btn-primary"
+                style={{
+                  height: '46px',
+                  marginTop: '6px',
+                  justifyContent: 'center',
+                  width: '100%',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  borderRadius: '10px',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)'
+                }}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Authenticating...' : 'Sign In to Dashboard'} <ArrowRight size={16} />
+              </button>
+            </form>
 
             {/* Quick Registration Redirect */}
             <div style={{ textAlign: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>

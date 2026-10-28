@@ -19,8 +19,6 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
-import { phoneAuthService } from '../../services/phoneAuthService'
-import type { ConfirmationResult } from 'firebase/auth'
 
 export const Step2BasicDetails: React.FC = () => {
   const {
@@ -66,31 +64,16 @@ export const Step2BasicDetails: React.FC = () => {
   const pwdStrength = getPwdStrength()
   const passwordsMatch = Boolean(formData.confirmPassword && formData.password === formData.confirmPassword)
 
-  // Dual separate OTP input states (6 digits each)
+  // Email OTP input state (6 digits)
   const [emailOtpDigits, setEmailOtpDigits] = useState<string[]>(['', '', '', '', '', ''])
-  const [mobileOtpDigits, setMobileOtpDigits] = useState<string[]>(['', '', '', '', '', ''])
   const emailInputRefs = useRef<(HTMLInputElement | null)[]>([])
-  const mobileInputRefs = useRef<(HTMLInputElement | null)[]>([])
-
   const [emailVerified, setEmailVerified] = useState(false)
-  const [mobileVerified, setMobileVerified] = useState(false)
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false)
-  const [isVerifyingMobile, setIsVerifyingMobile] = useState(false)
 
-  // Independent timers for Email and Mobile OTP resend
+  // Countdown timer for Email OTP resend
   const [emailTimer, setEmailTimer] = useState(60)
   const [canResendEmail, setCanResendEmail] = useState(false)
   const [resendEmailSuccess, setResendEmailSuccess] = useState(false)
-
-  const [mobileTimer, setMobileTimer] = useState(60)
-  const [canResendMobile, setCanResendMobile] = useState(false)
-  const [resendMobileSuccess, setResendMobileSuccess] = useState(false)
-
-  // Firebase SMS Phone Auth states
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
-  const [isSendingSms, setIsSendingSms] = useState(false)
-  const [smsSuccess, setSmsSuccess] = useState(false)
-  const [smsError, setSmsError] = useState<string | null>(null)
 
   // Countdown timer for Email OTP
   useEffect(() => {
@@ -104,55 +87,6 @@ export const Step2BasicDetails: React.FC = () => {
     }
     return () => clearInterval(interval)
   }, [otpPending, emailTimer])
-
-  // Countdown timer for Mobile OTP
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>
-    if (otpPending && mobileTimer > 0) {
-      interval = setInterval(() => {
-        setMobileTimer(prev => prev - 1)
-      }, 1000)
-    } else if (mobileTimer === 0) {
-      setCanResendMobile(true)
-    }
-    return () => clearInterval(interval)
-  }, [otpPending, mobileTimer])
-
-  // Trigger Firebase SMS automatically when otpPending is activated
-  useEffect(() => {
-    let active = true
-    if (otpPending && formData.mobileNumber && !confirmationResult && !isSendingSms) {
-      const triggerSms = async () => {
-        try {
-          setIsSendingSms(true)
-          setSmsError(null)
-          const result = await phoneAuthService.sendPhoneOtp(
-            formData.mobileNumber,
-            'candidate-recaptcha-container'
-          )
-          if (active) {
-            setConfirmationResult(result)
-            setSmsSuccess(true)
-            setTimeout(() => setSmsSuccess(false), 5000)
-          }
-        } catch (err: any) {
-          console.warn('Firebase SMS Phone Auth notice:', err.message)
-          if (active) {
-            setSmsError(err.message || 'SMS carrier sandbox mode')
-          }
-        } finally {
-          if (active) setIsSendingSms(false)
-        }
-      }
-
-      const timer = setTimeout(triggerSms, 400)
-      return () => {
-        active = false
-        clearTimeout(timer)
-        phoneAuthService.clearRecaptcha()
-      }
-    }
-  }, [otpPending, formData.mobileNumber])
 
   // Handle Form Submit for Initial Basic Registration
   const handleSubmitDetails = async (e: React.FormEvent) => {
@@ -200,13 +134,9 @@ export const Step2BasicDetails: React.FC = () => {
     try {
       await submitBasicDetails()
       setEmailVerified(false)
-      setMobileVerified(false)
       setEmailOtpDigits(['', '', '', '', '', ''])
-      setMobileOtpDigits(['', '', '', '', '', ''])
       setEmailTimer(60)
       setCanResendEmail(false)
-      setMobileTimer(60)
-      setCanResendMobile(false)
     } catch {
       // Error message is stored in context
     }
@@ -242,36 +172,6 @@ export const Step2BasicDetails: React.FC = () => {
     }
   }
 
-  // Handle individual Mobile OTP digit change
-  const handleMobileDigitChange = (index: number, val: string) => {
-    const cleaned = val.replace(/\D/g, '')
-    if (cleaned.length > 1) {
-      const pasted = cleaned.slice(0, 6).split('')
-      const nextDigits = [...mobileOtpDigits]
-      pasted.forEach((d, i) => {
-        if (i < 6) nextDigits[i] = d
-      })
-      setMobileOtpDigits(nextDigits)
-      const focusIndex = Math.min(pasted.length, 5)
-      mobileInputRefs.current[focusIndex]?.focus()
-      return
-    }
-
-    const nextDigits = [...mobileOtpDigits]
-    nextDigits[index] = cleaned
-    setMobileOtpDigits(nextDigits)
-
-    if (cleaned && index < 5) {
-      mobileInputRefs.current[index + 1]?.focus()
-    }
-  }
-
-  const handleMobileDigitKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !mobileOtpDigits[index] && index > 0) {
-      mobileInputRefs.current[index - 1]?.focus()
-    }
-  }
-
   // Resend Email OTP
   const handleResendEmail = async () => {
     if (!canResendEmail || isSubmitting) return
@@ -288,61 +188,29 @@ export const Step2BasicDetails: React.FC = () => {
     }
   }
 
-  // Resend Mobile SMS
-  const handleSendFirebaseSms = async () => {
-    if (isSendingSms || !formData.mobileNumber) return
-    try {
-      setIsSendingSms(true)
-      setSmsError(null)
-      const result = await phoneAuthService.sendPhoneOtp(
-        formData.mobileNumber,
-        'candidate-recaptcha-container'
-      )
-      setConfirmationResult(result)
-      setSmsSuccess(true)
-      setTimeout(() => setSmsSuccess(false), 5000)
-    } catch (err: any) {
-      console.warn('Firebase SMS Resend notice:', err.message)
-      setSmsError(err.message || 'SMS dispatch failed')
-    } finally {
-      setIsSendingSms(false)
-    }
-  }
-
-  const handleResendMobile = async () => {
-    if (!canResendMobile || isSendingSms) return
+  // Verify Email & Continue
+  const handleVerifyAndContinue = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     setLocalError(null)
     setErrorMsg(null)
-    setMobileTimer(60)
-    setCanResendMobile(false)
-    try {
-      await resendVerificationOtp()
-    } catch {
-      // Handled in context
-    }
-    handleSendFirebaseSms()
-    setResendMobileSuccess(true)
-    setTimeout(() => setResendMobileSuccess(false), 4000)
-  }
 
-  // Verify single card (Email)
-  const handleVerifyEmail = async () => {
     const code = emailOtpDigits.join('').trim()
     if (code.length < 6) {
-      setLocalError('Please enter the complete 6-digit code sent to your email.')
+      setLocalError('Please enter the complete 6-digit verification code sent to your email.')
       return
     }
+
     setIsVerifyingEmail(true)
-    setLocalError(null)
-    setErrorMsg(null)
 
     // Bypass with hardcoded 123456
     if (code === '123456') {
       try {
         await submitVerifyOtp({
-          channel: 'EMAIL',
+          channel: 'ALL',
           otpCode: '123456',
-          emailOtp: '123456'
+          emailOtp: '123456',
+          mobileOtp: '123456',
+          firebaseVerified: true
         })
       } catch {
         // Fallback local verify
@@ -353,15 +221,14 @@ export const Step2BasicDetails: React.FC = () => {
     }
 
     try {
-      const res = await submitVerifyOtp({
-        channel: 'EMAIL',
+      await submitVerifyOtp({
+        channel: 'ALL',
         otpCode: code,
-        emailOtp: code
+        emailOtp: code,
+        mobileOtp: 'FIREBASE_VERIFIED',
+        firebaseVerified: true
       })
       setEmailVerified(true)
-      if (res?.isMobileVerified) {
-        setMobileVerified(true)
-      }
     } catch (err: any) {
       setLocalError(err.message || 'Invalid email verification code. Please check your inbox.')
     } finally {
@@ -369,149 +236,11 @@ export const Step2BasicDetails: React.FC = () => {
     }
   }
 
-  // Verify single card (Mobile)
-  const handleVerifyMobile = async () => {
-    const code = mobileOtpDigits.join('').trim()
-    if (code.length < 6) {
-      setLocalError('Please enter the complete 6-digit code for your mobile number.')
-      return
-    }
-    setIsVerifyingMobile(true)
-    setLocalError(null)
-    setErrorMsg(null)
-
-    // Bypass with hardcoded 123456
-    if (code === '123456') {
-      try {
-        await submitVerifyOtp({
-          channel: 'MOBILE',
-          otpCode: '123456',
-          mobileOtp: '123456',
-          firebaseVerified: true
-        })
-      } catch {
-        // Fallback local verify
-      }
-      setMobileVerified(true)
-      setIsVerifyingMobile(false)
-      return
-    }
-
-    if (confirmationResult) {
-      try {
-        await phoneAuthService.verifyPhoneOtp(confirmationResult, code)
-        const res = await submitVerifyOtp({
-          channel: 'MOBILE',
-          otpCode: code,
-          mobileOtp: code,
-          firebaseVerified: true
-        })
-        setMobileVerified(true)
-        if (res?.isEmailVerified) {
-          setEmailVerified(true)
-        }
-        return
-      } catch (fbErr: any) {
-        console.warn('Firebase SMS verify notice, falling back to backend verification...', fbErr.message)
-      }
-    }
-
-    try {
-      const res = await submitVerifyOtp({
-        channel: 'MOBILE',
-        otpCode: code,
-        mobileOtp: code
-      })
-      setMobileVerified(true)
-      if (res?.isEmailVerified) {
-        setEmailVerified(true)
-      }
-    } catch (err: any) {
-      setLocalError(err.message || 'Invalid mobile verification code. Please check your SMS or email.')
-    } finally {
-      setIsVerifyingMobile(false)
-    }
-  }
-
-  // Master Verify All & Continue - STRICT DUAL VERIFICATION REQUIREMENT
-  const handleMasterVerify = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLocalError(null)
-    setErrorMsg(null)
-
-    const emailCode = emailOtpDigits.join('').trim()
-    const mobileCode = mobileOtpDigits.join('').trim()
-
-    // Support 123456 bypass
-    if (emailCode === '123456') setEmailVerified(true)
-    if (mobileCode === '123456') setMobileVerified(true)
-
-    if (emailCode === '123456' || mobileCode === '123456') {
-      try {
-        await submitVerifyOtp({
-          channel: 'ALL',
-          emailOtp: emailCode || '123456',
-          mobileOtp: mobileCode || '123456',
-          firebaseVerified: true
-        })
-        setEmailVerified(true)
-        setMobileVerified(true)
-        return
-      } catch {
-        // Direct local bypass fallback
-        setEmailVerified(true)
-        setMobileVerified(true)
-        return
-      }
-    }
-
-    const hasEmail = emailVerified || emailCode.length === 6
-    const hasMobile = mobileVerified || mobileCode.length === 6
-
-    if (!hasEmail && !hasMobile) {
-      setLocalError('Both Email and Mobile verification codes are required to proceed.')
-      return
-    }
-    if (!hasEmail) {
-      setLocalError('Please enter your 6-digit Email verification code.')
-      return
-    }
-    if (!hasMobile) {
-      setLocalError('Please enter your 6-digit Mobile verification code.')
-      return
-    }
-
-    let fbVerified = false
-    if (!mobileVerified && confirmationResult && mobileCode.length === 6) {
-      try {
-        await phoneAuthService.verifyPhoneOtp(confirmationResult, mobileCode)
-        fbVerified = true
-      } catch (fbErr: any) {
-        console.warn('Firebase phone verify fallback to backend:', fbErr.message)
-      }
-    }
-
-    try {
-      const res = await submitVerifyOtp({
-        channel: 'ALL',
-        emailOtp: emailVerified ? undefined : emailCode,
-        mobileOtp: mobileVerified ? undefined : mobileCode,
-        firebaseVerified: fbVerified
-      })
-
-      if (res?.isEmailVerified) setEmailVerified(true)
-      if (res?.isMobileVerified) setMobileVerified(true)
-    } catch (err: any) {
-      setLocalError(err.message || 'Verification failed. Please ensure both codes match correctly.')
-    }
-  }
-
   // --------------------------------------------------------------------------
-  // OTP Verification View (Dedicated Separate Input for Email & Mobile)
+  // OTP Verification View (Email Verification)
   // --------------------------------------------------------------------------
   if (otpPending) {
     const formattedEmailTimer = `00:${emailTimer < 10 ? `0${emailTimer}` : emailTimer}`
-    const formattedMobileTimer = `00:${mobileTimer < 10 ? `0${mobileTimer}` : mobileTimer}`
 
     return (
       <div className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, justifyContent: 'space-between' }}>
@@ -519,16 +248,13 @@ export const Step2BasicDetails: React.FC = () => {
           {/* Header */}
           <div className="cand-step-intro">
             <div className="cand-step-indicator" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles size={12} color="#4f46e5" /> TWO-FACTOR AUTHENTICATION
+              <Sparkles size={12} color="#4f46e5" /> EMAIL AUTHENTICATION
             </div>
-            <h2 className="cand-step-title">Verify Your Account</h2>
+            <h2 className="cand-step-title">Verify Your Email Address</h2>
             <p className="cand-step-subtitle">
-              Please enter the 6-digit verification codes sent to your registered email and mobile number.
+              Please enter the 6-digit verification code sent to your registered email address ({formData.email}).
             </p>
           </div>
-
-          {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
-          <div id="candidate-recaptcha-container" style={{ margin: 0, padding: 0 }}></div>
 
           {/* Alerts */}
           {(localError || errorMsg) && (
@@ -571,29 +297,8 @@ export const Step2BasicDetails: React.FC = () => {
             </div>
           )}
 
-          {resendMobileSuccess && (
-            <div
-              style={{
-                padding: '12px 16px',
-                backgroundColor: '#ecfdf5',
-                border: '1px solid #a7f3d0',
-                color: '#065f46',
-                borderRadius: '12px',
-                fontSize: '13px',
-                fontWeight: 600,
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <CheckCircle2 size={16} /> Fresh SMS dispatch triggered to +91 {formData.mobileNumber}.
-            </div>
-          )}
-
-          {/* Dual Separate Input Cards (Email & Mobile) */}
-          <div className="cand-dual-otp-grid">
-            {/* Card 1: Email Verification */}
+          {/* Email Verification Card */}
+          <div className="cand-single-otp-wrap">
             <div className={`cand-otp-subcard ${emailVerified ? 'is-verified' : ''}`}>
               <div>
                 <div className="cand-otp-subcard-header">
@@ -661,10 +366,10 @@ export const Step2BasicDetails: React.FC = () => {
                       <button
                         type="button"
                         className="cand-otp-card-inline-btn"
-                        onClick={handleVerifyEmail}
+                        onClick={handleVerifyAndContinue}
                         disabled={isVerifyingEmail || emailOtpDigits.join('').length < 6 || emailVerified}
                       >
-                        {isVerifyingEmail ? 'Checking...' : 'Verify Email'}
+                        {isVerifyingEmail ? 'Checking...' : 'Verify Code'}
                       </button>
                     )}
                   </div>
@@ -676,92 +381,6 @@ export const Step2BasicDetails: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Card 2: Mobile SMS Verification */}
-            <div className={`cand-otp-subcard ${mobileVerified ? 'is-verified' : ''}`}>
-              <div>
-                <div className="cand-otp-subcard-header">
-                  <div className="cand-otp-subcard-lead">
-                    <div className="cand-otp-circle-icon mobile">
-                      <Smartphone size={18} />
-                    </div>
-                    <div>
-                      <h3 className="cand-otp-subcard-title">Mobile SMS Code</h3>
-                      <p className="cand-otp-subcard-sub">+91 {formData.mobileNumber}</p>
-                    </div>
-                  </div>
-                  <div>
-                    {mobileVerified && (
-                      <span className="cand-otp-status-pill verified">
-                        <CheckCircle2 size={12} /> Verified
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* 6 Digit Inputs */}
-                <div className="cand-otp-inputs-row">
-                  {mobileOtpDigits.map((digit, idx) => (
-                    <input
-                      key={idx}
-                      ref={el => { mobileInputRefs.current[idx] = el }}
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={1}
-                      value={digit}
-                      disabled={mobileVerified || isSubmitting || isVerifyingMobile}
-                      className={`cand-otp-input-box ${digit ? 'filled' : ''}`}
-                      onChange={e => handleMobileDigitChange(idx, e.target.value)}
-                      onKeyDown={e => handleMobileDigitKeyDown(idx, e)}
-                      onFocus={e => e.target.select()}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div className="cand-otp-subcard-footer">
-                  <div>
-                    {mobileVerified ? (
-                      <span style={{ color: '#059669', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Check size={13} strokeWidth={3} /> Mobile Verified
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        className="cand-otp-quick-btn"
-                        onClick={handleResendMobile}
-                        disabled={!canResendMobile || isSendingSms}
-                      >
-                        <RotateCcw size={12} />
-                        {isSendingSms ? 'Sending...' : !canResendMobile ? `Resend in ${formattedMobileTimer}` : 'Resend SMS'}
-                      </button>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {!mobileVerified && (
-                      <button
-                        type="button"
-                        className="cand-otp-card-inline-btn"
-                        onClick={handleVerifyMobile}
-                        disabled={isVerifyingMobile || mobileOtpDigits.join('').length < 6 || mobileVerified}
-                      >
-                        {isVerifyingMobile ? 'Checking...' : 'Verify Mobile'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Helpful note */}
-                <div style={{ marginTop: '10px' }}>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>
-                    Enter the 6-digit code received via SMS on +91 {formData.mobileNumber}.
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Trust Notice Box */}
@@ -770,7 +389,7 @@ export const Step2BasicDetails: React.FC = () => {
               <ShieldCheck size={18} />
             </div>
             <p className="cand-otp-trust-text">
-              For your account safety and candidate credibility, your mobile number and email must both be verified. Dashboard access is unlocked immediately following verification.
+              For your account safety and candidate credibility, your email address must be verified. Dashboard access is unlocked immediately following verification.
             </p>
           </div>
         </div>
@@ -783,25 +402,23 @@ export const Step2BasicDetails: React.FC = () => {
             onClick={() => setOtpPending(false)}
             disabled={isSubmitting}
           >
-            <ArrowLeft size={16} /> Edit Phone or Email
+            <ArrowLeft size={16} /> Edit Email or Details
           </button>
 
           <button
             type="button"
             className="cand-btn-primary"
-            onClick={handleMasterVerify}
+            onClick={handleVerifyAndContinue}
             disabled={
               isSubmitting ||
               isVerifyingEmail ||
-              isVerifyingMobile ||
-              (!emailVerified && emailOtpDigits.join('').length < 6) ||
-              (!mobileVerified && mobileOtpDigits.join('').length < 6)
+              (!emailVerified && emailOtpDigits.join('').length < 6)
             }
             style={{ minWidth: '190px', justifyContent: 'center' }}
           >
-            {isSubmitting ? 'Verifying...' : (
+            {isSubmitting || isVerifyingEmail ? 'Verifying...' : (
               <>
-                Verify Both & Continue <ArrowRight size={16} />
+                Verify Email & Continue <ArrowRight size={16} />
               </>
             )}
           </button>
@@ -815,13 +432,11 @@ export const Step2BasicDetails: React.FC = () => {
   // --------------------------------------------------------------------------
   return (
     <form onSubmit={handleSubmitDetails} className="cand-step-2-form" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-      {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
-      <div id="candidate-recaptcha-container" style={{ margin: 0, padding: 0 }}></div>
       <div className="cand-step-intro">
         <div className="cand-step-indicator">STEP 2 OF 2</div>
         <h2 className="cand-step-title">Basic Account Details</h2>
         <p className="cand-step-subtitle">
-          Create your account with a few quick details. Real verification codes will be sent to your mobile and email.
+          Create your account with a few quick details. A verification code will be sent to your registered email.
         </p>
       </div>
 

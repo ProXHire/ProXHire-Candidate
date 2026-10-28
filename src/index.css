@@ -3877,6 +3877,12 @@ select.cand-input option,
 /* ========================================================
    DUAL SEPARATE OTP INPUT STYLING (EMAIL & MOBILE)
    ======================================================== */
+.cand-single-otp-wrap {
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto 20px;
+}
+
 .cand-dual-otp-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
