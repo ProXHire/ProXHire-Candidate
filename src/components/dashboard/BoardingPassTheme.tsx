@@ -140,7 +140,6 @@ export const BoardingPassTheme: React.FC<BoardingPassThemeProps> = ({
                 <div className="bp-brand-title">
                   Pro<span className="bp-brand-x">X</span>Hire
                 </div>
-                <div className="bp-brand-subtitle">Verified Talent Airways</div>
               </div>
             </div>
           </div>
@@ -202,16 +201,11 @@ export const BoardingPassTheme: React.FC<BoardingPassThemeProps> = ({
             </div>
           </div>
 
-          {/* Bottom Row: Application Date & Neon Glowing Status Pill */}
+          {/* Bottom Row: Application Date */}
           <div className="bp-bottom-row">
             <div className="bp-date-block">
               <span className="bp-date-label">APPLICATION DATE</span>
               <span className="bp-date-value">{applicationDate}</span>
-            </div>
-
-            {/* Emerald Glowing Neon Status Pill */}
-            <div className="bp-neon-status-pill">
-              <span className="bp-neon-status-text">{statusText}</span>
             </div>
           </div>
 
