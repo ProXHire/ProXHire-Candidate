@@ -111,36 +111,14 @@ export const BoardingPassTheme: React.FC<BoardingPassThemeProps> = ({
             <span className="bp-ribbon-text">BOARDING TICKET</span>
           </div>
 
-          {/* Header Row: Logo & Brand */}
+          {/* Header Row: Official Website Logo */}
           <div className="bp-header">
             <div className="bp-brand">
-              {/* Laurel Wreath Crest with Shield & "X" */}
-              <div className="bp-crest-icon">
-                <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* Outer Laurel Leaves Left */}
-                  <path d="M12 28C10 24 10 18 15 14C14 17 15 21 17 23" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                  <path d="M10 21C8 18 9 13 13 10C13 13 14 16 16 18" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                  <path d="M14 34C11 31 10 26 13 22" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                  <path d="M18 38C15 36 13 32 15 28" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                  {/* Outer Laurel Leaves Right */}
-                  <path d="M36 28C38 24 38 18 33 14C34 17 33 21 31 23" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                  <path d="M38 21C40 18 39 13 35 10C35 13 34 16 32 18" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                  <path d="M34 34C37 31 38 26 35 22" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                  <path d="M30 38C33 36 35 32 33 28" stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round" />
-                  {/* Shield Body */}
-                  <path d="M24 8L31 11V22C31 28.5 27.5 34.5 24 37C20.5 34.5 17 28.5 17 22V11L24 8Z" fill="#0f172a" stroke="#0f172a" strokeWidth="1.5" />
-                  {/* Crown accent on top */}
-                  <path d="M20 7L22 9L24 6L26 9L28 7L27 10H21L20 7Z" fill="#0f172a" />
-                  {/* Emerald Letter "X" inside shield */}
-                  <path d="M21 16L27 26M27 16L21 26" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
-              </div>
-
-              <div className="bp-brand-info">
-                <div className="bp-brand-title">
-                  Pro<span className="bp-brand-x">X</span>Hire
-                </div>
-              </div>
+              <img
+                src="/logo.png"
+                alt="ProXHire"
+                className="bp-official-logo"
+              />
             </div>
           </div>
 
@@ -177,7 +155,7 @@ export const BoardingPassTheme: React.FC<BoardingPassThemeProps> = ({
                 {/* Airplane Arrowhead leading into destination */}
                 <polygon points="314,40 298,32 304,39 298,46" fill="#0f172a" />
               </svg>
-              <div className="bp-transit-tag">CAREER TRANSIT FLIGHT</div>
+              <div className="bp-transit-tag">REVIEW</div>
             </div>
 
             {/* Destination Airport */}
