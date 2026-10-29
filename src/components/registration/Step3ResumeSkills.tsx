@@ -15,6 +15,7 @@ import { useCandidate } from '../../context/CandidateContext'
 import { uploadResumeToSupabaseStorage } from '../../supabase'
 import { uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
 import { usePopularSkills } from '../../hooks/usePopularSkills'
+import { extractTextFromPdf, parseResumeTextToJSON, getCachedParsedResume } from '../../services/resumeParser'
 
 export const Step3ResumeSkills: React.FC = () => {
   const { formData, updateField, nextStep, prevStep } = useCandidate()
@@ -24,6 +25,7 @@ export const Step3ResumeSkills: React.FC = () => {
   const [newSkill, setNewSkill] = useState('')
   const [isUploadingResume, setIsUploadingResume] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [parsedAtsStatus, setParsedAtsStatus] = useState<string | null>(null)
 
   // Education form state
   const [inst, setInst] = useState('')
@@ -53,6 +55,32 @@ export const Step3ResumeSkills: React.FC = () => {
       updateField('resumeFileType', file.type || 'application/pdf')
 
       setIsUploadingResume(true)
+
+      // 1. Extract text and parse into structured JSON for deterministic ATS matching
+      extractTextFromPdf(file)
+        .then(rawText => {
+          const parsed = parseResumeTextToJSON(rawText, file.name, file.size, file.type)
+          if (parsed.extractedSkills.length > 0) {
+            const currentSkills = formData.skills || []
+            const merged = [...currentSkills]
+            parsed.extractedSkills.forEach(s => {
+              if (!merged.some(cs => cs.toLowerCase() === s.toLowerCase())) {
+                merged.push(s)
+              }
+            })
+            if (merged.length > currentSkills.length) {
+              updateField('skills', merged)
+            }
+            setParsedAtsStatus(`ATS Profile Ready • ${parsed.extractedSkills.length} skills extracted into structured JSON`)
+          } else {
+            setParsedAtsStatus('ATS Profile Ready • Resume text cached into JSON')
+          }
+        })
+        .catch(err => {
+          console.warn('Resume text parsing warning:', err)
+        })
+
+      // 2. Upload and read dataUrl
       const reader = new FileReader()
       reader.onload = async (event) => {
         const dataUrl = event.target?.result as string
@@ -68,7 +96,7 @@ export const Step3ResumeSkills: React.FC = () => {
             }
           }
 
-          // 1. Upload to Supabase Storage (primary storage bucket 'resumes')
+          // Upload to Supabase Storage (primary storage bucket 'resumes')
           try {
             const sbResult = await uploadResumeToSupabaseStorage(file, formData.email || 'candidate', formData.fullName)
             if (sbResult.success && sbResult.url) {
@@ -78,7 +106,7 @@ export const Step3ResumeSkills: React.FC = () => {
             console.warn('Supabase Storage direct upload notice:', sbErr.message)
           }
 
-          // 2. Secondary backup upload to Firebase Storage if configured
+          // Secondary backup upload to Firebase Storage if configured
           try {
             const downloadUrl = await uploadResumeToFirebaseStorage(file, formData.email || 'candidate')
             if (downloadUrl && !formData.resumeUrl) {
@@ -240,10 +268,17 @@ export const Step3ResumeSkills: React.FC = () => {
           </div>
           <p style={{ fontSize: '14px', fontWeight: 600, color: '#09090b', margin: 0 }}>
             {isUploadingResume ? (
-              <span style={{ color: '#2563eb' }}>Processing & uploading resume...</span>
+              <span style={{ color: '#2563eb' }}>Processing & extracting text from resume...</span>
             ) : formData.resumeFileName ? (
-              <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                <CheckCircle2 size={16} /> {formData.resumeFileName} (Uploaded & Ready)
+              <span style={{ color: '#059669', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={16} /> {formData.resumeFileName} (Uploaded & Ready)
+                </span>
+                {parsedAtsStatus && (
+                  <span style={{ fontSize: '12px', color: '#4338ca', fontWeight: 600, backgroundColor: '#eef2ff', padding: '2px 8px', borderRadius: '4px' }}>
+                    {parsedAtsStatus}
+                  </span>
+                )}
               </span>
             ) : (
               'Drag & drop your resume here or browse files'

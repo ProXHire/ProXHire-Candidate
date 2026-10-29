@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   ArrowLeft,
   Building,
@@ -17,9 +17,17 @@ import {
   FileText,
   Check,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
+  BarChart2,
+  Target
 } from 'lucide-react'
 import type { JobCardData } from '../../types'
+import { useCandidate } from '../../context/CandidateContext'
+import { calculateATSScore } from '../../services/atsScoreService'
+import { getCachedParsedResume } from '../../services/resumeParser'
 
 interface JobDetailsScreenProps {
   job: JobCardData
@@ -40,10 +48,37 @@ export const JobDetailsScreen: React.FC<JobDetailsScreenProps> = ({
   isAlreadyApplied = false,
   candidateName = 'Candidate'
 }) => {
+  const { formData } = useCandidate()
   const [isSaved, setIsSaved] = useState(Boolean(job.isSaved))
   const [hasApplied, setHasApplied] = useState(Boolean(isAlreadyApplied))
   const [showApplySuccess, setShowApplySuccess] = useState(false)
   const [copyNotice, setCopyNotice] = useState(false)
+  const [showAtsDetails, setShowAtsDetails] = useState(false)
+
+  // Compute deterministic ATS score against current job requirements
+  const atsBreakdown = useMemo(() => {
+    const cachedResume = getCachedParsedResume()
+    return calculateATSScore(
+      {
+        title: job.role,
+        skills: job.tags,
+        tags: job.tags,
+        description: job.description,
+        experienceRequired: job.experienceYears,
+        experienceLevel: job.experienceLevel
+      },
+      {
+        fullName: formData.fullName || candidateName,
+        preferredRole: formData.preferredRole || job.role,
+        skills: formData.skills && formData.skills.length > 0 ? formData.skills : (cachedResume?.extractedSkills && cachedResume.extractedSkills.length > 0 ? cachedResume.extractedSkills : ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind CSS']),
+        experienceYears: cachedResume?.detectedExperienceYears ?? (formData.experienceCategory === 'fresher' ? 1 : 3.5),
+        experiences: formData.experiences,
+        profileSummary: formData.profileSummary,
+        projects: formData.projects,
+        resumeRawText: cachedResume?.rawText
+      }
+    )
+  }, [job, formData, candidateName])
 
   // Dynamic salary computation if not directly present
   const salaryRange =
@@ -382,28 +417,240 @@ export const JobDetailsScreen: React.FC<JobDetailsScreenProps> = ({
       <div className="cand-job-content-grid">
         {/* Left Column: Comprehensive Job Details */}
         <div className="cand-job-main-col">
-          {/* Candidate Fit & Match Card */}
-          <div className="cand-job-section-card cand-job-match-card">
-            <div className="cand-job-match-head">
-              <div className="cand-job-match-badge">
-                <Sparkles size={16} color="#4338ca" />
-                <span>94% Profile Match</span>
-              </div>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>
-                Based on your registration data & skill proficiencies
-              </span>
-            </div>
-            <p className="cand-job-match-desc">
-              Great news, <strong>{candidateName}</strong>! Your experience level ({job.experienceLevel}) and skills closely match what {job.company} is seeking for this position. Because you have verified background credentials, your profile will skip initial recruiter triage.
-            </p>
-            <div className="cand-job-matching-skills-row">
-              <span className="cand-job-skills-label">Matching Skills:</span>
-              {job.tags.map(skill => (
-                <span key={skill} className="cand-job-match-tag">
-                  ✓ {skill}
+          {/* Candidate ATS Fit & Match Engine Card */}
+          <div className="cand-job-section-card cand-job-match-card" style={{ border: '1px solid #c7d2fe', backgroundColor: '#fbfcfe' }}>
+            <div className="cand-job-match-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    backgroundColor: atsBreakdown.totalScore >= 90 ? '#ecfdf5' : atsBreakdown.totalScore >= 75 ? '#eff6ff' : '#fffbeb',
+                    border: `1px solid ${atsBreakdown.totalScore >= 90 ? '#a7f3d0' : atsBreakdown.totalScore >= 75 ? '#bfdbfe' : '#fde68a'}`,
+                    color: atsBreakdown.totalScore >= 90 ? '#065f46' : atsBreakdown.totalScore >= 75 ? '#1e40af' : '#92400e',
+                    fontWeight: 800,
+                    fontSize: '14px'
+                  }}
+                >
+                  <Sparkles size={16} />
+                  <span>{atsBreakdown.totalScore}/100 ATS Score</span>
+                </div>
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#e0e7ff',
+                    color: '#3730a3'
+                  }}
+                >
+                  {atsBreakdown.rating}
                 </span>
-              ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAtsDetails(!showAtsDetails)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  color: '#4f46e5',
+                  cursor: 'pointer',
+                  padding: '4px 8px'
+                }}
+              >
+                <BarChart2 size={14} />
+                <span>{showAtsDetails ? 'Hide ATS Details' : 'View ATS Breakdown'}</span>
+                {showAtsDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
             </div>
+
+            <p className="cand-job-match-desc" style={{ marginTop: '12px', marginBottom: '14px' }}>
+              Hello <strong>{candidateName}</strong>! Your resume and profile have been evaluated with ProXHire's deterministic ATS parsing algorithm against this job's criteria.
+              {atsBreakdown.totalScore >= 85
+                ? ' You have a very high matching probability and your application will receive priority queue placement.'
+                : ' Review the matched and missing requirements below to optimize your candidate profile.'}
+            </p>
+
+            {/* 4 Deterministic Scoring Pillars Progress Bars */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                gap: '12px',
+                padding: '12px',
+                backgroundColor: '#ffffff',
+                borderRadius: '10px',
+                border: '1px solid #e2e8f0',
+                marginBottom: '14px'
+              }}
+            >
+              {/* Pillar 1: Skills */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#64748b', marginBottom: '4px' }}>
+                  <span>Key Skills</span>
+                  <strong>{atsBreakdown.skillScore}/{atsBreakdown.skillMax}</strong>
+                </div>
+                <div style={{ height: '6px', width: '100%', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${(atsBreakdown.skillScore / atsBreakdown.skillMax) * 100}%`,
+                      backgroundColor: '#2563eb',
+                      borderRadius: '4px'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Pillar 2: Title & Role */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#64748b', marginBottom: '4px' }}>
+                  <span>Title Relevance</span>
+                  <strong>{atsBreakdown.titleScore}/{atsBreakdown.titleMax}</strong>
+                </div>
+                <div style={{ height: '6px', width: '100%', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${(atsBreakdown.titleScore / atsBreakdown.titleMax) * 100}%`,
+                      backgroundColor: '#10b981',
+                      borderRadius: '4px'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Pillar 3: Experience */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#64748b', marginBottom: '4px' }}>
+                  <span>Experience</span>
+                  <strong>{atsBreakdown.experienceScore}/{atsBreakdown.experienceMax}</strong>
+                </div>
+                <div style={{ height: '6px', width: '100%', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${(atsBreakdown.experienceScore / atsBreakdown.experienceMax) * 100}%`,
+                      backgroundColor: '#8b5cf6',
+                      borderRadius: '4px'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Pillar 4: Domain & Keywords */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: '#64748b', marginBottom: '4px' }}>
+                  <span>Domain Overlap</span>
+                  <strong>{atsBreakdown.domainScore}/{atsBreakdown.domainMax}</strong>
+                </div>
+                <div style={{ height: '6px', width: '100%', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${(atsBreakdown.domainScore / atsBreakdown.domainMax) * 100}%`,
+                      backgroundColor: '#f59e0b',
+                      borderRadius: '4px'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Matched vs Missing Skills Badges */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {atsBreakdown.matchedSkills.length > 0 && (
+                <div className="cand-job-matching-skills-row" style={{ margin: 0 }}>
+                  <span className="cand-job-skills-label" style={{ minWidth: '95px' }}>Matched Skills:</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {atsBreakdown.matchedSkills.map(skill => (
+                      <span key={skill} className="cand-job-match-tag" style={{ backgroundColor: '#ecfdf5', color: '#065f46', borderColor: '#a7f3d0' }}>
+                        ✓ {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {atsBreakdown.missingSkills.length > 0 && (
+                <div className="cand-job-matching-skills-row" style={{ margin: 0 }}>
+                  <span className="cand-job-skills-label" style={{ minWidth: '95px', color: '#b45309' }}>Missing Skills:</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {atsBreakdown.missingSkills.map(skill => (
+                      <span
+                        key={skill}
+                        className="cand-job-match-tag"
+                        style={{ backgroundColor: '#fffbeb', color: '#b45309', borderColor: '#fde68a' }}
+                        title="Add this skill to your resume/profile to improve your ATS score"
+                      >
+                        + {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Actionable Recommendations */}
+            {atsBreakdown.recommendations.length > 0 && (
+              <div
+                style={{
+                  marginTop: '12px',
+                  padding: '10px 14px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  <Target size={14} color="#2563eb" />
+                  <span>How to boost your ATS Score for this role:</span>
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#475467', lineHeight: 1.5 }}>
+                  {atsBreakdown.recommendations.map((rec, i) => (
+                    <li key={i}>{rec}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Expandable Technical ATS Details */}
+            {showAtsDetails && (
+              <div
+                style={{
+                  marginTop: '12px',
+                  padding: '12px',
+                  backgroundColor: '#f1f5f9',
+                  borderRadius: '8px',
+                  fontSize: '11.5px',
+                  color: '#475467',
+                  borderLeft: '3px solid #6366f1'
+                }}
+              >
+                <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
+                  System Design & Evaluation Principles
+                </div>
+                <p style={{ margin: '0 0 6px 0' }}>
+                  ProXHire's ATS engine compares the candidate's OCR-extracted resume text JSON against recruiter-posted requirements deterministically without third-party LLM costs or probabilistic hallucinations.
+                </p>
+                <ul style={{ margin: 0, paddingLeft: '16px' }}>
+                  <li><strong>Skills Weight (40%):</strong> Matched {atsBreakdown.matchedSkills.length} of {atsBreakdown.matchedSkills.length + atsBreakdown.missingSkills.length} required skills.</li>
+                  <li><strong>Role Weight (25%):</strong> Evaluated against candidate's headline and preferred title.</li>
+                  <li><strong>Experience Weight (20%):</strong> Candidate has ~{atsBreakdown.experienceAnalysis.candidateYears} yrs vs {atsBreakdown.experienceAnalysis.requiredYears} yrs requested.</li>
+                  <li><strong>Keywords Weight (15%):</strong> Overlap with job description responsibilities.</li>
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* About the Role */}
