@@ -77,7 +77,7 @@ export const authService = {
     const res = await fetch(`${API_BASE}/auth/resend-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, email, mobileNumber }),
+      body: JSON.stringify({ userId, email, mobileNumber, role: 'CANDIDATE' }),
     });
 
     const json = await res.json();
