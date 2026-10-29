@@ -1,6 +1,7 @@
 import { db } from '../firebase'
 import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore'
 import type { JobCardData } from '../types'
+import { fetchPublishedJobsFromSupabase } from '../supabase'
 
 export const DEFAULT_MOCK_JOBS: JobCardData[] = [
   {
@@ -181,6 +182,14 @@ export function subscribeToCandidateJobs(
 
   // 1. Initial emission with default catalog
   emitMergedJobs()
+
+  // 1b. Fetch jobs from Supabase database 'jobs' table
+  fetchPublishedJobsFromSupabase().then(sbJobs => {
+    if (sbJobs && sbJobs.length > 0) {
+      sbJobs.forEach(job => firebaseJobMap.set(job.id, job))
+      emitMergedJobs()
+    }
+  }).catch(() => null)
 
   const unsubs: (() => void)[] = []
 

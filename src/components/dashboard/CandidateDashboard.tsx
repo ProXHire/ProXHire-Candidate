@@ -32,6 +32,7 @@ import { AppliedJobsWorkspace } from './AppliedJobsWorkspace'
 import { RecommendedJobsWorkspace } from './RecommendedJobsWorkspace'
 import { subscribeToCandidateJobs, DEFAULT_MOCK_JOBS } from '../../services/candidateJobService'
 import { FlightBoardingPassModal } from './FlightBoardingPassModal'
+import { submitApplicationToSupabase } from '../../supabase'
 import { CandidateNotificationsDropdown } from './CandidateNotificationsDropdown'
 import {
   loadStoredNotifications,
@@ -421,6 +422,22 @@ export const CandidateDashboard: React.FC = () => {
       }
       return updated
     })
+
+    // Sync submitted application directly to Supabase 'applications' table
+    submitApplicationToSupabase({
+      jobId: appliedJob.id,
+      jobTitle: appliedJob.role,
+      candidateName: formData.fullName || 'Candidate',
+      candidateEmail: formData.email,
+      candidateMobile: formData.mobileNumber,
+      candidateLocation: formData.city || 'Bengaluru',
+      candidateExperience: formData.experienceCategory === 'fresher' ? 'Fresher' : '1 - 3 Years',
+      companyName: appliedJob.company,
+      resumeUrl: formData.resumeUrl,
+      resumeFileName: formData.resumeFileName,
+      flightNumber: flightNum,
+      ticketNumber: ticketId,
+    }).catch(err => console.warn('Supabase application sync note:', err.message))
 
     // Display the Flight Boarding Pass alert modal immediately!
     setActiveBoardingPass(newApp)

@@ -5,7 +5,7 @@ import { syncCandidateToFirebase } from '../services/firebaseCandidateSync'
 import { db } from '../firebase'
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import confetti from 'canvas-confetti'
-import { resetPasswordForEmail } from '../supabase'
+import { resetPasswordForEmail, syncCandidateToSupabase, loginCandidateWithSupabase } from '../supabase'
 
 interface CandidateContextType {
   step: CandidateStep
@@ -221,23 +221,29 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         experienceCategory: formData.experienceCategory
       })
 
-      if (response.userId) {
-        setUserId(response.userId)
-        localStorage.setItem('proxhire_candidate_uid', response.userId)
-      } else if (response.user?.id) {
-        setUserId(response.user.id)
-        localStorage.setItem('proxhire_candidate_uid', response.user.id)
+      const assignedUid = response.userId || response.user?.id
+      if (assignedUid) {
+        setUserId(assignedUid)
+        localStorage.setItem('proxhire_candidate_uid', assignedUid)
       }
+
+      // Sync candidate profile directly to Supabase 'candidates' database table
+      await syncCandidateToSupabase(formData, assignedUid).catch((sbErr) => {
+        console.warn('Supabase candidate sync notice on basic details:', sbErr.message)
+      })
 
       setOtpPending(true)
     } catch (err: any) {
       console.warn('Backend registration notice:', err.message)
 
-      // Fallback: If backend is unreachable or offline, save candidate in Firestore & local cache and proceed to OTP screen
+      // Fallback: If backend is unreachable or offline, save candidate in Supabase, Firestore & local cache and proceed to OTP screen
       try {
         const fbUid = userId || 'cand_' + Date.now()
         setUserId(fbUid)
         localStorage.setItem('proxhire_candidate_uid', fbUid)
+
+        // Sync candidate directly to Supabase 'candidates' database table
+        syncCandidateToSupabase(formData, fbUid).catch(() => null)
 
         // Save local registered candidate list
         try {
@@ -403,7 +409,12 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setErrorMsg(null)
 
     try {
-      // 1. Sync complete candidate registration and resume PDF to Google Firebase (for Admin Portal)
+      // 1. Sync complete candidate registration and resume to Supabase Database
+      await syncCandidateToSupabase(formData, userId || undefined).catch((sbErr) => {
+        console.warn('Supabase sync notice on complete registration:', sbErr.message)
+      })
+
+      // 2. Sync to Google Firebase (for Admin Portal fallback)
       await syncCandidateToFirebase(formData, userId || undefined).catch((fbErr) => {
         console.warn('Firebase sync notice on complete registration:', fbErr.message)
       })
@@ -511,7 +522,41 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         throw new Error(err.message || 'Invalid credentials. Please verify your email/mobile and password.')
       }
 
-      // 2. Only if backend server is unreachable (Network Error), attempt Firebase Auth credential validation
+      // 2. Attempt Supabase direct candidate authentication & profile lookup
+      try {
+        const sbRes = await loginCandidateWithSupabase(cleanInput, pass)
+        if (sbRes.success && sbRes.candidate) {
+          const cand = sbRes.candidate
+          const uid = cand.id || cand.user_id || 'sb_' + Date.now()
+          setUserId(uid)
+          setAuthToken('sb_token_' + Date.now())
+          setIsVerified(true)
+          setIsCompleted(true)
+          localStorage.setItem('proxhire_candidate_token', 'sb_token_' + Date.now())
+          localStorage.setItem('proxhire_candidate_uid', uid)
+          localStorage.setItem('proxhire_candidate_verified', 'true')
+          localStorage.setItem('proxhire_candidate_registered', 'true')
+          localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
+          setFormData(prev => ({
+            ...prev,
+            fullName: cand.full_name || prev.fullName,
+            email: cand.email || prev.email,
+            mobileNumber: cand.mobile_number || prev.mobileNumber,
+            city: cand.city || prev.city,
+            resumeUrl: cand.resume_url || prev.resumeUrl,
+            resumeFileName: cand.resume_file_name || prev.resumeFileName,
+            skills: Array.isArray(cand.skills) ? cand.skills : prev.skills,
+            educations: Array.isArray(cand.educations) ? cand.educations : prev.educations,
+            experiences: Array.isArray(cand.experiences) ? cand.experiences : prev.experiences,
+          }))
+          setViewModeState('dashboard')
+          return
+        }
+      } catch (sbErr: any) {
+        console.warn('Supabase login check note:', sbErr?.message)
+      }
+
+      // 3. Only if backend server is unreachable (Network Error), attempt Firebase Auth credential validation
       try {
         const { signInWithEmailAndPassword } = await import('firebase/auth')
         const { auth } = await import('../firebase')

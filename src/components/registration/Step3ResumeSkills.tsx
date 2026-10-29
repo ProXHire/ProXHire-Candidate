@@ -12,6 +12,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
+import { uploadResumeToSupabaseStorage } from '../../supabase'
 import { uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
 import { usePopularSkills } from '../../hooks/usePopularSkills'
 
@@ -67,10 +68,22 @@ export const Step3ResumeSkills: React.FC = () => {
             }
           }
 
-          // Upload to Firebase Storage
+          // 1. Upload to Supabase Storage (primary storage bucket 'resumes')
+          try {
+            const sbResult = await uploadResumeToSupabaseStorage(file, formData.email || 'candidate', formData.fullName)
+            if (sbResult.success && sbResult.url) {
+              updateField('resumeUrl', sbResult.url)
+            }
+          } catch (sbErr: any) {
+            console.warn('Supabase Storage direct upload notice:', sbErr.message)
+          }
+
+          // 2. Secondary backup upload to Firebase Storage if configured
           try {
             const downloadUrl = await uploadResumeToFirebaseStorage(file, formData.email || 'candidate')
-            updateField('resumeUrl', downloadUrl)
+            if (downloadUrl && !formData.resumeUrl) {
+              updateField('resumeUrl', downloadUrl)
+            }
           } catch (storageErr: any) {
             console.warn('Firebase Storage direct upload notice (Firestore fallback will be used):', storageErr.message)
           }
