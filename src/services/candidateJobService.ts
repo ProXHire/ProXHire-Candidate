@@ -1,7 +1,7 @@
 import { db } from '../firebase'
 import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore'
 import type { JobCardData } from '../types'
-import { fetchPublishedJobsFromSupabase } from '../supabase'
+import { fetchPublishedJobsFromSupabase, supabase, isSupabaseConfigured } from '../supabase'
 
 export const DEFAULT_MOCK_JOBS: JobCardData[] = [
   {
@@ -192,6 +192,28 @@ export function subscribeToCandidateJobs(
   }).catch(() => null)
 
   const unsubs: (() => void)[] = []
+
+  // 1c. Real-time changes subscription on Supabase 'jobs' table
+  if (isSupabaseConfigured()) {
+    try {
+      const channel = supabase
+        .channel('public:jobs')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => {
+          fetchPublishedJobsFromSupabase().then(sbJobs => {
+            if (sbJobs && sbJobs.length > 0) {
+              sbJobs.forEach(job => firebaseJobMap.set(job.id, job))
+              emitMergedJobs()
+            }
+          }).catch(() => null)
+        })
+        .subscribe()
+      unsubs.push(() => {
+        supabase.removeChannel(channel)
+      })
+    } catch {
+      // Ignore
+    }
+  }
 
   // 2. Real-time onSnapshot on candidates collection (where isJobPosting == true)
   try {

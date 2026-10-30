@@ -32,7 +32,11 @@ import { AppliedJobsWorkspace } from './AppliedJobsWorkspace'
 import { RecommendedJobsWorkspace } from './RecommendedJobsWorkspace'
 import { subscribeToCandidateJobs, DEFAULT_MOCK_JOBS } from '../../services/candidateJobService'
 import { FlightBoardingPassModal } from './FlightBoardingPassModal'
-import { submitApplicationToSupabase } from '../../supabase'
+import {
+  submitApplicationToSupabase,
+  fetchCandidateApplicationsFromSupabase,
+  withdrawApplicationFromSupabase
+} from '../../supabase'
 import { calculateATSScore } from '../../services/atsScoreService'
 import { getCachedParsedResume } from '../../services/resumeParser'
 import { CandidateNotificationsDropdown } from './CandidateNotificationsDropdown'
@@ -473,7 +477,31 @@ export const CandidateDashboard: React.FC = () => {
     setActiveBoardingPass(newApp)
   }
 
+  // Sync real-time candidate applications from Supabase database
+  useEffect(() => {
+    if (formData.email) {
+      fetchCandidateApplicationsFromSupabase(formData.email).then(liveApps => {
+        if (liveApps && liveApps.length > 0) {
+          setApplications(prev => {
+            const existingIds = new Set(prev.map(a => a.id))
+            const fresh = liveApps.filter((a: any) => !existingIds.has(a.id))
+            const merged = [...fresh, ...prev]
+            try {
+              localStorage.setItem('proxhire_candidate_applications', JSON.stringify(merged))
+            } catch {
+              // Ignore
+            }
+            return merged
+          })
+        }
+      }).catch(err => {
+        console.warn('Candidate Supabase applications sync note:', err)
+      })
+    }
+  }, [formData.email])
+
   const handleWithdrawApplication = (appId: string) => {
+    withdrawApplicationFromSupabase(appId).catch(() => null)
     setApplications(prev => {
       const updated = prev.filter(a => a.id !== appId)
       try {

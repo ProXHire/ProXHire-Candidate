@@ -40,7 +40,7 @@ export async function uploadResumeToSupabaseStorage(
   mimeType?: string
   error?: string
 }> {
-  const cleanEmail = candidateEmail.trim().toLowerCase()
+  const cleanEmail = (candidateEmail || 'candidate').trim().toLowerCase()
   const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
   const storagePath = `candidates/${cleanEmail}/${Date.now()}_${sanitizedFileName}`
 
@@ -316,6 +316,63 @@ export async function submitApplicationToSupabase(
   } catch (err: any) {
     console.warn('Supabase application submit note:', err.message)
     return { success: false, error: err.message }
+  }
+}
+
+/**
+ * Fetch candidate's submitted job applications directly from Supabase 'applications' table
+ */
+export async function fetchCandidateApplicationsFromSupabase(candidateEmail: string): Promise<any[]> {
+  if (!isSupabaseConfigured() || !candidateEmail) {
+    return []
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('candidate_email', candidateEmail.trim().toLowerCase())
+      .order('applied_at', { ascending: false })
+
+    if (error || !data) return []
+
+    return data.map((d: any) => ({
+      id: d.id,
+      jobId: d.job_id,
+      jobTitle: d.job_title,
+      company: d.company_name,
+      location: d.candidate_location || 'Bengaluru',
+      appliedOn: d.applied_at ? new Date(d.applied_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent',
+      appliedAt: d.applied_at || undefined,
+      status: (d.status === 'Submitted' ? 'Submitted' : d.status) as any,
+      flightNumber: d.flight_number || `PX-${Math.floor(100 + Math.random() * 899)}`,
+      seat: d.seat || '01A',
+      gate: d.gate || `G-0${Math.floor(1 + Math.random() * 8)}`,
+      ticketNumber: d.ticket_number || `ETKT-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+      candidateName: d.candidate_name,
+      candidateCity: d.candidate_location,
+      atsScore: d.ats_score || undefined,
+      atsBreakdown: d.ats_breakdown || undefined,
+      reviewNotes: d.review_notes || undefined,
+    }))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Withdraw candidate application from Supabase 'applications' table
+ */
+export async function withdrawApplicationFromSupabase(applicationId: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false
+  try {
+    const { error } = await supabase
+      .from('applications')
+      .delete()
+      .eq('id', applicationId)
+    return !error
+  } catch {
+    return false
   }
 }
 

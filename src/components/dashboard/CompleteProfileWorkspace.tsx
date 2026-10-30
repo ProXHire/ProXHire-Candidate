@@ -28,6 +28,8 @@ import {
 import { useCandidate } from '../../context/CandidateContext'
 import { authService } from '../../services/authService'
 import { syncCandidateToFirebase, uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
+import { syncCandidateToSupabase, uploadResumeToSupabaseStorage } from '../../supabase'
+import { extractResumeDocumentText, buildParsedResumeJSON } from '../../services/resumeParser'
 import { usePopularSkills } from '../../hooks/usePopularSkills'
 import type { EducationItem, ExperienceItem, ProjectItem } from '../../types'
 
@@ -156,15 +158,22 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
 
   const completionPercent = calculateCompletion()
 
-  // Save handler: updates context, localStorage, backend API and Firebase
+  // Save handler: updates context, localStorage, backend API, Supabase and Firebase
   const handleSaveAll = async () => {
     setIsSaving(true)
     setSaveSuccess(false)
     try {
-      // 1. Sync to Firebase Firestore
-      await syncCandidateToFirebase(formData, userId || undefined)
+      // 1. Sync complete candidate profile & resume to Supabase 'candidates' table (Primary)
+      await syncCandidateToSupabase(formData, userId || undefined).catch((sbErr) => {
+        console.warn('Supabase profile sync notice:', sbErr.message)
+      })
 
-      // 2. Sync to Backend PostgreSQL if token is present
+      // 2. Sync to Firebase Firestore (Backup / Admin Portal)
+      await syncCandidateToFirebase(formData, userId || undefined).catch((fbErr) => {
+        console.warn('Firebase profile sync notice:', fbErr.message)
+      })
+
+      // 3. Sync to Backend PostgreSQL if token is present
       if (authToken) {
         await authService.updateProfile(authToken, {
           fullName: formData.fullName,
@@ -211,6 +220,37 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
       updateField('resumeFileType', file.type || 'application/pdf')
 
       setIsUploadingResume(true)
+
+      // 1. Multi-Tier Extract text and parse into structured JSON for deterministic ATS matching
+      extractResumeDocumentText(file)
+        .then(({ rawText, parserUsed }) => {
+          const parsed = buildParsedResumeJSON(rawText, file.name, file.size, file.type, parserUsed, {
+            fullName: formData.fullName,
+            email: formData.email,
+            mobile: formData.mobileNumber,
+          })
+          updateField('parsedResumeJson', parsed)
+          updateField('parserMethod', parserUsed)
+          updateField('rawResumeText', rawText)
+
+          // 2. Upload directly to Supabase Storage bucket 'resumes' and persist record in 'resumes' table
+          uploadResumeToSupabaseStorage(file, formData.email || userId || 'candidate', formData.fullName, {
+            parsedResumeJson: parsed,
+            parserMethod: parserUsed,
+            rawText,
+          }).then(sbResult => {
+            if (sbResult.success && sbResult.url) {
+              updateField('resumeUrl', sbResult.url)
+            }
+          }).catch(sbErr => {
+            console.warn('Supabase Storage direct upload notice:', sbErr.message)
+          })
+        })
+        .catch(err => {
+          console.warn('Resume text parsing warning:', err)
+        })
+
+      // 3. Local data URL & Firebase fallback
       const reader = new FileReader()
       reader.onload = async (event) => {
         const dataUrl = event.target?.result as string
@@ -226,7 +266,7 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
           if (userId) {
             try {
               const downloadUrl = await uploadResumeToFirebaseStorage(file, userId)
-              if (downloadUrl) {
+              if (downloadUrl && !formData.resumeUrl) {
                 updateField('resumeUrl', downloadUrl)
               }
             } catch (storageErr) {
@@ -236,6 +276,7 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
         }
         setIsUploadingResume(false)
       }
+      reader.onerror = () => setIsUploadingResume(false)
       reader.readAsDataURL(file)
     }
   }
