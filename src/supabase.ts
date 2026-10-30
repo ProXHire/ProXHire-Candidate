@@ -400,15 +400,15 @@ export async function fetchPublishedJobsFromSupabase(): Promise<JobCardData[]> {
       const workType: 'On-site' | 'Hybrid' | 'Remote' = rawMode.includes('remote')
         ? 'Remote'
         : rawMode.includes('on-site') || rawMode.includes('onsite') || rawMode.includes('office')
-          ? 'On-site'
-          : 'Hybrid'
+        ? 'On-site'
+        : 'Hybrid'
 
       const rawExp = d.experience || '2-5 Yrs'
       const expLevel = rawExp.toLowerCase().includes('senior') || rawExp.includes('8') || rawExp.includes('10')
         ? 'Senior Level'
         : rawExp.toLowerCase().includes('fresher') || rawExp.includes('0') || rawExp.includes('1')
-          ? 'Entry Level'
-          : 'Mid Level'
+        ? 'Entry Level'
+        : 'Mid Level'
 
       const skills: string[] = Array.isArray(d.required_skills) && d.required_skills.length > 0
         ? d.required_skills
