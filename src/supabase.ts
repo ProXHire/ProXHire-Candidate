@@ -396,19 +396,37 @@ export async function fetchPublishedJobsFromSupabase(): Promise<JobCardData[]> {
     return data.map((d: any) => {
       const companyName = d.company_name || 'Verified Employer'
       const logoText = d.company_logo_text || companyName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'PROX'
+      const rawMode = (d.work_mode || 'Hybrid').toLowerCase()
+      const workType: 'On-site' | 'Hybrid' | 'Remote' = rawMode.includes('remote')
+        ? 'Remote'
+        : rawMode.includes('on-site') || rawMode.includes('onsite') || rawMode.includes('office')
+          ? 'On-site'
+          : 'Hybrid'
+
+      const rawExp = d.experience || '2-5 Yrs'
+      const expLevel = rawExp.toLowerCase().includes('senior') || rawExp.includes('8') || rawExp.includes('10')
+        ? 'Senior Level'
+        : rawExp.toLowerCase().includes('fresher') || rawExp.includes('0') || rawExp.includes('1')
+          ? 'Entry Level'
+          : 'Mid Level'
+
+      const skills: string[] = Array.isArray(d.required_skills) && d.required_skills.length > 0
+        ? d.required_skills
+        : (Array.isArray(d.tags) && d.tags.length > 0 ? d.tags : ['Engineering'])
+
       return {
         id: d.id,
         company: companyName,
         companyLogoText: logoText,
         role: d.title || 'Software Engineer',
         location: d.location || 'Bengaluru, Karnataka',
-        workType: (d.work_mode || 'Hybrid') as any,
+        workType,
         jobType: d.job_type || 'Full Time',
-        experienceLevel: (d.experience && d.experience.includes('Senior') ? 'Senior Level' : 'Mid Level') as any,
-        experienceYears: d.experience || '2-5 Yrs',
-        tags: Array.isArray(d.required_skills) && d.required_skills.length > 0 ? d.required_skills : (Array.isArray(d.tags) ? d.tags : ['Engineering']),
-        extraTagsCount: 0,
-        postedTime: d.posted_time || 'Recent',
+        experienceLevel: expLevel,
+        experienceYears: rawExp,
+        tags: skills,
+        extraTagsCount: Math.max(0, skills.length - 3),
+        postedTime: d.posted_time || 'Just posted',
         isSaved: false,
         salary: d.salary || '₹12 - ₹18 LPA',
         description: d.description || undefined,
