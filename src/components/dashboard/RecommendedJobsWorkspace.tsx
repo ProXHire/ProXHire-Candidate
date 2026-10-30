@@ -21,6 +21,8 @@ import {
   Target
 } from 'lucide-react'
 import type { JobCardData, ApplicationRowData, CandidateRegistrationState } from '../../types'
+import { calculateATSScore, ATSBreakdown } from '../../services/atsScoreService'
+import { getCachedParsedResume } from '../../services/resumeParser'
 
 interface RecommendedJobsWorkspaceProps {
   jobs: JobCardData[]
@@ -38,6 +40,7 @@ interface ScoredJob {
   job: JobCardData
   matchScore: number
   matchedReasons: string[]
+  breakdown?: ATSBreakdown
 }
 
 export const RecommendedJobsWorkspace: React.FC<RecommendedJobsWorkspaceProps> = ({
@@ -66,54 +69,57 @@ export const RecommendedJobsWorkspace: React.FC<RecommendedJobsWorkspaceProps> =
     )
   }
 
-  // Calculate dynamic candidate match score based on skills, role, and location preferences
+  // Calculate deterministic Option A ATS score based on skills (40%), title (25%), experience (20%), and domain (15%)
   const scoredJobs = useMemo<ScoredJob[]>(() => {
-    const candidateSkills: string[] = (candidateProfile?.skills || []).map((s: string) => s.toLowerCase())
-    const prefRole = (candidateProfile?.preferredRole || '').toLowerCase()
-    const prefCity = (candidateProfile?.city || '').toLowerCase()
+    const cachedResume = getCachedParsedResume()
+    const candidateInput = {
+      fullName: candidateProfile?.fullName,
+      preferredRole: candidateProfile?.preferredRole,
+      skills: candidateProfile?.skills && candidateProfile.skills.length > 0
+        ? candidateProfile.skills
+        : (cachedResume?.extractedSkills && cachedResume.extractedSkills.length > 0 ? cachedResume.extractedSkills : ['React', 'TypeScript', 'Node.js', 'PostgreSQL']),
+      experienceYears: cachedResume?.detectedExperienceYears ?? (candidateProfile?.experienceCategory === 'fresher' ? 1 : 3.5),
+      experiences: candidateProfile?.experiences,
+      profileSummary: candidateProfile?.profileSummary,
+      projects: candidateProfile?.projects,
+      resumeRawText: cachedResume?.rawText,
+    }
 
     return jobs.map(job => {
-      let score = 78
-      const reasons: string[] = []
-
-      // Skill overlap
-      const jobTagsLower = job.tags.map(t => t.toLowerCase())
-      const matchedSkill = candidateSkills.find((s: string) =>
-        jobTagsLower.some(t => t.includes(s) || s.includes(t)) ||
-        job.role.toLowerCase().includes(s)
+      const breakdown = calculateATSScore(
+        {
+          title: job.role,
+          skills: job.tags,
+          tags: job.tags,
+          description: job.description,
+          experienceRequired: job.experienceYears,
+          experienceLevel: job.experienceLevel
+        },
+        candidateInput
       )
-      if (matchedSkill) {
-        score += 12
-        reasons.push(`Matched Skill: ${matchedSkill.toUpperCase()}`)
-      } else if (job.tags.length > 0) {
-        reasons.push(`Relevant Stack: ${job.tags[0]}`)
+
+      const reasons: string[] = []
+      if (breakdown.matchedSkills.length > 0) {
+        reasons.push(`Skills Fit: ${breakdown.matchedSkills.slice(0, 2).join(', ')}`)
       }
-
-      // Role preference
-      if (prefRole && job.role.toLowerCase().includes(prefRole)) {
-        score += 8
-        reasons.push('Matches Preferred Role')
+      if (breakdown.titleScore >= 18) {
+        reasons.push('Title & Role Match')
       }
-
-      // Location match
-      if (prefCity && job.location.toLowerCase().includes(prefCity)) {
-        score += 5
-        reasons.push('Location Match')
-      } else if (job.workType === 'Remote') {
-        score += 5
-        reasons.push('100% Remote Opportunity')
+      if (breakdown.experienceAnalysis.isSatisfied) {
+        reasons.push('Experience Tenure Qualified')
+      } else {
+        reasons.push(breakdown.rating)
       }
-
-      // Pre-verified bonus
-      reasons.push('Pre-Verified Employer')
-
-      // Normalize score between 82% and 99%
-      score = Math.min(99, Math.max(82, score + (job.id.charCodeAt(job.id.length - 1) % 7)))
 
       return {
-        job,
-        matchScore: score,
-        matchedReasons: reasons.slice(0, 3)
+        job: {
+          ...job,
+          atsScore: breakdown.totalScore,
+          atsBreakdown: breakdown,
+        },
+        matchScore: breakdown.totalScore,
+        matchedReasons: reasons.slice(0, 3),
+        breakdown,
       }
     })
   }, [jobs, candidateProfile])

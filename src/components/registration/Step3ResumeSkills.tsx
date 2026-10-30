@@ -15,7 +15,12 @@ import { useCandidate } from '../../context/CandidateContext'
 import { uploadResumeToSupabaseStorage } from '../../supabase'
 import { uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
 import { usePopularSkills } from '../../hooks/usePopularSkills'
-import { extractTextFromPdf, parseResumeTextToJSON, getCachedParsedResume } from '../../services/resumeParser'
+import {
+  extractResumeDocumentText,
+  buildParsedResumeJSON,
+  getCachedParsedResume,
+  ParsedResumeDocument
+} from '../../services/resumeParser'
 
 export const Step3ResumeSkills: React.FC = () => {
   const { formData, updateField, nextStep, prevStep } = useCandidate()
@@ -56,10 +61,20 @@ export const Step3ResumeSkills: React.FC = () => {
 
       setIsUploadingResume(true)
 
-      // 1. Extract text and parse into structured JSON for deterministic ATS matching
-      extractTextFromPdf(file)
-        .then(rawText => {
-          const parsed = parseResumeTextToJSON(rawText, file.name, file.size, file.type)
+      // 1. Multi-Tier Extract text and parse into structured JSON (Option A)
+      extractResumeDocumentText(file, (_progress, status) => {
+        setParsedAtsStatus(status)
+      })
+        .then(({ rawText, parserUsed }) => {
+          const parsed = buildParsedResumeJSON(rawText, file.name, file.size, file.type, parserUsed, {
+            fullName: formData.fullName,
+            email: formData.email,
+            mobile: formData.mobileNumber,
+          })
+          updateField('parsedResumeJson', parsed)
+          updateField('parserMethod', parserUsed)
+          updateField('rawResumeText', rawText)
+
           if (parsed.extractedSkills.length > 0) {
             const currentSkills = formData.skills || []
             const merged = [...currentSkills]
@@ -71,13 +86,27 @@ export const Step3ResumeSkills: React.FC = () => {
             if (merged.length > currentSkills.length) {
               updateField('skills', merged)
             }
-            setParsedAtsStatus(`ATS Profile Ready • ${parsed.extractedSkills.length} skills extracted into structured JSON`)
+            setParsedAtsStatus(`ATS Profile Ready (${parserUsed}) • ${parsed.extractedSkills.length} skills extracted into normalized JSON`)
           } else {
-            setParsedAtsStatus('ATS Profile Ready • Resume text cached into JSON')
+            setParsedAtsStatus(`ATS Profile Ready (${parserUsed}) • Normalized JSON ready for matching`)
           }
+
+          // Upload metadata to Supabase Storage
+          uploadResumeToSupabaseStorage(file, formData.email || 'candidate', formData.fullName, {
+            parsedResumeJson: parsed,
+            parserMethod: parserUsed,
+            rawText,
+          }).then(sbResult => {
+            if (sbResult.success && sbResult.url) {
+              updateField('resumeUrl', sbResult.url)
+            }
+          }).catch(sbErr => {
+            console.warn('Supabase Storage direct upload notice:', sbErr.message)
+          })
         })
         .catch(err => {
           console.warn('Resume text parsing warning:', err)
+          setParsedAtsStatus('Resume uploaded. Standard ATS profiling applied.')
         })
 
       // 2. Upload and read dataUrl
@@ -94,16 +123,6 @@ export const Step3ResumeSkills: React.FC = () => {
             } catch {
               // Ignore local quota limit
             }
-          }
-
-          // Upload to Supabase Storage (primary storage bucket 'resumes')
-          try {
-            const sbResult = await uploadResumeToSupabaseStorage(file, formData.email || 'candidate', formData.fullName)
-            if (sbResult.success && sbResult.url) {
-              updateField('resumeUrl', sbResult.url)
-            }
-          } catch (sbErr: any) {
-            console.warn('Supabase Storage direct upload notice:', sbErr.message)
           }
 
           // Secondary backup upload to Firebase Storage if configured

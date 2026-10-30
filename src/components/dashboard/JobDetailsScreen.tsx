@@ -221,7 +221,13 @@ export const JobDetailsScreen: React.FC<JobDetailsScreenProps> = ({
   const handleApplyClick = () => {
     setHasApplied(true)
     setShowApplySuccess(true)
-    if (onApply) onApply(job)
+    if (onApply) {
+      onApply({
+        ...job,
+        atsScore: atsBreakdown.totalScore,
+        atsBreakdown: atsBreakdown
+      })
+    }
   }
 
   const handleToggleSave = () => {

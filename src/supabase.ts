@@ -25,7 +25,12 @@ export const isSupabaseConfigured = (): boolean => {
 export async function uploadResumeToSupabaseStorage(
   file: File,
   candidateEmail: string,
-  candidateName?: string
+  candidateName?: string,
+  metadata?: {
+    parsedResumeJson?: any
+    parserMethod?: string
+    rawText?: string
+  }
 ): Promise<{
   success: boolean
   url?: string
@@ -83,6 +88,9 @@ export async function uploadResumeToSupabaseStorage(
         file_size: file.size,
         mime_type: file.type || 'application/pdf',
         is_active: true,
+        ...(metadata?.parsedResumeJson ? { parsed_resume_json: metadata.parsedResumeJson } : {}),
+        ...(metadata?.parserMethod ? { parser_method: metadata.parserMethod } : {}),
+        ...(metadata?.rawText ? { raw_text: metadata.rawText } : {}),
       })
     } catch (tableErr: any) {
       console.warn('Could not insert into resumes table (storage upload succeeded):', tableErr.message)
@@ -184,6 +192,9 @@ export async function syncCandidateToSupabase(
     resume_file_size: formData.resumeFileSize || 0,
     resume_url: formData.resumeUrl || null,
     resume_data_url: formData.resumeDataUrl && formData.resumeDataUrl.length < 500000 ? formData.resumeDataUrl : null,
+    parsed_resume_json: formData.parsedResumeJson || null,
+    parser_method: formData.parserMethod || 'pdf-stream-extractor',
+    raw_text: formData.rawResumeText || null,
     status: 'new',
     bgv_status: 'BASIC_VERIFIED',
     viewed: false,
@@ -270,6 +281,8 @@ export async function submitApplicationToSupabase(
     resumeFileName?: string
     flightNumber?: string
     ticketNumber?: string
+    atsScore?: number
+    atsBreakdown?: any
   }
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   if (!isSupabaseConfigured()) {
@@ -291,6 +304,8 @@ export async function submitApplicationToSupabase(
       resume_file_name: appData.resumeFileName || null,
       flight_number: appData.flightNumber || null,
       ticket_number: appData.ticketNumber || null,
+      ats_score: typeof appData.atsScore === 'number' ? appData.atsScore : 0,
+      ats_breakdown: appData.atsBreakdown || null,
       status: 'Submitted',
       applied_at: new Date().toISOString(),
     }

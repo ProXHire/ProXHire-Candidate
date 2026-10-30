@@ -33,6 +33,8 @@ import { RecommendedJobsWorkspace } from './RecommendedJobsWorkspace'
 import { subscribeToCandidateJobs, DEFAULT_MOCK_JOBS } from '../../services/candidateJobService'
 import { FlightBoardingPassModal } from './FlightBoardingPassModal'
 import { submitApplicationToSupabase } from '../../supabase'
+import { calculateATSScore } from '../../services/atsScoreService'
+import { getCachedParsedResume } from '../../services/resumeParser'
 import { CandidateNotificationsDropdown } from './CandidateNotificationsDropdown'
 import {
   loadStoredNotifications,
@@ -394,6 +396,30 @@ export const CandidateDashboard: React.FC = () => {
     const d = new Date()
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const todayStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+
+    // Compute or retrieve deterministic Option A ATS score for persistence
+    const cachedResume = getCachedParsedResume()
+    const atsResult = appliedJob.atsBreakdown || calculateATSScore(
+      {
+        title: appliedJob.role,
+        skills: appliedJob.tags,
+        tags: appliedJob.tags,
+        description: appliedJob.description,
+        experienceRequired: appliedJob.experienceYears,
+        experienceLevel: appliedJob.experienceLevel
+      },
+      {
+        fullName: formData.fullName || 'Candidate',
+        preferredRole: formData.preferredRole || appliedJob.role,
+        skills: formData.skills && formData.skills.length > 0 ? formData.skills : (cachedResume?.extractedSkills || []),
+        experienceYears: cachedResume?.detectedExperienceYears ?? (formData.experienceCategory === 'fresher' ? 1 : 3.5),
+        experiences: formData.experiences,
+        profileSummary: formData.profileSummary,
+        projects: formData.projects,
+        resumeRawText: cachedResume?.rawText
+      }
+    )
+
     const newApp: ApplicationRowData = {
       id: `app_${Date.now()}`,
       jobId: appliedJob.id,
@@ -411,6 +437,8 @@ export const CandidateDashboard: React.FC = () => {
       salary: appliedJob.salary,
       candidateName: formData.fullName || 'Candidate',
       candidateCity: formData.city || 'Bengaluru',
+      atsScore: atsResult.totalScore,
+      atsBreakdown: atsResult,
     }
 
     setApplications(prev => {
@@ -423,7 +451,7 @@ export const CandidateDashboard: React.FC = () => {
       return updated
     })
 
-    // Sync submitted application directly to Supabase 'applications' table
+    // Sync submitted application directly to Supabase 'applications' table with ATS metrics
     submitApplicationToSupabase({
       jobId: appliedJob.id,
       jobTitle: appliedJob.role,
@@ -437,6 +465,8 @@ export const CandidateDashboard: React.FC = () => {
       resumeFileName: formData.resumeFileName,
       flightNumber: flightNum,
       ticketNumber: ticketId,
+      atsScore: atsResult.totalScore,
+      atsBreakdown: atsResult,
     }).catch(err => console.warn('Supabase application sync note:', err.message))
 
     // Display the Flight Boarding Pass alert modal immediately!

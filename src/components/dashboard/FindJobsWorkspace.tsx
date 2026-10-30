@@ -17,6 +17,9 @@ import {
   X
 } from 'lucide-react'
 import type { JobCardData, ApplicationRowData } from '../../types'
+import { useCandidate } from '../../context/CandidateContext'
+import { calculateATSScore } from '../../services/atsScoreService'
+import { getCachedParsedResume } from '../../services/resumeParser'
 
 interface FindJobsWorkspaceProps {
   jobs: JobCardData[]
@@ -45,6 +48,42 @@ export const FindJobsWorkspace: React.FC<FindJobsWorkspaceProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [appliedToast, setAppliedToast] = useState<string | null>(null)
   const [savedToast, setSavedToast] = useState<string | null>(null)
+
+  const { formData } = useCandidate()
+  const cachedResume = useMemo(() => getCachedParsedResume(), [])
+
+  // Instantaneous (< 5ms) deterministic ATS score map for every job card
+  const jobScores = useMemo(() => {
+    const candidateInput = {
+      fullName: formData.fullName,
+      preferredRole: formData.preferredRole,
+      skills: formData.skills && formData.skills.length > 0
+        ? formData.skills
+        : (cachedResume?.extractedSkills && cachedResume.extractedSkills.length > 0 ? cachedResume.extractedSkills : ['React', 'TypeScript', 'Node.js', 'PostgreSQL']),
+      experienceYears: cachedResume?.detectedExperienceYears ?? (formData.experienceCategory === 'fresher' ? 1 : 3.5),
+      experiences: formData.experiences,
+      profileSummary: formData.profileSummary,
+      projects: formData.projects,
+      resumeRawText: cachedResume?.rawText,
+    }
+
+    const map = new Map<string, number>()
+    jobs.forEach(job => {
+      const breakdown = calculateATSScore(
+        {
+          title: job.role,
+          skills: job.tags,
+          tags: job.tags,
+          description: job.description,
+          experienceRequired: job.experienceYears,
+          experienceLevel: job.experienceLevel
+        },
+        candidateInput
+      )
+      map.set(job.id, breakdown.totalScore)
+    })
+    return map
+  }, [jobs, formData, cachedResume])
 
   // Filter and sort jobs
   const filteredJobs = useMemo(() => {
@@ -426,20 +465,38 @@ export const FindJobsWorkspace: React.FC<FindJobsWorkspaceProps> = ({
                         </div>
                       </div>
 
-                      {/* Bookmark Toggle */}
-                      <button
-                        type="button"
-                        onClick={e => handleToggleSave(job, e)}
-                        title={job.isSaved ? 'Remove from saved' : 'Save job'}
-                        className="cand-saved-bookmark-btn"
-                        style={{ color: job.isSaved ? '#09090b' : '#a1a1aa' }}
-                      >
-                        <Bookmark
-                          size={18}
-                          fill={job.isSaved ? '#09090b' : 'none'}
-                          color={job.isSaved ? '#09090b' : '#a1a1aa'}
-                        />
-                      </button>
+                      {/* ATS Score & Bookmark Toggle */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: '9999px',
+                            background: (jobScores.get(job.id) ?? 75) >= 85 ? '#ecfdf5' : (jobScores.get(job.id) ?? 75) >= 70 ? '#eff6ff' : '#f8fafc',
+                            color: (jobScores.get(job.id) ?? 75) >= 85 ? '#059669' : (jobScores.get(job.id) ?? 75) >= 70 ? '#2563eb' : '#64748b',
+                            border: `1px solid ${(jobScores.get(job.id) ?? 75) >= 85 ? '#a7f3d0' : (jobScores.get(job.id) ?? 75) >= 70 ? '#bfdbfe' : '#e2e8f0'}`,
+                          }}
+                        >
+                          <Sparkles size={11} /> {jobScores.get(job.id) ?? 75}% Match
+                        </span>
+                        <button
+                          type="button"
+                          onClick={e => handleToggleSave(job, e)}
+                          title={job.isSaved ? 'Remove from saved' : 'Save job'}
+                          className="cand-saved-bookmark-btn"
+                          style={{ color: job.isSaved ? '#09090b' : '#a1a1aa' }}
+                        >
+                          <Bookmark
+                            size={18}
+                            fill={job.isSaved ? '#09090b' : 'none'}
+                            color={job.isSaved ? '#09090b' : '#a1a1aa'}
+                          />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Role Title */}
@@ -589,6 +646,24 @@ export const FindJobsWorkspace: React.FC<FindJobsWorkspaceProps> = ({
                   </div>
 
                   <div className="cand-saved-list-actions">
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        background: (jobScores.get(job.id) ?? 75) >= 85 ? '#ecfdf5' : (jobScores.get(job.id) ?? 75) >= 70 ? '#eff6ff' : '#f8fafc',
+                        color: (jobScores.get(job.id) ?? 75) >= 85 ? '#059669' : (jobScores.get(job.id) ?? 75) >= 70 ? '#2563eb' : '#64748b',
+                        border: `1px solid ${(jobScores.get(job.id) ?? 75) >= 85 ? '#a7f3d0' : (jobScores.get(job.id) ?? 75) >= 70 ? '#bfdbfe' : '#e2e8f0'}`,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <Sparkles size={11} /> {jobScores.get(job.id) ?? 75}% Match
+                    </span>
+
                     <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
                       {job.postedTime}
                     </span>

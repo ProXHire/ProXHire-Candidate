@@ -53,6 +53,9 @@ export interface CandidateRegistrationState {
   resumeUrl?: string
   resumeFileType?: string
   resumeFileSize?: number
+  parsedResumeJson?: any
+  parserMethod?: string
+  rawResumeText?: string
   profileSummary: string
   educations: EducationItem[]
   skills: string[]
@@ -110,6 +113,8 @@ export interface JobCardData {
   isSaved?: boolean
   salary?: string
   description?: string
+  atsScore?: number
+  atsBreakdown?: any
 }
 
 export type ApplicationStatusType =
@@ -140,6 +145,8 @@ export interface ApplicationRowData {
   candidateName?: string
   candidateCity?: string
   reviewNotes?: string
+  atsScore?: number
+  atsBreakdown?: any
 }
 
 export * from './notification'
