@@ -1,9 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { CandidateStep, CandidateRegistrationState } from '../types'
 import { authService } from '../services/authService'
-import { syncCandidateToFirebase } from '../services/firebaseCandidateSync'
-import { db } from '../firebase'
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import confetti from 'canvas-confetti'
 import { resetPasswordForEmail, syncCandidateToSupabase, loginCandidateWithSupabase } from '../supabase'
 
@@ -201,7 +198,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }
 
   /**
-   * Submit Step 2 Basic Account Details to Backend (with Firebase offline fallback):
+   * Submit Step 2 Basic Account Details to Backend (with Supabase offline fallback):
    * Dispatches real OTP to Candidate's Mobile & Gmail
    */
   const submitBasicDetails = async () => {
@@ -236,14 +233,14 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch (err: any) {
       console.warn('Backend registration notice:', err.message)
 
-      // Fallback: If backend is unreachable or offline, save candidate in Supabase, Firestore & local cache and proceed to OTP screen
+      // Fallback: If backend is unreachable or offline, save candidate in Supabase & local cache and proceed to OTP screen
       try {
-        const fbUid = userId || 'cand_' + Date.now()
-        setUserId(fbUid)
-        localStorage.setItem('proxhire_candidate_uid', fbUid)
+        const fallbackUid = userId || 'cand_' + Date.now()
+        setUserId(fallbackUid)
+        localStorage.setItem('proxhire_candidate_uid', fallbackUid)
 
         // Sync candidate directly to Supabase 'candidates' database table
-        syncCandidateToSupabase(formData, fbUid).catch(() => null)
+        syncCandidateToSupabase(formData, fallbackUid).catch(() => null)
 
         // Save local registered candidate list
         try {
@@ -262,9 +259,6 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         } catch {
           // ignore
         }
-
-        // Sync candidate directly to Firebase Firestore
-        syncCandidateToFirebase(formData, fbUid).catch(() => null)
 
         // Seamlessly advance to OTP verification step
         setOtpPending(true)
@@ -362,7 +356,6 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         localStorage.setItem('proxhire_candidate_registered', 'false')
         setOtpPending(false)
 
-        syncCandidateToFirebase(formData, userId || undefined).catch(() => null)
 
         // Proceed directly to Step 3: Profile Details (Resume, Education & Skills)
         setStepState(3)
@@ -414,11 +407,6 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.warn('Supabase sync notice on complete registration:', sbErr.message)
       })
 
-      // 2. Sync to Google Firebase (for Admin Portal fallback)
-      await syncCandidateToFirebase(formData, userId || undefined).catch((fbErr) => {
-        console.warn('Firebase sync notice on complete registration:', fbErr.message)
-      })
-
       // 2. Persist profile details to PostgreSQL backend
       if (authToken) {
         await authService.updateProfile(authToken, {
@@ -465,7 +453,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }
 
   /**
-   * Login candidate via email/phone and password with backend & Firebase Firestore fallback
+   * Login candidate via email/phone and password with backend & Supabase fallback
    */
   const loginCandidate = async (emailOrPhone: string, pass: string) => {
     setIsSubmitting(true)
@@ -554,86 +542,6 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       } catch (sbErr: any) {
         console.warn('Supabase login check note:', sbErr?.message)
-      }
-
-      // 3. Only if backend server is unreachable (Network Error), attempt Firebase Auth credential validation
-      try {
-        const { signInWithEmailAndPassword } = await import('firebase/auth')
-        const { auth } = await import('../firebase')
-
-        let targetEmail = cleanEmail
-        if (!cleanEmail.includes('@') && cleanMobile.length >= 10) {
-          const q = query(collection(db, 'candidates'), where('normalizedMobile', '==', cleanMobile))
-          const snap = await getDocs(q)
-          if (!snap.empty && snap.docs[0].data()?.email) {
-            targetEmail = snap.docs[0].data().email
-          }
-        }
-
-        // MUST authenticate password against Firebase
-        const cred = await signInWithEmailAndPassword(auth, targetEmail, pass)
-        if (cred.user) {
-          let candidateDoc: any = null
-          const snap = await getDoc(doc(db, 'candidates', targetEmail))
-          if (snap.exists()) {
-            candidateDoc = snap.data()
-          }
-
-          const sessionToken = 'fb_session_' + Date.now()
-          const candidateUid = cred.user.uid || candidateDoc?.userId || 'cand_' + Date.now()
-
-          setAuthToken(sessionToken)
-          setUserId(candidateUid)
-          setIsVerified(true)
-
-          localStorage.setItem('proxhire_candidate_token', sessionToken)
-          localStorage.setItem('proxhire_candidate_uid', candidateUid)
-          localStorage.setItem('proxhire_candidate_verified', 'true')
-
-          // Check if candidate has completed their mandatory profile
-          const hasCompletedProfile = !!(
-            candidateDoc?.isCompleted === true ||
-            (candidateDoc?.skills && candidateDoc.skills.length >= 3 && candidateDoc?.educations && candidateDoc.educations.length >= 1 && candidateDoc?.preferredRole)
-          )
-
-          if (hasCompletedProfile) {
-            setIsCompleted(true)
-            localStorage.setItem('proxhire_candidate_registered', 'true')
-            localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
-            setViewModeState('dashboard')
-          } else {
-            // New account or incomplete profile -> Candidate must create their profile first!
-            setIsCompleted(false)
-            localStorage.setItem('proxhire_candidate_registered', 'false')
-            localStorage.setItem('proxhire_candidate_view_mode', 'registration')
-            setStepState(3)
-            setViewModeState('registration')
-          }
-
-          if (candidateDoc) {
-            setFormData(prev => ({
-              ...prev,
-              fullName: candidateDoc.fullName || prev.fullName,
-              email: candidateDoc.email || cleanEmail,
-              mobileNumber: candidateDoc.mobileNumber || prev.mobileNumber,
-              city: candidateDoc.currentLocation || prev.city,
-              preferredRole: candidateDoc.preferredRole || prev.preferredRole,
-              skills: candidateDoc.skills && candidateDoc.skills.length > 0 ? candidateDoc.skills : prev.skills,
-              educations: candidateDoc.educations && candidateDoc.educations.length > 0 ? candidateDoc.educations : prev.educations,
-              experiences: candidateDoc.experiences && candidateDoc.experiences.length > 0 ? candidateDoc.experiences : prev.experiences,
-              projects: candidateDoc.projects && candidateDoc.projects.length > 0 ? candidateDoc.projects : prev.projects,
-            }))
-          }
-
-          return
-        }
-      } catch (fbErr: any) {
-        console.warn('Firebase login verification failed:', fbErr?.message)
-        const msg = (fbErr.code === 'auth/wrong-password' || fbErr.code === 'auth/invalid-credential')
-          ? 'Invalid credentials. Please verify your email/mobile and password.'
-          : (fbErr.message || 'Login failed. Please verify credentials.')
-        setErrorMsg(msg)
-        throw new Error(msg)
       }
 
       const friendlyMsg = 'Invalid credentials. Please verify your email/mobile and password.'

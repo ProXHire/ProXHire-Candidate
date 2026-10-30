@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import { uploadResumeToSupabaseStorage } from '../../supabase'
-import { uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
 import { usePopularSkills } from '../../hooks/usePopularSkills'
 import {
   extractResumeDocumentText,
@@ -123,16 +122,6 @@ export const Step3ResumeSkills: React.FC = () => {
             } catch {
               // Ignore local quota limit
             }
-          }
-
-          // Secondary backup upload to Firebase Storage if configured
-          try {
-            const downloadUrl = await uploadResumeToFirebaseStorage(file, formData.email || 'candidate')
-            if (downloadUrl && !formData.resumeUrl) {
-              updateField('resumeUrl', downloadUrl)
-            }
-          } catch (storageErr: any) {
-            console.warn('Firebase Storage direct upload notice (Firestore fallback will be used):', storageErr.message)
           }
         }
         setIsUploadingResume(false)

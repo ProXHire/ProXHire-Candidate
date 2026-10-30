@@ -272,7 +272,7 @@ export const CandidateDashboard: React.FC = () => {
 
   const [jobs, setJobs] = useState<JobCardData[]>(DEFAULT_MOCK_JOBS)
 
-  // Real-time synchronization of Firebase posted jobs
+  // Real-time synchronization of Supabase posted jobs
   useEffect(() => {
     const unsubscribe = subscribeToCandidateJobs((liveJobs) => {
       setJobs(liveJobs)

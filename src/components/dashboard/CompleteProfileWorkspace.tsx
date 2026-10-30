@@ -27,7 +27,6 @@ import {
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
 import { authService } from '../../services/authService'
-import { syncCandidateToFirebase, uploadResumeToFirebaseStorage } from '../../services/firebaseCandidateSync'
 import { syncCandidateToSupabase, uploadResumeToSupabaseStorage } from '../../supabase'
 import { extractResumeDocumentText, buildParsedResumeJSON } from '../../services/resumeParser'
 import { usePopularSkills } from '../../hooks/usePopularSkills'
@@ -158,7 +157,7 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
 
   const completionPercent = calculateCompletion()
 
-  // Save handler: updates context, localStorage, backend API, Supabase and Firebase
+  // Save handler: updates context, localStorage, backend API and Supabase
   const handleSaveAll = async () => {
     setIsSaving(true)
     setSaveSuccess(false)
@@ -168,12 +167,7 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
         console.warn('Supabase profile sync notice:', sbErr.message)
       })
 
-      // 2. Sync to Firebase Firestore (Backup / Admin Portal)
-      await syncCandidateToFirebase(formData, userId || undefined).catch((fbErr) => {
-        console.warn('Firebase profile sync notice:', fbErr.message)
-      })
-
-      // 3. Sync to Backend PostgreSQL if token is present
+      // 2. Sync to Backend PostgreSQL if token is present
       if (authToken) {
         await authService.updateProfile(authToken, {
           fullName: formData.fullName,
@@ -250,7 +244,7 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
           console.warn('Resume text parsing warning:', err)
         })
 
-      // 3. Local data URL & Firebase fallback
+      // 3. Local data URL preview
       const reader = new FileReader()
       reader.onload = async (event) => {
         const dataUrl = event.target?.result as string
@@ -261,16 +255,6 @@ export const CompleteProfileWorkspace: React.FC<CompleteProfileWorkspaceProps> =
               localStorage.setItem('resume_' + formData.email.toLowerCase().trim(), dataUrl)
             } catch (err) {
               console.warn('LocalStorage limit for resume:', err)
-            }
-          }
-          if (userId) {
-            try {
-              const downloadUrl = await uploadResumeToFirebaseStorage(file, userId)
-              if (downloadUrl && !formData.resumeUrl) {
-                updateField('resumeUrl', downloadUrl)
-              }
-            } catch (storageErr) {
-              console.warn('Firebase Storage notice:', storageErr)
             }
           }
         }

@@ -1,5 +1,3 @@
-import { db } from '../firebase'
-import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore'
 import type { JobCardData } from '../types'
 import { fetchPublishedJobsFromSupabase, supabase, isSupabaseConfigured } from '../supabase'
 
@@ -152,31 +150,31 @@ function formatJobDoc(docId: string, data: any): JobCardData {
 }
 
 /**
- * Subscribe to real-time Firebase jobs for candidate platform
+ * Subscribe to real-time Supabase jobs for candidate platform
  */
 export function subscribeToCandidateJobs(
   onUpdate: (jobs: JobCardData[]) => void
 ): () => void {
-  const firebaseJobMap = new Map<string, JobCardData>()
+  const jobMap = new Map<string, JobCardData>()
 
   const emitMergedJobs = () => {
-    // 1. Convert map to list (real Firebase postings)
-    const fbJobs = Array.from(firebaseJobMap.values())
+    // 1. Convert map to list (real Supabase postings)
+    const postedJobs = Array.from(jobMap.values())
 
     // 2. Read from localStorage cross-tab posted jobs cache
     try {
       const cached = JSON.parse(localStorage.getItem('proxhire_posted_jobs') || '[]')
       cached.forEach((item: any) => {
-        if (!firebaseJobMap.has(item.id)) {
-          fbJobs.unshift(formatJobDoc(item.id, item))
+        if (!jobMap.has(item.id)) {
+          postedJobs.unshift(formatJobDoc(item.id, item))
         }
       })
     } catch {
       // Ignore
     }
 
-    // 3. Prepend Firebase posted jobs before default starter catalog
-    const finalJobList = [...fbJobs, ...DEFAULT_MOCK_JOBS]
+    // 3. Prepend posted jobs before default starter catalog
+    const finalJobList = [...postedJobs, ...DEFAULT_MOCK_JOBS]
     onUpdate(finalJobList)
   }
 
@@ -186,7 +184,7 @@ export function subscribeToCandidateJobs(
   // 1b. Fetch jobs from Supabase database 'jobs' table
   fetchPublishedJobsFromSupabase().then(sbJobs => {
     if (sbJobs && sbJobs.length > 0) {
-      sbJobs.forEach(job => firebaseJobMap.set(job.id, job))
+      sbJobs.forEach(job => jobMap.set(job.id, job))
       emitMergedJobs()
     }
   }).catch(() => null)
@@ -201,7 +199,7 @@ export function subscribeToCandidateJobs(
         .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => {
           fetchPublishedJobsFromSupabase().then(sbJobs => {
             if (sbJobs && sbJobs.length > 0) {
-              sbJobs.forEach(job => firebaseJobMap.set(job.id, job))
+              sbJobs.forEach(job => jobMap.set(job.id, job))
               emitMergedJobs()
             }
           }).catch(() => null)
@@ -214,65 +212,6 @@ export function subscribeToCandidateJobs(
       // Ignore
     }
   }
-
-  // 2. Real-time onSnapshot on candidates collection (where isJobPosting == true)
-  try {
-    const qJobs = query(collection(db, 'candidates'), where('isJobPosting', '==', true))
-    const unsubCandidateJobs = onSnapshot(
-      qJobs,
-      snapshot => {
-        snapshot.docs.forEach(docSnap => {
-          const job = formatJobDoc(docSnap.id, docSnap.data())
-          firebaseJobMap.set(docSnap.id, job)
-        })
-        emitMergedJobs()
-      },
-      err => {
-        console.warn('Real-time candidate jobs subscription notice:', err.message)
-      }
-    )
-    unsubs.push(unsubCandidateJobs)
-  } catch (err: any) {
-    console.warn('Firestore candidate jobs listener setup notice:', err.message)
-  }
-
-  // 3. Real-time onSnapshot on companies collection (for latestJob)
-  try {
-    const unsubCompanies = onSnapshot(
-      collection(db, 'companies'),
-      snapshot => {
-        snapshot.docs.forEach(compDoc => {
-          const compData = compDoc.data()
-          if (compData.latestJob && compData.latestJob.id) {
-            const job = formatJobDoc(compData.latestJob.id, compData.latestJob)
-            firebaseJobMap.set(compData.latestJob.id, job)
-          }
-        })
-        emitMergedJobs()
-      },
-      err => {
-        console.warn('Real-time companies jobs subscription notice:', err.message)
-      }
-    )
-    unsubs.push(unsubCompanies)
-  } catch (err: any) {
-    console.warn('Firestore companies listener setup notice:', err.message)
-  }
-
-  // 4. Fallback one-time fetch for robust initial load
-  ;(async () => {
-    try {
-      const q = query(collection(db, 'candidates'), where('isJobPosting', '==', true))
-      const snap = await getDocs(q)
-      snap.forEach(d => {
-        const job = formatJobDoc(d.id, d.data())
-        firebaseJobMap.set(d.id, job)
-      })
-      emitMergedJobs()
-    } catch (e) {
-      // Ignored
-    }
-  })()
 
   // 5. Cross-tab storage listener so posting in Employer immediately reflects in Candidate tab
   const handleStorageChange = (e: StorageEvent) => {

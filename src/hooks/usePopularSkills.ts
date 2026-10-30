@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { db } from '../firebase'
-import { doc, onSnapshot } from 'firebase/firestore'
+import { supabase } from '../supabase'
 
 export const DEFAULT_POPULAR_SKILLS: string[] = [
   'React',
@@ -42,36 +41,40 @@ export function usePopularSkills() {
   const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
-    try {
-      const settingsRef = doc(db, 'settings', 'formOptions')
-      const unsub = onSnapshot(
-        settingsRef,
-        (snap) => {
-          if (snap.exists()) {
-            const data = snap.data()
-            if (Array.isArray(data.popularSkills) && data.popularSkills.length > 0) {
-              setPopularSkills(data.popularSkills)
-              try {
-                const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
-                const currentObj = cached ? JSON.parse(cached) : {}
-                currentObj.popularSkills = data.popularSkills
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentObj))
-              } catch {
-                // Ignore storage error
-              }
-            }
-          }
-          setLoading(false)
-        },
-        (error) => {
-          console.warn('Could not subscribe to popularSkills from Firestore (using defaults):', error)
-          setLoading(false)
+    const apply = (data: any) => {
+      if (Array.isArray(data?.popularSkills) && data.popularSkills.length > 0) {
+        setPopularSkills(data.popularSkills)
+        try {
+          const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
+          const currentObj = cached ? JSON.parse(cached) : {}
+          currentObj.popularSkills = data.popularSkills
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentObj))
+        } catch {
+          // Ignore storage error
         }
-      )
-      return () => unsub()
-    } catch (err) {
-      console.warn('Error setting up popularSkills listener:', err)
-      setLoading(false)
+      }
+    }
+
+    supabase
+      .from('app_settings')
+      .select('data')
+      .eq('id', 'formOptions')
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) console.warn('Could not load popularSkills from Supabase (using defaults):', error.message)
+        else apply(data?.data)
+        setLoading(false)
+      })
+
+    const channel = supabase
+      .channel('app_settings:formOptions:skills')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings', filter: 'id=eq.formOptions' }, (payload: any) => {
+        apply(payload.new?.data)
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
     }
   }, [])
 
