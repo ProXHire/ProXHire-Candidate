@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { CandidateStep, CandidateRegistrationState } from '../types'
 import { authService } from '../services/authService'
 import confetti from 'canvas-confetti'
-import { resetPasswordForEmail, syncCandidateToSupabase, loginCandidateWithSupabase } from '../supabase'
+import { syncCandidateToSupabase } from '../supabase'
 
 interface CandidateContextType {
   step: CandidateStep
@@ -36,14 +36,12 @@ interface CandidateContextType {
       otpCode?: string;
       emailOtp?: string;
       mobileOtp?: string;
-      firebaseVerified?: boolean;
-    },
-    firebaseVerified?: boolean
+    }
   ) => Promise<any>
   resendVerificationOtp: () => Promise<void>
   completeRegistration: () => Promise<void>
   loginCandidate: (emailOrPhone: string, pass: string) => Promise<void>
-  resetPassword: (email: string) => Promise<{ success: boolean; message: string }>
+  resetPassword: (email: string, code?: string, newPassword?: string) => Promise<{ success: boolean; message: string }>
   logout: () => void
 }
 
@@ -231,54 +229,15 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       setOtpPending(true)
     } catch (err: any) {
-      console.warn('Backend registration notice:', err.message)
-
-      // Fallback: If backend is unreachable or offline, save candidate in Supabase & local cache and proceed to OTP screen
-      try {
-        const fallbackUid = userId || 'cand_' + Date.now()
-        setUserId(fallbackUid)
-        localStorage.setItem('proxhire_candidate_uid', fallbackUid)
-
-        // Sync candidate directly to Supabase 'candidates' database table
-        syncCandidateToSupabase(formData, fallbackUid).catch(() => null)
-
-        // Save local registered candidate list
-        try {
-          const existing = JSON.parse(localStorage.getItem('proxy_registered_candidates') || '[]')
-          const updated = [
-            ...existing.filter((c: any) => c.email !== cleanEmail),
-            {
-              email: cleanEmail,
-              mobileNumber: cleanMobile,
-              normalizedMobile: cleanMobile.slice(-10),
-              fullName: formData.fullName.trim(),
-              timestamp: Date.now()
-            }
-          ]
-          localStorage.setItem('proxy_registered_candidates', JSON.stringify(updated))
-        } catch {
-          // ignore
-        }
-
-        // Seamlessly advance to OTP verification step
-        setOtpPending(true)
-        return
-      } catch (fbErr: any) {
-        console.warn('Fallback error:', fbErr?.message)
-      }
-
       const isNetworkError =
         err.message?.includes('Failed to fetch') ||
         err.message?.includes('NetworkError') ||
         err.name === 'TypeError'
-
-      if (isNetworkError) {
-        setErrorMsg('Authentication server is reconnecting. Please click "Send OTP & Verify" again or verify with Mobile OTP.')
-        throw new Error('Authentication server is reconnecting. Please click "Send OTP & Verify" again or verify with Mobile OTP.')
-      }
-
-      setErrorMsg(err.message || 'Failed to register candidate account.')
-      throw err
+      const msg = isNetworkError
+        ? 'Cannot reach the ProXHire server. Check your connection and try again.'
+        : (err.message || 'Failed to register candidate account.')
+      setErrorMsg(msg)
+      throw new Error(msg)
     } finally {
       setIsSubmitting(false)
     }
@@ -294,51 +253,27 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       otpCode?: string;
       emailOtp?: string;
       mobileOtp?: string;
-      firebaseVerified?: boolean;
-    },
-    firebaseVerifiedLegacy?: boolean
+    }
   ) => {
     setIsSubmitting(true)
     setErrorMsg(null)
 
     const opts = typeof optionsOrOtp === 'string'
-      ? { otpCode: optionsOrOtp, firebaseVerified: firebaseVerifiedLegacy }
+      ? { otpCode: optionsOrOtp }
       : (optionsOrOtp || {})
-
-    const isBypass = opts.otpCode === '123456' || opts.emailOtp === '123456' || opts.mobileOtp === '123456'
 
     try {
       const cleanMobile = formData.mobileNumber.replace(/[\s\-\+]/g, '')
-      let response: any
-      try {
-        response = await authService.verifyOtp({
-          userId: userId || undefined,
-          email: formData.email.trim().toLowerCase(),
-          mobileNumber: cleanMobile,
-          channel: opts.channel,
-          otpCode: opts.otpCode?.trim(),
-          emailOtp: opts.emailOtp?.trim(),
-          mobileOtp: opts.mobileOtp?.trim(),
-          firebaseVerified: !!opts.firebaseVerified,
-          purpose: 'CANDIDATE_REGISTRATION'
-        })
-      } catch (err) {
-        if (isBypass) {
-          response = {
-            success: true,
-            isVerified: true,
-            isEmailVerified: true,
-            isMobileVerified: true,
-            token: 'proxhire_token_' + Date.now()
-          }
-        } else {
-          throw err
-        }
-      }
-
-      if (isBypass && !response.isVerified) {
-        response.isVerified = true
-      }
+      const response: any = await authService.verifyOtp({
+        userId: userId || undefined,
+        email: formData.email.trim().toLowerCase(),
+        mobileNumber: cleanMobile,
+        channel: opts.channel,
+        otpCode: opts.otpCode?.trim(),
+        emailOtp: opts.emailOtp?.trim(),
+        mobileOtp: opts.mobileOtp?.trim(),
+        purpose: 'CANDIDATE_REGISTRATION'
+      })
 
       // Email verification unlocks the candidate account and proceeds to profile creation
       if (response.isVerified || response.isEmailVerified) {
@@ -496,60 +431,27 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setViewModeState('dashboard')
       return
     } catch (err: any) {
-      console.warn('Backend login attempt failed:', err.message)
-
-      // If backend explicitly rejected credentials or blocked user, DO NOT fallback
       const isNetworkError =
         err.message?.includes('Failed to fetch') ||
         err.message?.includes('NetworkError') ||
-        err.message?.includes('fetch') ||
         err.name === 'TypeError'
-
-      if (!isNetworkError) {
-        setErrorMsg(err.message || 'Invalid credentials. Please verify your email/mobile and password.')
-        throw new Error(err.message || 'Invalid credentials. Please verify your email/mobile and password.')
-      }
-
-      // 2. Attempt Supabase direct candidate authentication & profile lookup
-      try {
-        const sbRes = await loginCandidateWithSupabase(cleanInput, pass)
-        if (sbRes.success && sbRes.candidate) {
-          const cand = sbRes.candidate
-          const uid = cand.id || cand.user_id || 'sb_' + Date.now()
-          setUserId(uid)
-          setAuthToken('sb_token_' + Date.now())
-          setIsVerified(true)
-          setIsCompleted(true)
-          localStorage.setItem('proxhire_candidate_token', 'sb_token_' + Date.now())
-          localStorage.setItem('proxhire_candidate_uid', uid)
-          localStorage.setItem('proxhire_candidate_verified', 'true')
-          localStorage.setItem('proxhire_candidate_registered', 'true')
-          localStorage.setItem('proxhire_candidate_view_mode', 'dashboard')
-          setFormData(prev => ({
-            ...prev,
-            fullName: cand.full_name || prev.fullName,
-            email: cand.email || prev.email,
-            mobileNumber: cand.mobile_number || prev.mobileNumber,
-            city: cand.city || prev.city,
-            resumeUrl: cand.resume_url || prev.resumeUrl,
-            resumeFileName: cand.resume_file_name || prev.resumeFileName,
-            skills: Array.isArray(cand.skills) ? cand.skills : prev.skills,
-            educations: Array.isArray(cand.educations) ? cand.educations : prev.educations,
-            experiences: Array.isArray(cand.experiences) ? cand.experiences : prev.experiences,
-          }))
-          setViewModeState('dashboard')
-          return
-        }
-      } catch (sbErr: any) {
-        console.warn('Supabase login check note:', sbErr?.message)
-      }
-
-      const friendlyMsg = 'Invalid credentials. Please verify your email/mobile and password.'
-      setErrorMsg(friendlyMsg)
-      throw new Error(friendlyMsg)
+      const msg = isNetworkError
+        ? 'Cannot reach the ProXHire server. Check your connection and try again.'
+        : (err.message || 'Invalid credentials. Please verify your email/mobile and password.')
+      setErrorMsg(msg)
+      throw new Error(msg)
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  /**
+   * Reset password: without a code, email one; with a code, set the new password
+   */
+  const resetPassword = async (email: string, code?: string, newPassword?: string) => {
+    return code && newPassword
+      ? authService.confirmPasswordReset(email, code, newPassword)
+      : authService.requestPasswordReset(email)
   }
 
   /**
@@ -617,7 +519,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         resendVerificationOtp,
         completeRegistration,
         loginCandidate,
-        resetPassword: resetPasswordForEmail,
+        resetPassword,
         logout
       }}
     >

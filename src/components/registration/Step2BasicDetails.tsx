@@ -202,31 +202,10 @@ export const Step2BasicDetails: React.FC = () => {
 
     setIsVerifyingEmail(true)
 
-    // Bypass with hardcoded 123456
-    if (code === '123456') {
-      try {
-        await submitVerifyOtp({
-          channel: 'ALL',
-          otpCode: '123456',
-          emailOtp: '123456',
-          mobileOtp: '123456',
-          firebaseVerified: true
-        })
-      } catch {
-        // Fallback local verify
-      }
-      setEmailVerified(true)
-      setIsVerifyingEmail(false)
-      return
-    }
-
     try {
       await submitVerifyOtp({
-        channel: 'ALL',
-        otpCode: code,
+        channel: 'EMAIL',
         emailOtp: code,
-        mobileOtp: 'FIREBASE_VERIFIED',
-        firebaseVerified: true
       })
       setEmailVerified(true)
     } catch (err: any) {

@@ -226,44 +226,6 @@ export async function syncCandidateToSupabase(
 }
 
 /**
- * Candidate Login lookup against Supabase database
- */
-export async function loginCandidateWithSupabase(
-  identifier: string,
-  _pass: string
-): Promise<{ success: boolean; candidate?: any; error?: string }> {
-  if (!isSupabaseConfigured()) {
-    return { success: false, error: 'Supabase not configured' }
-  }
-
-  const cleanInput = identifier.trim()
-  const isEmail = cleanInput.includes('@')
-  const cleanMobile = cleanInput.replace(/[\s\-\+]/g, '').slice(-10)
-
-  try {
-    let query = supabase.from('candidates').select('*')
-    if (isEmail) {
-      query = query.eq('email', cleanInput.toLowerCase())
-    } else {
-      query = query.or(`normalized_mobile.eq.${cleanMobile},mobile_number.ilike.%${cleanMobile}%`)
-    }
-
-    const { data, error } = await query.limit(1).maybeSingle()
-    if (error) {
-      return { success: false, error: error.message }
-    }
-
-    if (!data) {
-      return { success: false, error: 'No candidate record found in Supabase' }
-    }
-
-    return { success: true, candidate: data }
-  } catch (err: any) {
-    return { success: false, error: err.message }
-  }
-}
-
-/**
  * Submit candidate job application to Supabase 'applications' table
  */
 export async function submitApplicationToSupabase(
@@ -437,37 +399,3 @@ export async function fetchPublishedJobsFromSupabase(): Promise<JobCardData[]> {
   }
 }
 
-/**
- * Supabase Password Reset Function
- */
-export async function resetPasswordForEmail(email: string): Promise<{ success: boolean; message: string }> {
-  const cleanEmail = email.trim().toLowerCase()
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!cleanEmail || !emailRegex.test(cleanEmail)) {
-    throw new Error('Password reset links are sent via email. Please enter a valid email address (e.g. name@domain.com).')
-  }
-
-  if (isSupabaseConfigured()) {
-    const redirectTo = `${window.location.origin}/reset-password`
-    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo,
-    })
-
-    if (error) {
-      console.warn('Supabase resetPasswordForEmail notice:', error.message)
-      if (error.message.toLowerCase().includes('rate limit')) {
-        throw new Error('Too many reset requests. Please wait a few moments before trying again.')
-      }
-    }
-
-    return {
-      success: true,
-      message: `If an account exists for ${cleanEmail}, instructions have been sent.`,
-    }
-  }
-
-  return {
-    success: true,
-    message: `If an account exists for ${cleanEmail}, instructions have been sent.`,
-  }
-}

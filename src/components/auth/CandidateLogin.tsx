@@ -17,7 +17,6 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { useCandidate } from '../../context/CandidateContext'
-import { resetPasswordForEmail } from '../../supabase'
 
 // Google "G" official multi-color SVG icon
 const GoogleIcon = () => (
@@ -30,7 +29,7 @@ const GoogleIcon = () => (
 )
 
 export const CandidateLogin: React.FC = () => {
-  const { formData, setViewMode, setStep, loginCandidate } = useCandidate()
+  const { formData, setViewMode, setStep, loginCandidate, resetPassword } = useCandidate()
 
   // State - decoupled from registration formData, only uses explicit remembered credentials
   const [emailOrPhone, setEmailOrPhone] = useState(() => {
@@ -50,6 +49,9 @@ export const CandidateLogin: React.FC = () => {
   const [forgotLoading, setForgotLoading] = useState(false)
   const [forgotError, setForgotError] = useState<string | null>(null)
   const [forgotSubmitted, setForgotSubmitted] = useState(false)
+  const [forgotCodeSent, setForgotCodeSent] = useState(false)
+  const [forgotCode, setForgotCode] = useState('')
+  const [forgotNewPassword, setForgotNewPassword] = useState('')
 
   // Handle Supabase Email Password Reset Submit
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -59,16 +61,21 @@ export const CandidateLogin: React.FC = () => {
     const clean = forgotEmail.trim().toLowerCase()
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!clean || !emailRegex.test(clean)) {
-      setForgotError('Password reset links are delivered via email. Please enter your registered email address (not a mobile number).')
+      setForgotError('Reset codes are sent by email. Please enter your registered email address (not a mobile number).')
       return
     }
 
     setForgotLoading(true)
     try {
-      await resetPasswordForEmail(clean)
-      setForgotSubmitted(true)
+      if (!forgotCodeSent) {
+        await resetPassword(clean)
+        setForgotCodeSent(true)
+      } else {
+        await resetPassword(clean, forgotCode.trim(), forgotNewPassword)
+        setForgotSubmitted(true)
+      }
     } catch (err: any) {
-      setForgotError(err.message || 'Failed to dispatch password reset email. Please try again.')
+      setForgotError(err.message || 'Password reset failed. Please try again.')
     } finally {
       setForgotLoading(false)
     }
@@ -385,20 +392,19 @@ export const CandidateLogin: React.FC = () => {
               Reset Password
             </h4>
             <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px', lineHeight: 1.5 }}>
-              Enter your registered email address. We'll send you instructions to securely reset your password.
+              {forgotCodeSent
+                ? `If an account exists for ${forgotEmail.trim()}, we've emailed it a 6-digit code. Enter it below with your new password.`
+                : "Enter your registered email address. We'll email you a 6-digit code to reset your password."}
             </p>
 
             {forgotSubmitted ? (
               <div style={{ textAlign: 'center', padding: '16px 0' }}>
                 <CheckCircle2 size={40} color="#10b981" style={{ margin: '0 auto 12px' }} />
                 <h5 style={{ fontSize: '15px', fontWeight: 700, color: '#09090b', margin: '0 0 6px' }}>
-                  Reset Link Dispatched
+                  Password Reset
                 </h5>
                 <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 8px', lineHeight: 1.5 }}>
-                  If an account exists for <strong style={{ color: '#09090b' }}>{forgotEmail}</strong>, instructions have been sent to your email inbox.
-                </p>
-                <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>
-                  Please check your spam or junk folder if you do not receive it shortly.
+                  Your password has been changed. Sign in with your new password.
                 </p>
                 <button
                   type="button"
@@ -407,6 +413,9 @@ export const CandidateLogin: React.FC = () => {
                   onClick={() => {
                     setShowForgotModal(false)
                     setForgotSubmitted(false)
+                    setForgotCodeSent(false)
+                    setForgotCode('')
+                    setForgotNewPassword('')
                     setForgotEmail('')
                     setForgotError(null)
                   }}
@@ -454,9 +463,41 @@ export const CandidateLogin: React.FC = () => {
                       }}
                       required
                       autoFocus
+                      disabled={forgotCodeSent}
                     />
                   </div>
                 </div>
+
+                {forgotCodeSent && (
+                  <>
+                    <div className="cand-field-group" style={{ marginBottom: '12px' }}>
+                      <label className="cand-field-label" htmlFor="cand-reset-code">6-digit code</label>
+                      <input
+                        id="cand-reset-code"
+                        className="cand-input"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="123456"
+                        value={forgotCode}
+                        onChange={e => setForgotCode(e.target.value.replace(/\D/g, ''))}
+                        required
+                      />
+                    </div>
+                    <div className="cand-field-group" style={{ marginBottom: '16px' }}>
+                      <label className="cand-field-label" htmlFor="cand-reset-password">New password</label>
+                      <input
+                        id="cand-reset-password"
+                        type="password"
+                        className="cand-input"
+                        placeholder="Min. 8 chars (A-Z, a-z, 0-9, symbol)"
+                        value={forgotNewPassword}
+                        onChange={e => setForgotNewPassword(e.target.value)}
+                        autoComplete="new-password"
+                        required
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
@@ -477,7 +518,7 @@ export const CandidateLogin: React.FC = () => {
                     style={{ flex: 1, justifyContent: 'center' }}
                     disabled={forgotLoading}
                   >
-                    {forgotLoading ? 'Sending Link...' : 'Send Reset Link'}
+                    {forgotLoading ? (forgotCodeSent ? 'Saving...' : 'Sending...') : (forgotCodeSent ? 'Set New Password' : 'Email Me a Code')}
                   </button>
                 </div>
               </form>

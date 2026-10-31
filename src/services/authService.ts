@@ -26,7 +26,6 @@ export interface VerifyOtpPayload {
   channel?: 'EMAIL' | 'MOBILE' | 'ALL';
   emailOtp?: string;
   mobileOtp?: string;
-  firebaseVerified?: boolean;
   purpose?: string;
 }
 
@@ -84,6 +83,34 @@ export const authService = {
     if (!res.ok || !json.success) {
       throw new Error(json.message || 'Failed to resend OTP');
     }
+    return json;
+  },
+
+  /**
+   * Forgot password: email a 6-digit reset code
+   */
+  async requestPasswordReset(email: string) {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || 'Could not send the reset code. Please try again.');
+    return json;
+  },
+
+  /**
+   * Forgot password: set a new password with the emailed code
+   */
+  async confirmPasswordReset(email: string, code: string, newPassword: string) {
+    const res = await fetch(`${API_BASE}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, newPassword }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.errors?.[0]?.message || json.message || 'Password reset failed.');
     return json;
   },
 
